@@ -19,11 +19,12 @@ import {
   Cell
 } from 'recharts';
 
-export default function DashboardStats({ students = [], specialties = [] }) {
+export default function DashboardStats({ students = [], specialties = [], sections = [], teacherReports = [] }) {
   // 1. Calculate metrics
   const totalStudents = students.length;
   const totalDebt = students.reduce((sum, s) => sum + parseFloat(s.totalDebt || 0), 0);
-  const activeLeadsPlaceholder = 18; // Placeholder count for future leads integration
+  const totalSections = sections.length;
+  const totalReports = teacherReports.length;
 
   // 2. Aggregate student distribution by Sector based on specialties
   const sectorCounts = {};
@@ -84,15 +85,27 @@ export default function DashboardStats({ students = [], specialties = [] }) {
           </div>
         </div>
 
-        {/* Widget 3: Ενεργοί Υποψήφιοι (Leads) */}
+        {/* Widget 3: Συνολικά Τμήματα */}
         <div className="metric-card widget-purple">
           <div className="metric-card-content">
-            <p className="metric-label">Ενεργοί Υποψήφιοι (Leads)</p>
-            <h3 className="metric-value">{activeLeadsPlaceholder}</h3>
-            <span className="metric-subtext-badge">Placeholder • Future Leads Coll.</span>
+            <p className="metric-label">Συνολικά Τμήματα</p>
+            <h3 className="metric-value">{totalSections}</h3>
+            <span className="metric-subtext-badge">Ενεργά τμήματα κατάρτισης</span>
           </div>
           <div className="metric-icon-box">
             <UserPlus size={28} />
+          </div>
+        </div>
+
+        {/* Widget 4: Αναφορές Καθηγητών */}
+        <div className="metric-card widget-orange" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white' }}>
+          <div className="metric-card-content">
+            <p className="metric-label" style={{ color: 'rgba(255,255,255,0.9)' }}>Αναφορές Καθηγητών</p>
+            <h3 className="metric-value">{totalReports}</h3>
+            <span className="metric-subtext-badge" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>Υποβεβλημένες δηλώσεις</span>
+          </div>
+          <div className="metric-icon-box" style={{ background: 'rgba(255,255,255,0.2)', color: 'white' }}>
+            <CheckCircle size={28} />
           </div>
         </div>
       </div>

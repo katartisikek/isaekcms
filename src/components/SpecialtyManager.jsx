@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, BookOpen, Layers, X, ChevronRight, Save, Filter } from 'lucide-react';
+import { Plus, Edit2, Trash2, BookOpen, Layers, X, Save, Filter, Users } from 'lucide-react';
 
-export default function SpecialtyManager({ specialties, setSpecialties, courses, setCourses }) {
-  const [activeTab, setActiveTab] = useState('specialties'); // 'specialties' or 'courses'
+export default function SpecialtyManager({ specialties, setSpecialties, courses, setCourses, sections = [], setSections = () => {} }) {
+  const [activeTab, setActiveTab] = useState('specialties'); // 'specialties', 'courses', 'sections'
   const [selectedSpecIdForCourses, setSelectedSpecIdForCourses] = useState('');
   
   // Specialty Form State
@@ -15,7 +15,14 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
   const [isCourseFormOpen, setIsCourseFormOpen] = useState(false);
   const [courseTitle, setCourseTitle] = useState('');
   const [courseSemester, setCourseSemester] = useState('semester1');
-  const [editingCourse, setEditingCourse] = useState(null); // { oldTitle, oldSemester }
+  const [editingCourse, setEditingCourse] = useState(null);
+
+  // Section Form State
+  const [isSectionFormOpen, setIsSectionFormOpen] = useState(false);
+  const [editingSection, setEditingSection] = useState(null);
+  const [sectionName, setSectionName] = useState('');
+  const [sectionSpecialtyId, setSectionSpecialtyId] = useState('');
+  const [sectionSemester, setSectionSemester] = useState('semester1');
 
   const sectors = Array.from(new Set(specialties.map(s => s.sector))).filter(Boolean);
 
@@ -65,6 +72,8 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
         delete next[id];
         return next;
       });
+      // Optional: Delete sections belonging to this specialty? 
+      // setSections(prev => prev.filter(s => s.specialtyId !== id));
     }
   };
 
@@ -127,6 +136,39 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
     }
   };
 
+  // --- Section Actions ---
+  const openSectionForm = (section = null) => {
+    if (section) {
+      setEditingSection(section);
+      setSectionName(section.name);
+      setSectionSpecialtyId(section.specialtyId);
+      setSectionSemester(section.semester || 'semester1');
+    } else {
+      setEditingSection(null);
+      setSectionName('');
+      setSectionSpecialtyId(specialties.length > 0 ? specialties[0].id : '');
+      setSectionSemester('semester1');
+    }
+    setIsSectionFormOpen(true);
+  };
+
+  const handleSaveSection = (e) => {
+    e.preventDefault();
+    if (editingSection) {
+      setSections(prev => prev.map(s => s.id === editingSection.id ? { ...s, name: sectionName, specialtyId: sectionSpecialtyId, semester: sectionSemester } : s));
+    } else {
+      const newId = 'sec_' + Date.now();
+      setSections(prev => [...prev, { id: newId, name: sectionName, specialtyId: sectionSpecialtyId, semester: sectionSemester }]);
+    }
+    setIsSectionFormOpen(false);
+  };
+
+  const handleDeleteSection = (id) => {
+    if (window.confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το τμήμα;')) {
+      setSections(prev => prev.filter(s => s.id !== id));
+    }
+  };
+
   return (
     <div style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
       
@@ -167,6 +209,24 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
         >
           <BookOpen size={18} />
           Διαχείριση Μαθημάτων
+        </button>
+        <button 
+          onClick={() => setActiveTab('sections')}
+          style={{
+            padding: '10px 20px',
+            background: activeTab === 'sections' ? '#eff6ff' : 'transparent',
+            color: activeTab === 'sections' ? '#2563eb' : '#64748b',
+            border: activeTab === 'sections' ? '1px solid #bfdbfe' : '1px solid transparent',
+            borderRadius: '6px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <Users size={18} />
+          Διαχείριση Τμημάτων
         </button>
       </div>
 
@@ -292,6 +352,65 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
         </div>
       )}
 
+      {/* Tab Content: Sections */}
+      {activeTab === 'sections' && (
+        <div className="sys-card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '18px', color: '#1e293b' }}>Ενεργά Τμήματα</h2>
+            <button className="btn-sys primary" onClick={() => openSectionForm()}>
+              <Plus size={16} style={{ marginRight: '6px' }} /> Νέο Τμήμα
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+            {sections.map(section => {
+              const spec = specialties.find(s => s.id === section.specialtyId);
+              const semLabel = section.semester === 'semester1' ? 'Εξάμηνο Α' : 
+                               section.semester === 'semester2' ? 'Εξάμηνο Β' : 
+                               section.semester === 'semester3' ? 'Εξάμηνο Γ' : 
+                               section.semester === 'semester4' ? 'Εξάμηνο Δ' : section.semester;
+              
+              return (
+                <div 
+                  key={section.id} 
+                  style={{ 
+                    padding: '20px', 
+                    border: '1px solid #e2e8f0', 
+                    borderRadius: '8px',
+                    backgroundColor: '#fff',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ fontWeight: '600', color: '#0f172a', fontSize: '16px' }}>{section.name}</div>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button className="btn-sys" style={{ padding: '4px' }} onClick={() => openSectionForm(section)}>
+                        <Edit2 size={14} color="#64748b" />
+                      </button>
+                      <button className="btn-sys" style={{ padding: '4px' }} onClick={() => handleDeleteSection(section.id)}>
+                        <Trash2 size={14} color="#ef4444" />
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <BookOpen size={14} color="#94a3b8" /> {spec ? spec.title : 'Άγνωστη Ειδικότητα'}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Layers size={14} color="#94a3b8" /> {semLabel}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {sections.length === 0 && <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', padding: '20px' }}>Δεν υπάρχουν καταχωρημένα τμήματα.</div>}
+          </div>
+        </div>
+      )}
+
+
       {/* Modal Ειδικότητας */}
       {isSpecFormOpen && (
         <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -301,7 +420,7 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
                 <Layers size={18} color="var(--primary)" />
                 <span>{editingSpec ? 'Επεξεργασία Ειδικότητας' : 'Νέα Ειδικότητα'}</span>
               </div>
-              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }} onClick={() => setIsSpecFormOpen(false)}><X size={18} /></button>
+              <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }} onClick={() => setIsSpecFormOpen(false)}><X size={18} /></button>
             </div>
             <form style={{ padding: '20px' }} onSubmit={handleSaveSpec}>
               <div className="sys-group">
@@ -340,7 +459,7 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
                 <BookOpen size={18} color="var(--primary)" />
                 <span>{editingCourse ? 'Επεξεργασία Μαθήματος' : 'Νέο Μάθημα'}</span>
               </div>
-              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }} onClick={() => setIsCourseFormOpen(false)}><X size={18} /></button>
+              <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }} onClick={() => setIsCourseFormOpen(false)}><X size={18} /></button>
             </div>
             <form style={{ padding: '20px' }} onSubmit={handleSaveCourse}>
               <div className="sys-group">
@@ -370,6 +489,59 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
           </div>
         </div>
       )}
+
+      {/* Modal Τμήματος */}
+      {isSectionFormOpen && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-container" style={{ maxWidth: '400px', width: '100%', background: '#fff', borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+            <div className="modal-header" style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', color: '#0f172a' }}>
+                <Users size={18} color="var(--primary)" />
+                <span>{editingSection ? 'Επεξεργασία Τμήματος' : 'Νέο Τμήμα'}</span>
+              </div>
+              <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }} onClick={() => setIsSectionFormOpen(false)}><X size={18} /></button>
+            </div>
+            <form style={{ padding: '20px' }} onSubmit={handleSaveSection}>
+              <div className="sys-group">
+                <label className="sys-label">Ονομασία Τμήματος</label>
+                <input 
+                  type="text" className="sys-input" required placeholder="π.χ. Α1 - Εσωτερικής Αρχιτεκτονικής"
+                  value={sectionName} onChange={e => setSectionName(e.target.value)} 
+                />
+              </div>
+              <div className="sys-group">
+                <label className="sys-label">Ειδικότητα</label>
+                <select 
+                  className="sys-input" required
+                  value={sectionSpecialtyId} onChange={e => setSectionSpecialtyId(e.target.value)}
+                >
+                  <option value="" disabled>Επιλέξτε Ειδικότητα...</option>
+                  {specialties.map(spec => (
+                    <option key={spec.id} value={spec.id}>{spec.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sys-group">
+                <label className="sys-label">Εξάμηνο</label>
+                <select 
+                  className="sys-input" required
+                  value={sectionSemester} onChange={e => setSectionSemester(e.target.value)}
+                >
+                  <option value="semester1">Εξάμηνο Α</option>
+                  <option value="semester2">Εξάμηνο Β</option>
+                  <option value="semester3">Εξάμηνο Γ</option>
+                  <option value="semester4">Εξάμηνο Δ</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px' }}>
+                <button type="button" className="btn-sys" onClick={() => setIsSectionFormOpen(false)}>Ακύρωση</button>
+                <button type="submit" className="btn-sys primary"><Save size={16} style={{ marginRight: '6px' }}/> Αποθήκευση</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   X, User, Phone, Mail, BookOpen, GraduationCap,
-  Hash, BarChart2, CheckCircle, AlertCircle, Clock, FileText, Download, Fingerprint, CreditCard, Shield, Eye
+  Hash, BarChart2, CheckCircle, AlertCircle, Clock, FileText, Download, Fingerprint, CreditCard, Shield, Eye, Award
 } from 'lucide-react';
 
 const gradeColor = (g) => {
@@ -80,7 +80,15 @@ export default function StudentProfileModal({
               <User size={20} />
             </div>
             <div>
-              <div style={{ fontWeight: '700', fontSize: '1rem' }}>{student.fullName}</div>
+              <div style={{ fontWeight: '700', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {student.fullName}
+                {student.status === 'bek_graduate' && (
+                  <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Award size={12} />
+                    Απόφοιτος ΒΕΚ
+                  </span>
+                )}
+              </div>
               <div style={{ fontSize: '0.75rem', opacity: 0.85 }}>{student.mathitisAr}</div>
             </div>
           </div>
@@ -133,6 +141,38 @@ export default function StudentProfileModal({
                   <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ea580c' }}>{parseFloat(student.totalDebt || 0).toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</div>
                 </div>
               </div>
+
+              {/* BEK Degree Section */}
+              {student.bekDegree && (
+                <div style={{ background: '#fef2f2', padding: '12px', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                  <div style={{ fontSize: '0.7rem', color: '#991b1b', textTransform: 'uppercase', marginBottom: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Award size={12} /> Πτυχίο ΒΕΚ
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', padding: '6px 8px', borderRadius: '4px', border: '1px solid #fca5a5' }}>
+                    <div style={{ fontSize: '0.8rem', color: '#7f1d1d', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={student.bekDegree.name}>
+                      {student.bekDegree.name}
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewDoc(student.bekDegree)}
+                        style={{ color: '#dc2626', background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
+                        title="Προεπισκόπηση Πτυχίου"
+                      >
+                        <Eye size={14} />
+                      </button>
+                      <a 
+                        href={student.bekDegree.data} 
+                        download={student.bekDegree.name}
+                        style={{ color: '#b91c1c', background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
+                        title="Λήψη Πτυχίου"
+                      >
+                        <Download size={14} />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Documents Section */}
               <div style={{ background: '#f0fdfa', padding: '12px', borderRadius: '8px', border: '1px solid #ccfbf1' }}>

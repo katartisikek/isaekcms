@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Search, UserPlus, Folder, FolderOpen, Database, Home, BarChart4, CheckSquare, Plus, Phone, BookOpen, Settings, LogOut, Calendar as CalendarIcon, Clock, MapPin, FileText
+  Search, UserPlus, Folder, FolderOpen, Database, Home, BarChart4, CheckSquare, Plus, Phone, BookOpen, Settings, LogOut, Calendar as CalendarIcon, Clock, MapPin, FileText, GraduationCap
 } from 'lucide-react';
 import StudentTable from './components/StudentTable';
 import StudentFormModal from './components/StudentFormModal';
@@ -16,7 +16,8 @@ import EventFormModal from './components/EventFormModal';
 import LoginScreen from './components/LoginScreen';
 import TeacherPortal from './components/TeacherPortal';
 import AdminGradesView from './components/AdminGradesView';
-import { SEED_SPECIALTIES, INITIAL_STUDENTS, INITIAL_TASKS, INITIAL_CONTACTS, COURSES_BY_SPECIALTY, INITIAL_GRADES } from './mockData';
+import AdminTeacherReportsView from './components/AdminTeacherReportsView';
+import { SEED_SPECIALTIES, INITIAL_STUDENTS, INITIAL_TASKS, INITIAL_CONTACTS, COURSES_BY_SPECIALTY, INITIAL_GRADES, INITIAL_SECTIONS } from './mockData';
 
 export default function App() {
   // 1. Core Data State
@@ -179,6 +180,16 @@ export default function App() {
     return INITIAL_GRADES || [];
   });
 
+  const [teacherReports, setTeacherReports] = useState(() => {
+    const saved = localStorage.getItem('isaek_teacher_reports');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [sections, setSections] = useState(() => {
+    const saved = localStorage.getItem('isaek_sections');
+    return saved ? JSON.parse(saved) : INITIAL_SECTIONS;
+  });
+
   // Save to LocalStorage
   useEffect(() => {
     localStorage.setItem('isaek_students', JSON.stringify(students));
@@ -194,12 +205,20 @@ export default function App() {
   }, [courses]);
 
   useEffect(() => {
+    localStorage.setItem('isaek_sections', JSON.stringify(sections));
+  }, [sections]);
+
+  useEffect(() => {
     localStorage.setItem('isaek_events', JSON.stringify(events));
   }, [events]);
 
   useEffect(() => {
     localStorage.setItem('isaek_absences', JSON.stringify(absences));
   }, [absences]);
+
+  useEffect(() => {
+    localStorage.setItem('isaek_teacher_reports', JSON.stringify(teacherReports));
+  }, [teacherReports]);
 
   useEffect(() => {
     localStorage.setItem('isaek_grades', JSON.stringify(grades));
@@ -234,15 +253,27 @@ export default function App() {
       if (selectedSpecialty && student.specialtyId !== selectedSpecialty) return false;
 
       if (searchQuery.trim() !== '') {
-        const q = searchQuery.toLowerCase().trim();
-        const nameMatch = student.fullName.toLowerCase().includes(q);
-        const phoneMatch = student.phone.includes(q);
-        if (!nameMatch && !phoneMatch) return false;
+        const normalizeGreek = (str) => {
+          if (!str) return '';
+          return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        };
+        const q = normalizeGreek(searchQuery.trim());
+        
+        const nameMatch = normalizeGreek(student.fullName).includes(q);
+        const phoneMatch = student.phone ? student.phone.includes(q) : false;
+        const amkaMatch = student.amka ? student.amka.includes(q) : false;
+        const afmMatch = student.afm ? student.afm.includes(q) : false;
+        const idMatch = student.idNumber ? normalizeGreek(student.idNumber).includes(q) : false;
+        
+        if (!nameMatch && !phoneMatch && !amkaMatch && !afmMatch && !idMatch) return false;
       }
+
+      if (currentView === 'bek_graduates' && student.status !== 'bek_graduate') return false;
+      if (currentView === 'students' && student.status === 'bek_graduate') return false;
 
       return true;
     });
-  }, [students, specialties, selectedSector, selectedSpecialty, searchQuery]);
+  }, [students, specialties, selectedSector, selectedSpecialty, searchQuery, currentView]);
 
   // Calculated totals for statusbar
   const totals = useMemo(() => {
@@ -428,6 +459,10 @@ export default function App() {
         setAbsences={setAbsences}
         grades={grades}
         setGrades={setGrades}
+        teacherReports={teacherReports}
+        setTeacherReports={setTeacherReports}
+        sections={sections}
+        courses={courses}
         onLogout={handleLogout}
       />
     );
@@ -632,7 +667,12 @@ export default function App() {
                     <BarChart4 size={20} color="var(--primary)" />
                     Συνολική Στατιστική Εικόνα
                   </h2>
-                  <DashboardStats students={students} specialties={specialties} />
+                  <DashboardStats 
+                    students={students} 
+                    specialties={specialties} 
+                    sections={sections}
+                    teacherReports={teacherReports}
+                  />
                 </div>
                 
                 {/* Modules Navigation Box */}
@@ -782,6 +822,18 @@ export default function App() {
                 <span>Βάση Σπουδαστών</span>
               </li>
               <li 
+                className={`sector-item ${currentView === 'bek_graduates' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentView('bek_graduates');
+                  setSelectedSector('');
+                  setSelectedSpecialty('');
+                  setShowStartScreen(false);
+                }}
+              >
+                <GraduationCap size={14} />
+                <span>Απόφοιτοι ΒΕΚ</span>
+              </li>
+              <li 
                 className={`sector-item ${currentView === 'tasks' ? 'active' : ''}`}
                 onClick={() => {
                   setCurrentView('tasks');
@@ -810,6 +862,16 @@ export default function App() {
               >
                 <CalendarIcon size={14} />
                 <span>Ημερολόγιο (Πρόγραμμα)</span>
+              </li>
+              <li 
+                className={`sector-item ${currentView === 'teacher_reports' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentView('teacher_reports');
+                  setShowStartScreen(false);
+                }}
+              >
+                <FileText size={14} />
+                <span>Αναφορές Καθηγητών</span>
               </li>
               <li 
                 className={`sector-item ${currentView === 'grades' ? 'active' : ''}`}
@@ -853,7 +915,12 @@ export default function App() {
 
               {/* Key Metrics Widgets & Analytics Chart Panel */}
               {showAnalytics && (
-                <DashboardStats students={students} specialties={specialties} />
+                <DashboardStats 
+                  students={students} 
+                  specialties={specialties} 
+                  sections={sections}
+                  teacherReports={teacherReports}
+                />
               )}
 
               <div className="desktop-grid-container">
@@ -863,6 +930,29 @@ export default function App() {
                   onViewProfile={handleViewProfile}
                   onEdit={handleEditClick}
                   onDelete={handleDeleteClick}
+                />
+              </div>
+            </div>
+          )}
+
+          {currentView === 'bek_graduates' && (
+            <div className="desktop-content">
+              <div className="grid-header">
+                <span className="grid-title">
+                  Απόφοιτοι ΒΕΚ {selectedSector ? `» ${selectedSector}` : '» Όλοι οι Τομείς'}
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                  Εμφανίζονται {filteredStudents.length} απόφοιτοι
+                </span>
+              </div>
+              <div className="desktop-grid-container">
+                <StudentTable
+                  students={filteredStudents}
+                  specialties={specialties}
+                  onViewProfile={handleViewProfile}
+                  onEdit={handleEditClick}
+                  onDelete={handleDeleteClick}
+                  isBekView={true}
                 />
               </div>
             </div>
@@ -904,6 +994,16 @@ export default function App() {
             </div>
           )}
 
+          {currentView === 'teacher_reports' && (
+            <div className="desktop-content" style={{ padding: '12px', background: '#f8fafc' }}>
+              <AdminTeacherReportsView 
+                reports={teacherReports}
+                students={students}
+                specialties={specialties}
+              />
+            </div>
+          )}
+
           {currentView === 'grades' && (
             <div className="desktop-content" style={{ padding: '12px', background: '#f8fafc' }}>
               <AdminGradesView 
@@ -922,6 +1022,8 @@ export default function App() {
                 setSpecialties={setSpecialties}
                 courses={courses}
                 setCourses={setCourses}
+                sections={sections}
+                setSections={setSections}
               />
             </div>
           )}
@@ -946,6 +1048,7 @@ export default function App() {
         onSubmit={handleFormSubmit}
         student={editingStudent}
         specialties={specialties}
+        sections={sections}
       />
 
       {/* Student Profile (Grades & Absences) Modal */}

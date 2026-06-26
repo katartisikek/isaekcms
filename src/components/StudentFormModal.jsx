@@ -6,7 +6,8 @@ export default function StudentFormModal({
   onClose, 
   onSubmit, 
   student = null, 
-  specialties = [] 
+  specialties = [],
+  sections = []
 }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -14,9 +15,12 @@ export default function StudentFormModal({
   const [afm, setAfm] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [documents, setDocuments] = useState([]);
+  const [status, setStatus] = useState('active');
+  const [bekDegree, setBekDegree] = useState(null);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [specialtyId, setSpecialtyId] = useState('');
+  const [sectionId, setSectionId] = useState('');
   const [year, setYear] = useState('1ο Έτος');
   const [mathitisAr, setMathitisAr] = useState('');
   const [totalDebt, setTotalDebt] = useState(0);
@@ -41,9 +45,12 @@ export default function StudentFormModal({
       setAfm(student.afm || '');
       setIdNumber(student.idNumber || '');
       setDocuments(student.documents || []);
+      setStatus(student.status || 'active');
+      setBekDegree(student.bekDegree || null);
       setPhone(student.phone || '');
       setEmail(student.email || '');
       setSpecialtyId(student.specialtyId || '');
+      setSectionId(student.sectionId || '');
       setYear(student.year || '1ο Έτος');
       setMathitisAr(student.mathitisAr || '');
       setTotalDebt(student.totalDebt || 0);
@@ -62,9 +69,12 @@ export default function StudentFormModal({
       setAfm('');
       setIdNumber('');
       setDocuments([]);
+      setStatus('active');
+      setBekDegree(null);
       setPhone('');
       setEmail('');
       setSpecialtyId(specialties.length > 0 ? specialties[0].id : '');
+      setSectionId('');
       setYear('1ο Έτος');
       setMathitisAr('');
       setTotalDebt(0);
@@ -148,6 +158,31 @@ export default function StudentFormModal({
     setDocuments(prev => prev.filter(d => d.id !== docId));
   };
 
+  const handleBekDegreeUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert(`Το αρχείο ${file.name} είναι πολύ μεγάλο (όριο 2MB).`);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setBekDegree({
+        id: 'bek_' + Date.now(),
+        name: file.name,
+        type: file.type,
+        data: ev.target.result
+      });
+      setStatus('bek_graduate'); // Auto-update status
+    };
+    reader.readAsDataURL(file);
+    e.target.value = null;
+  };
+
+  const removeBekDegree = () => {
+    setBekDegree(null);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -207,9 +242,12 @@ export default function StudentFormModal({
       afm: afm.trim(),
       idNumber: idNumber.trim(),
       documents: documents,
+      status: status,
+      bekDegree: bekDegree,
       phone: phone.trim(),
       email: email.trim(),
       specialtyId,
+      sectionId,
       year: year,
       mathitisAr: mathitisAr.trim(),
       totalDebt: parseFloat(totalDebt) || 0,
@@ -420,6 +458,32 @@ export default function StudentFormModal({
               )}
             </div>
 
+            {/* Section / Τμήμα */}
+            <div className="sys-group">
+              <label className="sys-label" htmlFor="section">
+                Τμήμα
+              </label>
+              <div style={{ position: 'relative' }}>
+                <select
+                  id="section"
+                  className="sys-input"
+                  value={sectionId}
+                  onChange={(e) => setSectionId(e.target.value)}
+                  style={{ width: '100%', paddingLeft: '26px', cursor: 'pointer' }}
+                >
+                  <option value="">-- Χωρίς Τμήμα --</option>
+                  {sections
+                    .filter(sec => !specialtyId || sec.specialtyId === specialtyId)
+                    .map((sec) => (
+                      <option key={sec.id} value={sec.id}>
+                        {sec.name}
+                      </option>
+                  ))}
+                </select>
+                <BookOpen size={12} color="#94a3b8" style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              </div>
+            </div>
+
             {/* Year of study & Registration number */}
             <div className="grid-2">
               <div className="sys-group">
@@ -449,6 +513,55 @@ export default function StudentFormModal({
                   onChange={(e) => setMathitisAr(e.target.value)}
                   style={{ width: '100%' }}
                 />
+              </div>
+            </div>
+
+            {/* Status & BEK Degree */}
+            <div className="grid-2">
+              <div className="sys-group">
+                <label className="sys-label">Κατάσταση Σπουδαστή</label>
+                <select
+                  className="sys-input"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  style={{ width: '100%', paddingLeft: '12px' }}
+                >
+                  <option value="active">Ενεργός</option>
+                  <option value="bek_graduate">Απόφοιτος ΒΕΚ</option>
+                </select>
+              </div>
+
+              <div className="sys-group">
+                <label className="sys-label" htmlFor="bekDegreeUpload">
+                  Πτυχίο ΒΕΚ (Αρχείο)
+                </label>
+                {!bekDegree ? (
+                  <input
+                    id="bekDegreeUpload"
+                    type="file"
+                    accept="image/png, image/jpeg, application/pdf"
+                    className="sys-input"
+                    onChange={handleBekDegreeUpload}
+                    style={{ width: '100%' }}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                      <FileText size={14} color="#dc2626" style={{ flexShrink: 0 }} />
+                      <span style={{ fontSize: '13px', color: '#991b1b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {bekDegree.name}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeBekDegree}
+                      style={{ background: 'transparent', border: 'none', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' }}
+                      title="Διαγραφή"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 

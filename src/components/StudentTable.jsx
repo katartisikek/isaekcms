@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Trash2, FileText, AlertCircle, Award } from 'lucide-react';
+import { Edit2, Trash2, FileText, AlertCircle, Award, GraduationCap } from 'lucide-react';
 
 export default function StudentTable({ students = [], specialties = [], onViewProfile, onEdit, onDelete }) {
   
@@ -59,6 +59,12 @@ export default function StudentTable({ students = [], specialties = [], onViewPr
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', color: '#1f2937' }}>
                         <span>{student.fullName}</span>
+                        {student.status === 'bek_graduate' && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', background: '#dbeafe', color: '#1d4ed8', padding: '2px 6px', borderRadius: '12px' }} title="Απόφοιτος ΒΕΚ">
+                            <GraduationCap size={10} />
+                            ΒΕΚ
+                          </span>
+                        )}
                         {student.notes && (
                           <FileText size={12} color="#3b82f6" title={student.notes} />
                         )}
