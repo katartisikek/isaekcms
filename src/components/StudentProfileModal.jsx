@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   X, User, Phone, Mail, BookOpen, GraduationCap,
-  Hash, BarChart2, CheckCircle, AlertCircle, Clock, FileText, Download, Fingerprint, CreditCard, Shield
+  Hash, BarChart2, CheckCircle, AlertCircle, Clock, FileText, Download, Fingerprint, CreditCard, Shield, Eye
 } from 'lucide-react';
 
 const gradeColor = (g) => {
@@ -26,6 +26,8 @@ export default function StudentProfileModal({
     () => specialties.find((s) => s.id === student?.specialtyId),
     [specialties, student]
   );
+  
+  const [previewDoc, setPreviewDoc] = useState(null);
 
   if (!isOpen || !student) return null;
 
@@ -146,14 +148,24 @@ export default function StudentProfileModal({
                         <div style={{ fontSize: '0.8rem', color: '#134e4a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={doc.name}>
                           {doc.name}
                         </div>
-                        <a 
-                          href={doc.data} 
-                          download={doc.name}
-                          style={{ color: '#0d9488', background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
-                          title="Λήψη Αρχείου"
-                        >
-                          <Download size={14} />
-                        </a>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewDoc(doc)}
+                            style={{ color: '#0f766e', background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
+                            title="Προεπισκόπηση"
+                          >
+                            <Eye size={14} />
+                          </button>
+                          <a 
+                            href={doc.data} 
+                            download={doc.name}
+                            style={{ color: '#0d9488', background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
+                            title="Λήψη Αρχείου"
+                          >
+                            <Download size={14} />
+                          </a>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -222,6 +234,29 @@ export default function StudentProfileModal({
           </button>
         </div>
       </div>
+
+      {/* Document Preview Overlay */}
+      {previewDoc && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '100%', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ color: '#fff', fontSize: '1rem', fontWeight: '500', marginLeft: '24px' }}>
+              Προεπισκόπηση: {previewDoc.name}
+            </div>
+            <button onClick={() => setPreviewDoc(null)} style={{ background: '#ef4444', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginRight: '24px' }}>
+              <X size={20} color="#fff" />
+            </button>
+          </div>
+          <div style={{ flex: 1, width: '90%', maxWidth: '1000px', display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: '20px' }}>
+            {previewDoc.type.startsWith('image/') ? (
+              <img src={previewDoc.data} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }} alt="Preview" />
+            ) : previewDoc.type === 'application/pdf' ? (
+              <iframe src={previewDoc.data} style={{ width: '100%', height: '100%', border: 'none', background: '#fff', borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }} title="PDF Preview" />
+            ) : (
+              <div style={{ color: '#fff' }}>Μη υποστηριζόμενος τύπος αρχείου για προεπισκόπηση. Παρακαλώ κατεβάστε το.</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
