@@ -18,6 +18,10 @@ export default function StudentTable({ students = [], specialties = [], onViewPr
     };
   };
 
+  const sortedStudents = [...students].sort((a, b) => 
+    (a.fullName || '').localeCompare(b.fullName || '', 'el')
+  );
+
   return (
     <div style={{ height: '100%', width: '100%' }}>
       {students.length === 0 ? (
@@ -39,7 +43,7 @@ export default function StudentTable({ students = [], specialties = [], onViewPr
             </tr>
           </thead>
           <tbody>
-            {students.map((student) => {
+            {sortedStudents.map((student) => {
               const { title, sector } = getSpecialtyDetails(student.specialtyId);
               const totalDebt = parseFloat(student.totalDebt || 0);
               const installments = parseInt(student.numberOfInstallments || 1, 10);

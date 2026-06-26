@@ -25,7 +25,7 @@ export const INITIAL_STUDENTS = [
   // === ΕΣΩΤΕΡΙΚΗ ΑΡΧΙΤΕΚΤΟΝΙΚΗ ΔΙΑΚΟΣΜΗΣΗ - 2ο ΕΤΟΣ ===
   {
     "id": "stud_1",
-    "fullName": "Αναστασία Αποστολάκη",
+    "fullName": "Αποστολάκη Αναστασία",
     "phone": "6980272629",
     "email": "apostolakiana18@gmail.com",
     "specialtyId": "spec_11",
@@ -38,7 +38,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_2",
-    "fullName": "Μαρία Αρφανάκη",
+    "fullName": "Αρφανάκη Μαρία",
     "phone": "6943744160",
     "email": "mariaarf02@gmail.com",
     "specialtyId": "spec_11",
@@ -51,7 +51,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_3",
-    "fullName": "Φωτεινή Βασιλειάδη",
+    "fullName": "Βασιλειάδη Φωτεινή",
     "phone": "6931835451",
     "email": "fotvas98@gmail.com",
     "specialtyId": "spec_11",
@@ -64,7 +64,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_4",
-    "fullName": "Ελένη Γεωργιουδάκη",
+    "fullName": "Γεωργιουδάκη Ελένη",
     "phone": "6946443770",
     "email": "el.georgioudaki@gmail.com",
     "specialtyId": "spec_11",
@@ -77,7 +77,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_5",
-    "fullName": "Ραφαέλα Δασκαλάκη - Ιεραπετριτάκη",
+    "fullName": "Ιεραπετριτάκη Ραφαέλα Δασκαλάκη -",
     "phone": "6947489270",
     "email": "raphaelaierapetritake@gmail.com",
     "specialtyId": "spec_11",
@@ -90,7 +90,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_6",
-    "fullName": "Νικόλαος Ζαχαράκης",
+    "fullName": "Ζαχαράκης Νικόλαος",
     "phone": "6951734324",
     "email": "nikoszaxarakhs96@yahoo.gr",
     "specialtyId": "spec_11",
@@ -103,7 +103,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_7",
-    "fullName": "Βασιλική Φαρσάρη",
+    "fullName": "Φαρσάρη Βασιλική",
     "phone": "6986849556",
     "email": "farsaryvasiliky@gmail.com",
     "specialtyId": "spec_11",
@@ -116,7 +116,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_8",
-    "fullName": "Στυλιανή Φραγκιαδάκη",
+    "fullName": "Φραγκιαδάκη Στυλιανή",
     "phone": "6986697472",
     "email": "stellafragkiadaki23@gmail.com",
     "specialtyId": "spec_11",
@@ -131,7 +131,7 @@ export const INITIAL_STUDENTS = [
   // === ΤΕΧΝΙΚΟΣ ΑΡΤΟΠΟΙΙΑΣ & ΖΑΧΑΡΟΠΛΑΣΤΙΚΗΣ - 1ο ΕΤΟΣ ===
   {
     "id": "stud_20",
-    "fullName": "Ειρήνη Ανδριανάκη",
+    "fullName": "Ανδριανάκη Ειρήνη",
     "phone": "6973805890",
     "email": "iriniandrianaki@gmail.com",
     "specialtyId": "spec_13",
@@ -144,7 +144,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_21",
-    "fullName": "Γεωργία Βελόγλου",
+    "fullName": "Βελόγλου Γεωργία",
     "phone": "6987666484",
     "email": "georgiaveloglou05@gmail.com",
     "specialtyId": "spec_13",
@@ -157,7 +157,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_22",
-    "fullName": "Μαρία-Μαρίνα Καλαφάτη",
+    "fullName": "Καλαφάτη Μαρία-Μαρίνα",
     "phone": "6989801222",
     "email": "merinakalafati33@gmail.com",
     "specialtyId": "spec_13",
@@ -170,7 +170,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_23",
-    "fullName": "Κωνσταντίνα Μανωλακάκη",
+    "fullName": "Μανωλακάκη Κωνσταντίνα",
     "phone": "6949909988",
     "email": "konstantinaman07@gmail.com",
     "specialtyId": "spec_13",
@@ -183,7 +183,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_24",
-    "fullName": "Γαλάτεια Ντισπυράκη",
+    "fullName": "Ντισπυράκη Γαλάτεια",
     "phone": "6976024153",
     "email": "galateiant@gmail.com",
     "specialtyId": "spec_13",
@@ -196,7 +196,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_25",
-    "fullName": "Ειρήνη Παρασύρη",
+    "fullName": "Παρασύρη Ειρήνη",
     "phone": "6986783854",
     "email": "parasirieirini2007@gmail.com",
     "specialtyId": "spec_13",
@@ -209,7 +209,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_26",
-    "fullName": "Μαρία Τζανιδάκη",
+    "fullName": "Τζανιδάκη Μαρία",
     "phone": "6974068149",
     "email": "tzanidama@yahoo.gr",
     "specialtyId": "spec_13",
@@ -222,7 +222,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_27",
-    "fullName": "Μαριλένα Χρηστάκη",
+    "fullName": "Χρηστάκη Μαριλένα",
     "phone": "6945766487",
     "email": "christakim2007@gmail.com",
     "specialtyId": "spec_13",
@@ -235,7 +235,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_28",
-    "fullName": "Ζαχαρένια Λιουδάκη",
+    "fullName": "Λιουδάκη Ζαχαρένια",
     "phone": "6940584115",
     "email": "zaxarenialiou@gmail.com",
     "specialtyId": "spec_13",
@@ -250,7 +250,7 @@ export const INITIAL_STUDENTS = [
   // === ΤΕΧΝΙΚΟΣ ΑΡΤΟΠΟΙΙΑΣ & ΖΑΧΑΡΟΠΛΑΣΤΙΚΗΣ - 2ο ΕΤΟΣ ===
   {
     "id": "stud_30",
-    "fullName": "Σοφία Αναργύρη Αλεξή",
+    "fullName": "Αλεξή Σοφία Αναργύρη",
     "phone": "6974170536",
     "email": "sophiaaalexe@gmail.com",
     "specialtyId": "spec_13",
@@ -263,7 +263,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_31",
-    "fullName": "Στυλιανή-Γεωργία Γεωργαντωνάκη",
+    "fullName": "Γεωργαντωνάκη Στυλιανή-Γεωργία",
     "phone": "6978474740",
     "email": "sgeorgantonaki@gmail.com",
     "specialtyId": "spec_13",
@@ -276,7 +276,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_32",
-    "fullName": "Γιάννης Ελληνικάκης",
+    "fullName": "Ελληνικάκης Γιάννης",
     "phone": "6986405541",
     "email": "giannisellinikakis511@gmail.com",
     "specialtyId": "spec_13",
@@ -289,7 +289,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_33",
-    "fullName": "Βασίλειος Καρατζής",
+    "fullName": "Καρατζής Βασίλειος",
     "phone": "6978161053",
     "email": "vasiliskarantz@gmail.com",
     "specialtyId": "spec_13",
@@ -302,7 +302,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_34",
-    "fullName": "Μαρία Κουμάκη",
+    "fullName": "Κουμάκη Μαρία",
     "phone": "6985725551",
     "email": "makoumaki@gmail.com",
     "specialtyId": "spec_13",
@@ -315,7 +315,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_35",
-    "fullName": "Σταύρος Κουναλάκης",
+    "fullName": "Κουναλάκης Σταύρος",
     "phone": "6946868881",
     "email": "stauroskoun@hotmail.com",
     "specialtyId": "spec_13",
@@ -328,7 +328,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_36",
-    "fullName": "Μιχάλης Κυπραίος",
+    "fullName": "Κυπραίος Μιχάλης",
     "phone": "6944098848",
     "email": "michaleskypraios492@gmail.com",
     "specialtyId": "spec_13",
@@ -341,7 +341,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_37",
-    "fullName": "Φιλοξένη Μαλλιωτάκη",
+    "fullName": "Μαλλιωτάκη Φιλοξένη",
     "phone": "6993928303",
     "email": "malliotxenia@gmail.com",
     "specialtyId": "spec_13",
@@ -354,7 +354,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_38",
-    "fullName": "Γεώργιος Σκορδύλης",
+    "fullName": "Σκορδύλης Γεώργιος",
     "phone": "6949917351",
     "email": "giwrgosskordulhs@gmail.com",
     "specialtyId": "spec_13",
@@ -367,7 +367,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_39",
-    "fullName": "Γεωργία Σκούλα",
+    "fullName": "Σκούλα Γεωργία",
     "phone": "6943445469",
     "email": "georgia.sk1708@gmail.com",
     "specialtyId": "spec_13",
@@ -382,7 +382,7 @@ export const INITIAL_STUDENTS = [
   // === ΤΕΧΝΙΚΟΣ ΑΡΤΟΠΟΙΙΑΣ & ΖΑΧΑΡΟΠΛΑΣΤΙΚΗΣ - ΑΠΟΦΟΙΤΟΙ 2023Β ===
   {
     "id": "stud_40",
-    "fullName": "Χρήστος Γιακουμάκης",
+    "fullName": "Γιακουμάκης Χρήστος",
     "phone": "6973800907",
     "email": "annakotridou@yahoo.gr",
     "specialtyId": "spec_13",
@@ -395,7 +395,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_41",
-    "fullName": "Ελένη Μαραγκάκη",
+    "fullName": "Μαραγκάκη Ελένη",
     "phone": "6971911553",
     "email": "eleni75maragkaki@gmail.com",
     "specialtyId": "spec_13",
@@ -408,7 +408,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_42",
-    "fullName": "Μαρία Παπαβασιλείου",
+    "fullName": "Παπαβασιλείου Μαρία",
     "phone": "6988607936",
     "email": "maria_papadmm@yahoo.gr",
     "specialtyId": "spec_13",
@@ -421,7 +421,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_43",
-    "fullName": "Παρασκευή Αγγελική Παρασύρη",
+    "fullName": "Παρασύρη Παρασκευή Αγγελική",
     "phone": "6947161430",
     "email": "vikiparasiri@gmail.com",
     "specialtyId": "spec_13",
@@ -434,7 +434,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_44",
-    "fullName": "Γεώργιος Περάκης",
+    "fullName": "Περάκης Γεώργιος",
     "phone": "6949227372",
     "email": "perakisg@gmail.com",
     "specialtyId": "spec_13",
@@ -447,7 +447,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_45",
-    "fullName": "Γεώργιος Σεληθωμάς",
+    "fullName": "Σεληθωμάς Γεώργιος",
     "phone": "6984586165",
     "email": "selithomasgiorgos@gmail.com",
     "specialtyId": "spec_13",
@@ -460,7 +460,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_46",
-    "fullName": "Εμμανουήλ Σπαντιδάκης",
+    "fullName": "Σπαντιδάκης Εμμανουήλ",
     "phone": "6972517203",
     "email": "manolesspantidakes@gmail.com",
     "specialtyId": "spec_13",
@@ -473,7 +473,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_47",
-    "fullName": "Στυλιανή Τζωρτζάκη",
+    "fullName": "Τζωρτζάκη Στυλιανή",
     "phone": "6941447919",
     "email": "tzortzakistella5@gmail.com",
     "specialtyId": "spec_13",
@@ -488,7 +488,7 @@ export const INITIAL_STUDENTS = [
   // === ΤΕΧΝΙΚΟΣ ΜΑΓΕΙΡΙΚΗΣ ΤΕΧΝΗΣ - 1ο ΕΤΟΣ ===
   {
     "id": "stud_50",
-    "fullName": "Γεώργιος Χριστοδουλάκης",
+    "fullName": "Χριστοδουλάκης Γεώργιος",
     "phone": "6988281254",
     "email": "christodoulakesgiorgos57@gmail.com",
     "specialtyId": "spec_12",
@@ -501,7 +501,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_51",
-    "fullName": "Αντώνιος Σκουμπάκης",
+    "fullName": "Σκουμπάκης Αντώνιος",
     "phone": "6942286531",
     "email": "askoumpakis20@gmail.com",
     "specialtyId": "spec_12",
@@ -516,7 +516,7 @@ export const INITIAL_STUDENTS = [
   // === ΤΕΧΝΙΚΟΣ ΜΑΓΕΙΡΙΚΗΣ ΤΕΧΝΗΣ - ΑΠΟΦΟΙΤΟΙ 2023Β ===
   {
     "id": "stud_60",
-    "fullName": "Naze Fecanji",
+    "fullName": "Fecanji Naze",
     "phone": "6906851518",
     "email": "nazefecanji@gmail.com",
     "specialtyId": "spec_12",
@@ -529,7 +529,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_61",
-    "fullName": "Δημήτριος Λίτσης",
+    "fullName": "Λίτσης Δημήτριος",
     "phone": "6940332546",
     "email": "Demetreslitses@gmail.com",
     "specialtyId": "spec_12",
@@ -542,7 +542,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_62",
-    "fullName": "Βασιλική Μανταφάρα",
+    "fullName": "Μανταφάρα Βασιλική",
     "phone": "6976616585",
     "email": "basomad@gmail.com",
     "specialtyId": "spec_12",
@@ -555,7 +555,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_63",
-    "fullName": "Μιχαήλ Μαράκης",
+    "fullName": "Μαράκης Μιχαήλ",
     "phone": "6970651783",
     "email": "mixalismarakis2005@gmail.com",
     "specialtyId": "spec_12",
@@ -568,7 +568,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_64",
-    "fullName": "Μιχαήλ Μυλωνάκης",
+    "fullName": "Μυλωνάκης Μιχαήλ",
     "phone": "6934025019",
     "email": "mmylonakis2004@gmail.com",
     "specialtyId": "spec_12",
@@ -581,7 +581,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_65",
-    "fullName": "Ελευθέριος Ταταρής",
+    "fullName": "Ταταρής Ελευθέριος",
     "phone": "6973549071",
     "email": "tataris2@yahoo.gr",
     "specialtyId": "spec_12",
@@ -594,7 +594,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_66",
-    "fullName": "Δημήτριος Τσαφαντάκης",
+    "fullName": "Τσαφαντάκης Δημήτριος",
     "phone": "6932736849",
     "email": "tsafantakisd@gmail.com",
     "specialtyId": "spec_12",
@@ -607,7 +607,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_67",
-    "fullName": "Μαρίνα Φουναργιωτάκη",
+    "fullName": "Φουναργιωτάκη Μαρίνα",
     "phone": "6975793246",
     "email": "marinafounargiotaki10@gmail.com",
     "specialtyId": "spec_12",
@@ -622,7 +622,7 @@ export const INITIAL_STUDENTS = [
   // === ΣΤΕΛΕΧΟΣ ΥΠΗΡΕΣΙΩΝ ΑΕΡΟΜΕΤΑΦΟΡΑΣ - 2ο ΕΤΟΣ ===
   {
     "id": "stud_70",
-    "fullName": "Μαρία Μανωλακάκη",
+    "fullName": "Μανωλακάκη Μαρία",
     "phone": "6947841222",
     "email": "manolakakimaria@yahoo.gr",
     "specialtyId": "spec_16",
@@ -635,7 +635,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_71",
-    "fullName": "Μαρία Μαραγκάκη",
+    "fullName": "Μαραγκάκη Μαρία",
     "phone": "6937357077",
     "email": "mariamaragkaki@yahoo.gr",
     "specialtyId": "spec_16",
@@ -648,7 +648,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_72",
-    "fullName": "Κωνσταντίνα Σμυρνάκη",
+    "fullName": "Σμυρνάκη Κωνσταντίνα",
     "phone": "6978163340",
     "email": "nantiasmirnaki@gmail.com",
     "specialtyId": "spec_16",
@@ -661,7 +661,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_73",
-    "fullName": "Ουρανία Σταματάκη",
+    "fullName": "Σταματάκη Ουρανία",
     "phone": "6986184307",
     "email": "rania.stamatakiiii@gmail.com",
     "specialtyId": "spec_16",
@@ -674,7 +674,7 @@ export const INITIAL_STUDENTS = [
   },
   {
     "id": "stud_74",
-    "fullName": "Αντώνιος Σταματάκης",
+    "fullName": "Σταματάκης Αντώνιος",
     "phone": "6943696191",
     "email": "antonis.stamatakis2@yahoo.com",
     "specialtyId": "spec_16",
@@ -689,7 +689,7 @@ export const INITIAL_STUDENTS = [
   // === ΣΤΕΛΕΧΟΣ ΔΙΟΙΚΗΣΗΣ ΚΑΙ ΟΙΚΟΝΟΜΙΑΣ ===
   {
     "id": "stud_80",
-    "fullName": "Δημήτρης Παπαδομανωλάκης",
+    "fullName": "Παπαδομανωλάκης Δημήτρης",
     "phone": "6945452188",
     "email": "dpapadomanolakis@uniwa.gr",
     "specialtyId": "spec_7",

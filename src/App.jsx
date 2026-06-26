@@ -24,7 +24,7 @@ export default function App() {
     const saved = localStorage.getItem('isaek_students');
     const dataVersion = localStorage.getItem('isaek_data_version');
     // If version doesn't match, use fresh seed data
-    if (saved && dataVersion === '4.0') {
+    if (saved && dataVersion === '5.0') {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -182,20 +182,12 @@ export default function App() {
   // Save to LocalStorage
   useEffect(() => {
     localStorage.setItem('isaek_students', JSON.stringify(students));
-    localStorage.setItem('isaek_data_version', '4.0');
-  }, [students]);
-
-  useEffect(() => {
-    localStorage.setItem('isaek_tasks', JSON.stringify(tasks));
-  }, [tasks]);
-
-  useEffect(() => {
-    localStorage.setItem('isaek_contacts', JSON.stringify(contacts));
-  }, [contacts]);
-
-  useEffect(() => {
     localStorage.setItem('isaek_specialties', JSON.stringify(specialties));
-  }, [specialties]);
+    localStorage.setItem('isaek_tasks', JSON.stringify(tasks));
+    localStorage.setItem('isaek_contacts', JSON.stringify(contacts));
+    localStorage.setItem('isaek_grades', JSON.stringify(grades));
+    localStorage.setItem('isaek_data_version', '5.0');
+  }, [students, specialties, tasks, contacts, grades]);
 
   useEffect(() => {
     localStorage.setItem('isaek_courses', JSON.stringify(courses));
