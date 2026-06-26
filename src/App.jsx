@@ -17,134 +17,46 @@ import LoginScreen from './components/LoginScreen';
 import TeacherPortal from './components/TeacherPortal';
 import AdminGradesView from './components/AdminGradesView';
 import AdminTeacherReportsView from './components/AdminTeacherReportsView';
-import { SEED_SPECIALTIES, INITIAL_STUDENTS, INITIAL_TASKS, INITIAL_CONTACTS, COURSES_BY_SPECIALTY, INITIAL_GRADES, INITIAL_SECTIONS } from './mockData';
+import { api } from './services/api';
+import { syncLocalDataToCloud } from './services/syncData';
+import { Loader2, RefreshCw } from 'lucide-react';
 
 export default function App() {
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+
   // 1. Core Data State
-  const [students, setStudents] = useState(() => {
-    const saved = localStorage.getItem('isaek_students');
-    const dataVersion = localStorage.getItem('isaek_data_version');
-    // If version doesn't match, use fresh seed data
-    if (saved && dataVersion === '5.0') {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error parsing saved students, falling back to seed data:', e);
-      }
-    }
-    return INITIAL_STUDENTS;
-  });
+  const [students, setStudents] = useState([]);
+  const [specialties, setSpecialties] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [contacts, setContacts] = useState([]);
+  const [courses, setCourses] = useState({});
+  const [events, setEvents] = useState([]);
+  const [absences, setAbsences] = useState([]);
+  const [grades, setGrades] = useState([]);
+  const [teacherReports, setTeacherReports] = useState([]);
+  const [sections, setSections] = useState([]);
 
-  const [specialties, setSpecialties] = useState(() => {
-    const saved = localStorage.getItem('isaek_specialties');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error parsing saved specialties, falling back to seed data:', e);
-      }
-    }
-    return SEED_SPECIALTIES;
-  });
-
-  const [tasks, setTasks] = useState(() => {
-    const saved = localStorage.getItem('isaek_tasks');
-    const dataVersion = localStorage.getItem('isaek_data_version');
-    if (saved && dataVersion === '4.0') {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error parsing saved tasks, falling back to seed data:', e);
-      }
-    }
-    return INITIAL_TASKS;
-  });
-
-  // currentView can be 'students', 'tasks' or 'contacts'
+  // UI State
   const [currentView, setCurrentView] = useState('students');
-
-  // 2. Welcome / Startup Quick Search screen (ON by default)
   const [showStartScreen, setShowStartScreen] = useState(true);
-
-  // 3. Desktop Navigation / Filter State
-  const [selectedSector, setSelectedSector] = useState(''); // Sidebar sector filter
-  const [selectedSpecialty, setSelectedSpecialty] = useState(''); // Toolbar specialty filter
+  const [selectedSector, setSelectedSector] = useState('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-
-  // 4. Modal state
+  
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
-
-  // 4a. Profile Modal State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [viewingStudent, setViewingStudent] = useState(null);
-
-  // 4b. Task Modal State
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-
-  // 4c. Contact Modal State
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState(null);
-
-  // Contacts State
-  const [contacts, setContacts] = useState(() => {
-    const saved = localStorage.getItem('isaek_contacts');
-    const dataVersion = localStorage.getItem('isaek_data_version');
-    if (saved && dataVersion === '4.0') {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error parsing saved contacts, falling back to seed data:', e);
-      }
-    }
-    return INITIAL_CONTACTS;
-  });
-
-  // Courses data per specialty
-  const [courses, setCourses] = useState(() => {
-    const saved = localStorage.getItem('isaek_courses');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error parsing saved courses, falling back to seed data:', e);
-      }
-    }
-    return COURSES_BY_SPECIALTY;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('isaek_courses', JSON.stringify(courses));
-  }, [courses]);
-
-  // Calendar Events State
-  const [events, setEvents] = useState(() => {
-    const saved = localStorage.getItem('isaek_events');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Convert string dates back to Date objects
-        return parsed.map(ev => ({
-          ...ev,
-          start: new Date(ev.start),
-          end: new Date(ev.end)
-        }));
-      } catch (e) {
-        console.error('Error parsing saved events:', e);
-      }
-    }
-    return [];
-  });
-
-  // Event Modal State
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
-
-  // 5. Analytics Toggle State
   const [showAnalytics, setShowAnalytics] = useState(true);
 
-  // 6. Authentication State
   const [loggedInUser, setLoggedInUser] = useState(() => {
     const saved = localStorage.getItem('isaek_user');
     return saved ? JSON.parse(saved) : null;
@@ -160,69 +72,54 @@ export default function App() {
     localStorage.removeItem('isaek_user');
   };
 
-  // 7. Grades and Absences State
-  const [absences, setAbsences] = useState(() => {
-    const saved = localStorage.getItem('isaek_absences');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [grades, setGrades] = useState(() => {
-    const saved = localStorage.getItem('isaek_grades');
-    const dataVersion = localStorage.getItem('isaek_data_version');
-    if (saved && dataVersion === '4.0') {
+  // Fetch from Supabase on mount
+  useEffect(() => {
+    const loadData = async () => {
       try {
-        const parsed = JSON.parse(saved);
-        if (parsed.length > 0) return parsed;
-      } catch (e) {
-        console.error('Error parsing grades:', e);
+        const [
+          s, sp, t, c, crs, e, a, g, tr, sec
+        ] = await Promise.all([
+          api.fetchStudents(), api.fetchSpecialties(), api.fetchTasks(),
+          api.fetchContacts(), api.fetchCourses(), api.fetchEvents(),
+          api.fetchAbsences(), api.fetchGrades(), api.fetchTeacherReports(),
+          api.fetchSections()
+        ]);
+        
+        setStudents(s);
+        setSpecialties(sp);
+        setTasks(t);
+        setContacts(c);
+        setCourses(crs);
+        setEvents(e.map(ev => ({
+          ...ev,
+          start: ev.start_time ? new Date(ev.start_time) : new Date(),
+          end: ev.end_time ? new Date(ev.end_time) : new Date()
+        })));
+        setAbsences(a);
+        setGrades(g);
+        setTeacherReports(tr);
+        setSections(sec);
+      } catch (err) {
+        console.error("Failed to load from Supabase:", err);
+      } finally {
+        setIsInitializing(false);
       }
+    };
+    loadData();
+  }, []);
+
+  const handleSyncData = async () => {
+    if (!window.confirm("Προσοχή: Αυτό θα μεταφέρει τα δεδομένα της τοπικής μνήμης στη βάση δεδομένων. Θέλετε να συνεχίσετε;")) return;
+    setIsSyncing(true);
+    try {
+      await syncLocalDataToCloud();
+      window.alert("Ο συγχρονισμός ολοκληρώθηκε! Παρακαλώ κάντε ανανέωση της σελίδας.");
+    } catch (err) {
+      window.alert("Σφάλμα κατά τον συγχρονισμό: " + err.message);
+    } finally {
+      setIsSyncing(false);
     }
-    return INITIAL_GRADES || [];
-  });
-
-  const [teacherReports, setTeacherReports] = useState(() => {
-    const saved = localStorage.getItem('isaek_teacher_reports');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [sections, setSections] = useState(() => {
-    const saved = localStorage.getItem('isaek_sections');
-    return saved ? JSON.parse(saved) : INITIAL_SECTIONS;
-  });
-
-  // Save to LocalStorage
-  useEffect(() => {
-    localStorage.setItem('isaek_students', JSON.stringify(students));
-    localStorage.setItem('isaek_specialties', JSON.stringify(specialties));
-    localStorage.setItem('isaek_tasks', JSON.stringify(tasks));
-    localStorage.setItem('isaek_contacts', JSON.stringify(contacts));
-    localStorage.setItem('isaek_grades', JSON.stringify(grades));
-    localStorage.setItem('isaek_data_version', '5.0');
-  }, [students, specialties, tasks, contacts, grades]);
-
-  useEffect(() => {
-    localStorage.setItem('isaek_courses', JSON.stringify(courses));
-  }, [courses]);
-
-  useEffect(() => {
-    localStorage.setItem('isaek_sections', JSON.stringify(sections));
-  }, [sections]);
-
-  useEffect(() => {
-    localStorage.setItem('isaek_events', JSON.stringify(events));
-  }, [events]);
-
-  useEffect(() => {
-    localStorage.setItem('isaek_absences', JSON.stringify(absences));
-  }, [absences]);
-
-  useEffect(() => {
-    localStorage.setItem('isaek_teacher_reports', JSON.stringify(teacherReports));
-  }, [teacherReports]);
-
-  useEffect(() => {
-    localStorage.setItem('isaek_grades', JSON.stringify(grades));
-  }, [grades]);
+  };
 
   // Extract distinct sectors
   const sectorsList = useMemo(() => {
@@ -309,7 +206,7 @@ export default function App() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (studentId) => {
+  const handleDeleteClick = async (studentId) => {
     const student = students.find((s) => s.id === studentId);
     if (!student) return;
 
@@ -318,21 +215,32 @@ export default function App() {
     );
 
     if (confirmed) {
-      setStudents((prev) => prev.filter((s) => s.id !== studentId));
+      try {
+        await api.deleteStudent(studentId);
+        setStudents((prev) => prev.filter((s) => s.id !== studentId));
+      } catch (e) {
+        window.alert('Σφάλμα: ' + e.message);
+      }
     }
   };
 
-  const handleFormSubmit = (studentData) => {
-    if (studentData.id) {
-      setStudents((prev) => prev.map((s) => (s.id === studentData.id ? studentData : s)));
-    } else {
-      const newStudent = {
-        ...studentData,
-        id: `stud_${Date.now()}`
-      };
-      setStudents((prev) => [newStudent, ...prev]);
+  const handleFormSubmit = async (studentData) => {
+    try {
+      if (studentData.id) {
+        const saved = await api.upsertStudent(studentData);
+        setStudents((prev) => prev.map((s) => (s.id === saved.id ? saved : s)));
+      } else {
+        const newStudent = {
+          ...studentData,
+          id: `stud_${Date.now()}`
+        };
+        const saved = await api.upsertStudent(newStudent);
+        setStudents((prev) => [saved, ...prev]);
+      }
+      setIsModalOpen(false);
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
     }
-    setIsModalOpen(false);
   };
 
   // Task CRUD Handlers
@@ -346,29 +254,50 @@ export default function App() {
     setIsTaskModalOpen(true);
   };
 
-  const handleAddTask = (newTask) => {
-    setTasks((prev) => [newTask, ...prev]);
-  };
-
-  const handleUpdateTask = (updatedTask) => {
-    setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
-  };
-
-  const handleDeleteTask = (taskId) => {
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
-  };
-
-  const handleTaskFormSubmit = (taskData) => {
-    if (taskData.id) {
-      setTasks((prev) => prev.map((t) => (t.id === taskData.id ? taskData : t)));
-    } else {
-      const newTask = {
-        ...taskData,
-        id: `task_${Date.now()}`
-      };
-      setTasks((prev) => [newTask, ...prev]);
+  const handleAddTask = async (newTask) => {
+    try {
+      const saved = await api.upsertTask(newTask);
+      setTasks((prev) => [saved, ...prev]);
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
     }
-    setIsTaskModalOpen(false);
+  };
+
+  const handleUpdateTask = async (updatedTask) => {
+    try {
+      const saved = await api.upsertTask(updatedTask);
+      setTasks((prev) => prev.map((t) => (t.id === saved.id ? saved : t)));
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await api.deleteTask(taskId);
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
+    }
+  };
+
+  const handleTaskFormSubmit = async (taskData) => {
+    try {
+      if (taskData.id) {
+        const saved = await api.upsertTask(taskData);
+        setTasks((prev) => prev.map((t) => (t.id === saved.id ? saved : t)));
+      } else {
+        const newTask = {
+          ...taskData,
+          id: `task_${Date.now()}`
+        };
+        const saved = await api.upsertTask(newTask);
+        setTasks((prev) => [saved, ...prev]);
+      }
+      setIsTaskModalOpen(false);
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
+    }
   };
 
   // Contact CRUD Handlers
@@ -382,21 +311,32 @@ export default function App() {
     setIsContactModalOpen(true);
   };
 
-  const handleDeleteContact = (contactId) => {
-    setContacts((prev) => prev.filter((c) => c.id !== contactId));
+  const handleDeleteContact = async (contactId) => {
+    try {
+      await api.deleteContact(contactId);
+      setContacts((prev) => prev.filter((c) => c.id !== contactId));
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
+    }
   };
 
-  const handleContactFormSubmit = (contactData) => {
-    if (contactData.id) {
-      setContacts((prev) => prev.map((c) => (c.id === contactData.id ? contactData : c)));
-    } else {
-      const newContact = {
-        ...contactData,
-        id: `contact_${Date.now()}`
-      };
-      setContacts((prev) => [newContact, ...prev]);
+  const handleContactFormSubmit = async (contactData) => {
+    try {
+      if (contactData.id) {
+        const saved = await api.upsertContact(contactData);
+        setContacts((prev) => prev.map((c) => (c.id === saved.id ? saved : c)));
+      } else {
+        const newContact = {
+          ...contactData,
+          id: `contact_${Date.now()}`
+        };
+        const saved = await api.upsertContact(newContact);
+        setContacts((prev) => [saved, ...prev]);
+      }
+      setIsContactModalOpen(false);
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
     }
-    setIsContactModalOpen(false);
   };
 
   // Event CRUD Handlers
@@ -410,24 +350,49 @@ export default function App() {
     setIsEventModalOpen(true);
   };
 
-  const handleDeleteEvent = (eventId) => {
+  const handleDeleteEvent = async (eventId) => {
     if (window.confirm('Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το μάθημα/συμβάν;')) {
-      setEvents((prev) => prev.filter((e) => e.id !== eventId));
-      setIsEventModalOpen(false);
+      try {
+        await api.deleteEvent(eventId);
+        setEvents((prev) => prev.filter((e) => e.id !== eventId));
+        setIsEventModalOpen(false);
+      } catch (e) {
+        window.alert('Σφάλμα: ' + e.message);
+      }
     }
   };
 
-  const handleEventFormSubmit = (eventData) => {
-    if (eventData.id) {
-      setEvents((prev) => prev.map((e) => (e.id === eventData.id ? eventData : e)));
-    } else {
-      const newEvent = {
-        ...eventData,
-        id: `evt_${Date.now()}`
-      };
-      setEvents((prev) => [...prev, newEvent]);
+  const handleEventFormSubmit = async (eventData) => {
+    try {
+      if (eventData.start) eventData.start_time = new Date(eventData.start).toISOString();
+      if (eventData.end) eventData.end_time = new Date(eventData.end).toISOString();
+      let eventToSave = { ...eventData };
+      delete eventToSave.start;
+      delete eventToSave.end;
+
+      if (eventToSave.id) {
+        const saved = await api.upsertEvent(eventToSave);
+        setEvents((prev) => prev.map((e) => (e.id === saved.id ? {
+          ...saved,
+          start: saved.start_time ? new Date(saved.start_time) : new Date(),
+          end: saved.end_time ? new Date(saved.end_time) : new Date()
+        } : e)));
+      } else {
+        const newEvent = {
+          ...eventToSave,
+          id: `evt_${Date.now()}`
+        };
+        const saved = await api.upsertEvent(newEvent);
+        setEvents((prev) => [...prev, {
+          ...saved,
+          start: saved.start_time ? new Date(saved.start_time) : new Date(),
+          end: saved.end_time ? new Date(saved.end_time) : new Date()
+        }]);
+      }
+      setIsEventModalOpen(false);
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
     }
-    setIsEventModalOpen(false);
   };
 
   // Helper menu links action
@@ -443,6 +408,16 @@ export default function App() {
     setSearchQuery('');
     setShowStartScreen(true);
   };
+
+  if (isInitializing) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignItems: 'center', background: '#f1f5f9' }}>
+        <Loader2 size={48} color="#3b82f6" style={{ animation: 'spin 1s linear infinite', marginBottom: '16px' }} />
+        <h2 style={{ color: '#1e293b', margin: 0 }}>Φόρτωση Δεδομένων...</h2>
+        <p style={{ color: '#64748b' }}>Σύνδεση με Supabase Database</p>
+      </div>
+    );
+  }
 
   if (!loggedInUser) {
     return <LoginScreen onLogin={handleLogin} contacts={contacts} />;
@@ -494,6 +469,10 @@ export default function App() {
           <div className="menu-item" onClick={handleAddClick}>Αρχείο (Νέος)</div>
           <div className="menu-item" onClick={handleResetFilters}>Επεξεργασία (Επαναφορά)</div>
           <div className="menu-item" onClick={handleMenuHelp}>Βοήθεια</div>
+          <div className="menu-item" onClick={handleSyncData} style={{ color: '#3b82f6', fontWeight: 'bold' }}>
+            {isSyncing ? <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite', marginRight: '4px', verticalAlign: 'middle' }} /> : <Database size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />}
+            Συγχρονισμός (Cloud)
+          </div>
         </div>
         <div style={{ display: 'flex' }}>
           <div className="menu-item" onClick={handleLogout} style={{ color: '#ef4444', fontWeight: 'bold' }}>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { BookOpen, CheckCircle, FileText, Calendar as CalendarIcon, Clock, Users, ArrowLeft, Save } from 'lucide-react';
+import { api } from '../services/api';
 
 export default function TeacherPortal({ 
   teacher, 
@@ -59,7 +60,7 @@ export default function TeacherPortal({
     }));
   };
 
-  const handleSubmitReport = () => {
+  const handleSubmitReport = async () => {
     if (!reportSectionId || !reportCourse || !reportDate || !reportHours) {
       alert('Παρακαλώ συμπληρώστε όλα τα πεδία (Τμήμα, Μάθημα, Ημερομηνία, Ώρες).');
       return;
@@ -71,55 +72,62 @@ export default function TeacherPortal({
       return;
     }
 
-    const specialtyTitle = specialties.find(s => s.id === selectedReportSection.specialtyId)?.title || 'Άγνωστη Ειδικότητα';
+    try {
+      const specialtyTitle = specialties.find(s => s.id === selectedReportSection.specialtyId)?.title || 'Άγνωστη Ειδικότητα';
 
-    // Update global absences state
-    let updatedAbsences = [...absences];
-    Object.keys(currentReportAbsences).forEach(studentId => {
-      if (currentReportAbsences[studentId]) {
-        updatedAbsences.push({
-          id: `abs_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          studentId,
-          courseTitle: reportCourse,
-          date: reportDate,
-          hours: hoursNum,
-          justified: false
-        });
+      const newAbsences = [];
+      Object.keys(currentReportAbsences).forEach(studentId => {
+        if (currentReportAbsences[studentId]) {
+          newAbsences.push({
+            id: `abs_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            studentId,
+            courseTitle: reportCourse,
+            date: reportDate,
+            hours: hoursNum,
+            justified: false
+          });
+        }
+      });
+      
+      for (const abs of newAbsences) {
+        await api.upsertAbsence(abs);
       }
-    });
-    setAbsences(updatedAbsences);
+      setAbsences(prev => [...prev, ...newAbsences]);
 
-    // Save report for secretariat
-    const absentStudentIds = Object.keys(currentReportAbsences).filter(id => currentReportAbsences[id]);
-    const absentStudentNames = absentStudentIds.map(id => {
-      const st = students.find(s => s.id === id);
-      return st ? st.fullName : 'Άγνωστος';
-    });
+      const absentStudentIds = Object.keys(currentReportAbsences).filter(id => currentReportAbsences[id]);
+      const absentStudentNames = absentStudentIds.map(id => {
+        const st = students.find(s => s.id === id);
+        return st ? st.fullName : 'Άγνωστος';
+      });
 
-    const newReport = {
-      id: `rep_${Date.now()}`,
-      teacherId: teacher.id,
-      teacherName: teacher.name,
-      sectionId: reportSectionId,
-      sectionName: selectedReportSection.name,
-      specialtyTitle,
-      courseTitle: reportCourse,
-      date: reportDate,
-      hours: hoursNum,
-      timestamp: new Date().toISOString(),
-      absentStudents: absentStudentNames,
-      status: 'submitted'
-    };
+      const newReport = {
+        id: `rep_${Date.now()}`,
+        teacherId: teacher.id,
+        teacherName: teacher.name,
+        sectionId: reportSectionId,
+        sectionName: selectedReportSection.name,
+        specialtyTitle,
+        courseTitle: reportCourse,
+        date: reportDate,
+        hours: hoursNum,
+        timestamp: new Date().toISOString(),
+        absentStudents: absentStudentNames,
+        status: 'submitted'
+      };
 
-    setTeacherReports(prev => [...prev, newReport]);
-    setReportSubmitted(true);
-
-    setTimeout(() => {
-      setReportSubmitted(false);
-      setReportCourse('');
-      setReportHours('');
-      setCurrentReportAbsences({});
-    }, 3000);
+      const savedReport = await api.upsertTeacherReport(newReport);
+      setTeacherReports(prev => [...prev, savedReport]);
+      
+      setReportSubmitted(true);
+      setTimeout(() => {
+        setReportSubmitted(false);
+        setReportCourse('');
+        setReportHours('');
+        setCurrentReportAbsences({});
+      }, 3000);
+    } catch (e) {
+      alert('Σφάλμα: ' + e.message);
+    }
   };
 
 
@@ -172,38 +180,55 @@ export default function TeacherPortal({
     }));
   };
 
-  const handleSubmitGrades = () => {
+  const handleSubmitGrades = async () => {
     if (!gradesSectionId || !gradesCourse) {
       alert('Παρακαλώ επιλέξτε Τμήμα και Μάθημα.');
       return;
     }
 
-    let updatedGrades = [...grades];
-    Object.keys(currentGrades).forEach(studentId => {
-      const { progressGrade, finalGrade } = currentGrades[studentId];
-      if (progressGrade || finalGrade) {
-        const existingIndex = updatedGrades.findIndex(g => g.studentId === studentId && g.courseTitle === gradesCourse);
-        if (existingIndex >= 0) {
-          updatedGrades[existingIndex] = {
-            ...updatedGrades[existingIndex],
-            progressGrade,
-            finalGrade
-          };
-        } else {
-          updatedGrades.push({
-            id: `grd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            studentId,
-            courseTitle: gradesCourse,
-            progressGrade,
-            finalGrade
-          });
+    try {
+      const updatedGradesToSave = [];
+      Object.keys(currentGrades).forEach(studentId => {
+        const { progressGrade, finalGrade } = currentGrades[studentId];
+        if (progressGrade || finalGrade) {
+          const existingGrade = grades.find(g => g.studentId === studentId && g.courseTitle === gradesCourse);
+          if (existingGrade) {
+            updatedGradesToSave.push({
+              ...existingGrade,
+              progressGrade,
+              finalGrade
+            });
+          } else {
+            updatedGradesToSave.push({
+              id: `grd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              studentId,
+              courseTitle: gradesCourse,
+              progressGrade,
+              finalGrade
+            });
+          }
         }
-      }
-    });
+      });
 
-    setGrades(updatedGrades);
-    setGradesSubmitted(true);
-    setTimeout(() => setGradesSubmitted(false), 3000);
+      for (const gr of updatedGradesToSave) {
+        await api.upsertGrade(gr);
+      }
+
+      setGrades(prev => {
+        let newGrades = [...prev];
+        updatedGradesToSave.forEach(ug => {
+          const idx = newGrades.findIndex(g => g.id === ug.id);
+          if (idx >= 0) newGrades[idx] = ug;
+          else newGrades.push(ug);
+        });
+        return newGrades;
+      });
+
+      setGradesSubmitted(true);
+      setTimeout(() => setGradesSubmitted(false), 3000);
+    } catch (e) {
+      alert('Σφάλμα: ' + e.message);
+    }
   };
 
 

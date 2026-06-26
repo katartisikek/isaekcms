@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, BookOpen, Layers, X, Save, Filter, Users } from 'lucide-react';
+import { api } from '../services/api';
 
 export default function SpecialtyManager({ specialties, setSpecialties, courses, setCourses, sections = [], setSections = () => {} }) {
   const [activeTab, setActiveTab] = useState('specialties'); // 'specialties', 'courses', 'sections'
@@ -40,40 +41,43 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
     setIsSpecFormOpen(true);
   };
 
-  const handleSaveSpec = (e) => {
+  const handleSaveSpec = async (e) => {
     e.preventDefault();
-    if (editingSpec) {
-      setSpecialties(prev => prev.map(s => s.id === editingSpec.id ? { ...s, title: specTitle, sector: specSector } : s));
-    } else {
-      const newId = 'spec_' + Date.now();
-      setSpecialties(prev => [...prev, { id: newId, title: specTitle, sector: specSector }]);
-      setCourses(prev => ({
-        ...prev,
-        [newId]: {
+    try {
+      if (editingSpec) {
+        const saved = await api.upsertSpecialty({ id: editingSpec.id, title: specTitle, sector: specSector });
+        setSpecialties(prev => prev.map(s => s.id === saved.id ? saved : s));
+      } else {
+        const newId = 'spec_' + Date.now();
+        const saved = await api.upsertSpecialty({ id: newId, title: specTitle, sector: specSector });
+        setSpecialties(prev => [...prev, saved]);
+        
+        const initCourses = {
           title: specTitle,
-          semester1: [],
-          semester2: [],
-          semester3: [],
-          semester4: []
-        }
-      }));
-    }
-    setIsSpecFormOpen(false);
+          semester1: [], semester2: [], semester3: [], semester4: []
+        };
+        await api.upsertCoursesForSpecialty(newId, initCourses);
+        setCourses(prev => ({ ...prev, [newId]: initCourses }));
+      }
+      setIsSpecFormOpen(false);
+    } catch (e) { alert(e.message); }
   };
 
-  const handleDeleteSpec = (id) => {
+  const handleDeleteSpec = async (id) => {
     if (window.confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτή την Ειδικότητα; Θα διαγραφούν και όλα τα μαθήματά της.')) {
-      setSpecialties(prev => prev.filter(s => s.id !== id));
-      if (selectedSpecIdForCourses === id) {
-        setSelectedSpecIdForCourses('');
-      }
-      setCourses(prev => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-      // Optional: Delete sections belonging to this specialty? 
-      // setSections(prev => prev.filter(s => s.specialtyId !== id));
+      try {
+        await api.deleteSpecialty(id);
+        await api.deleteCoursesForSpecialty(id);
+        setSpecialties(prev => prev.filter(s => s.id !== id));
+        if (selectedSpecIdForCourses === id) {
+          setSelectedSpecIdForCourses('');
+        }
+        setCourses(prev => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+      } catch (e) { alert(e.message); }
     }
   };
 
@@ -95,44 +99,45 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
     setIsCourseFormOpen(true);
   };
 
-  const handleSaveCourse = (e) => {
+  const handleSaveCourse = async (e) => {
     e.preventDefault();
     if (!selectedSpecIdForCourses) return;
     const specId = selectedSpecIdForCourses;
     const specTitle = specialties.find(s => s.id === specId)?.title || '';
     
-    setCourses(prev => {
-      const specCourses = prev[specId] || { title: specTitle, semester1: [], semester2: [], semester3: [], semester4: [] };
-      const nextCourses = { ...prev, [specId]: { ...specCourses } };
+    try {
+      const specCourses = courses[specId] || { title: specTitle, semester1: [], semester2: [], semester3: [], semester4: [] };
+      const nextCourses = { ...specCourses };
       
       ['semester1', 'semester2', 'semester3', 'semester4'].forEach(sem => {
-        if (!nextCourses[specId][sem]) nextCourses[specId][sem] = [];
+        if (!nextCourses[sem]) nextCourses[sem] = [];
       });
 
       if (editingCourse) {
-        nextCourses[specId][editingCourse.semester] = nextCourses[specId][editingCourse.semester].filter(c => c !== editingCourse.title);
+        nextCourses[editingCourse.semester] = nextCourses[editingCourse.semester].filter(c => c !== editingCourse.title);
       }
       
-      if (!nextCourses[specId][courseSemester].includes(courseTitle)) {
-        nextCourses[specId][courseSemester].push(courseTitle);
+      if (!nextCourses[courseSemester].includes(courseTitle)) {
+        nextCourses[courseSemester].push(courseTitle);
       }
       
-      return nextCourses;
-    });
-    
-    setIsCourseFormOpen(false);
+      await api.upsertCoursesForSpecialty(specId, nextCourses);
+      setCourses(prev => ({ ...prev, [specId]: nextCourses }));
+      setIsCourseFormOpen(false);
+    } catch (err) { alert(err.message); }
   };
 
-  const handleDeleteCourse = (title, semester) => {
+  const handleDeleteCourse = async (title, semester) => {
     if (window.confirm(`Διαγραφή του μαθήματος "${title}";`)) {
       const specId = selectedSpecIdForCourses;
-      setCourses(prev => {
-        const nextCourses = { ...prev };
-        if (nextCourses[specId] && nextCourses[specId][semester]) {
-          nextCourses[specId][semester] = nextCourses[specId][semester].filter(c => c !== title);
+      try {
+        const nextCourses = { ...courses[specId] };
+        if (nextCourses[semester]) {
+          nextCourses[semester] = nextCourses[semester].filter(c => c !== title);
         }
-        return nextCourses;
-      });
+        await api.upsertCoursesForSpecialty(specId, nextCourses);
+        setCourses(prev => ({ ...prev, [specId]: nextCourses }));
+      } catch (err) { alert(err.message); }
     }
   };
 
@@ -152,20 +157,27 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
     setIsSectionFormOpen(true);
   };
 
-  const handleSaveSection = (e) => {
+  const handleSaveSection = async (e) => {
     e.preventDefault();
-    if (editingSection) {
-      setSections(prev => prev.map(s => s.id === editingSection.id ? { ...s, name: sectionName, specialtyId: sectionSpecialtyId, semester: sectionSemester } : s));
-    } else {
-      const newId = 'sec_' + Date.now();
-      setSections(prev => [...prev, { id: newId, name: sectionName, specialtyId: sectionSpecialtyId, semester: sectionSemester }]);
-    }
-    setIsSectionFormOpen(false);
+    try {
+      if (editingSection) {
+        const saved = await api.upsertSection({ id: editingSection.id, name: sectionName, specialtyId: sectionSpecialtyId, semester: sectionSemester });
+        setSections(prev => prev.map(s => s.id === saved.id ? saved : s));
+      } else {
+        const newId = 'sec_' + Date.now();
+        const saved = await api.upsertSection({ id: newId, name: sectionName, specialtyId: sectionSpecialtyId, semester: sectionSemester });
+        setSections(prev => [...prev, saved]);
+      }
+      setIsSectionFormOpen(false);
+    } catch (err) { alert(err.message); }
   };
 
-  const handleDeleteSection = (id) => {
+  const handleDeleteSection = async (id) => {
     if (window.confirm('Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το τμήμα;')) {
-      setSections(prev => prev.filter(s => s.id !== id));
+      try {
+        await api.deleteSection(id);
+        setSections(prev => prev.filter(s => s.id !== id));
+      } catch (err) { alert(err.message); }
     }
   };
 
