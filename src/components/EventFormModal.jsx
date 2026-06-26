@@ -25,7 +25,9 @@ export default function EventFormModal({ isOpen, onClose, onSubmit, onDelete, ev
       const d = new Date(event.start);
       const e = new Date(event.end);
       
-      setDate(d.toISOString().split('T')[0]);
+      // Adjust for local timezone offset to avoid previous day when time is midnight
+      const localD = new Date(d.getTime() - (d.getTimezoneOffset() * 60000));
+      setDate(localD.toISOString().split('T')[0]);
       
       const formatTime = (dt) => {
         return dt.getHours().toString().padStart(2, '0') + ':' + dt.getMinutes().toString().padStart(2, '0');

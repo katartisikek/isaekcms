@@ -4,12 +4,12 @@ import { ArrowLeft, Users, FileText, CheckCircle, Save, Calendar as CalendarIcon
 export default function TeacherClassView({ classInfo, onBack, students, absences, setAbsences, grades, setGrades }) {
   const [activeTab, setActiveTab] = useState('attendance'); // 'attendance' or 'grades'
   
-  // Local state for adding absences
-  const [absenceDate, setAbsenceDate] = useState(new Date().toISOString().split('T')[0]);
+  const initialDate = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000));
+  const [absenceDate, setAbsenceDate] = useState(initialDate.toISOString().split('T')[0]);
   const [absenceHours, setAbsenceHours] = useState(1);
 
   // Filter students who are enrolled in this class's specialty
-  const classStudents = students.filter(s => s.specialty === classInfo.specialtyId);
+  const classStudents = students.filter(s => s.specialtyId === classInfo.specialtyId);
 
   // Handlers for Absences
   const handleAddAbsence = (studentId) => {

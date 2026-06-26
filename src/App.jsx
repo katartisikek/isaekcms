@@ -23,7 +23,7 @@ export default function App() {
     const saved = localStorage.getItem('isaek_students');
     const dataVersion = localStorage.getItem('isaek_data_version');
     // If version doesn't match, use fresh seed data
-    if (saved && dataVersion === '2.0') {
+    if (saved && dataVersion === '3.0') {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -48,7 +48,7 @@ export default function App() {
   const [tasks, setTasks] = useState(() => {
     const saved = localStorage.getItem('isaek_tasks');
     const dataVersion = localStorage.getItem('isaek_data_version');
-    if (saved && dataVersion === '2.0') {
+    if (saved && dataVersion === '3.0') {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -89,7 +89,7 @@ export default function App() {
   const [contacts, setContacts] = useState(() => {
     const saved = localStorage.getItem('isaek_contacts');
     const dataVersion = localStorage.getItem('isaek_data_version');
-    if (saved && dataVersion === '2.0') {
+    if (saved && dataVersion === '3.0') {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -172,7 +172,7 @@ export default function App() {
   // Save to LocalStorage
   useEffect(() => {
     localStorage.setItem('isaek_students', JSON.stringify(students));
-    localStorage.setItem('isaek_data_version', '2.0');
+    localStorage.setItem('isaek_data_version', '3.0');
   }, [students]);
 
   useEffect(() => {

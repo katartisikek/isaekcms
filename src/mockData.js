@@ -779,6 +779,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_10",
     "name": "Λυρατζάκη",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_11",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Εσωτερικής Αρχιτεκτονικής - Φυσικά Πετρώματα, Γραμμικό Σχέδιο, Τεχνητά Υλικά"
@@ -787,6 +788,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_11",
     "name": "Χατζηντεβέ",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_11",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Εσωτερικής Αρχιτεκτονικής - Παλαιότεροι Πολιτισμοί και Τέχνη, Ελεύθερο και Βασικό Σχέδιο"
@@ -795,6 +797,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_12",
     "name": "Μπίτζου",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_11",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Εσωτερικής Αρχιτεκτονικής - Πρακτική Εφαρμογή, Σύγχρονη και Ελληνική Τέχνη"
@@ -803,6 +806,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_13",
     "name": "Τζανάκη",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_11",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Εσωτερικής Αρχιτεκτονικής - Τεχνητά Υλικά, Κατασκευαστικό Σχέδιο Εσωτερικών Χώρων"
@@ -811,6 +815,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_14",
     "name": "Σκόρδου",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_11",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Εσωτερικής Αρχιτεκτονικής - Διακοσμητικές Εφαρμογές, Πρακτική Εφαρμογή σε Χώρους Εργασίας"
@@ -819,6 +824,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_15",
     "name": "Μπουχαλάκης Μανώλης",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_16",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Στελέχους Αερομεταφοράς - Business English & Tourism Terminology, Εισαγωγή στην Αεροπορική Ορολογία"
@@ -827,6 +833,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_16",
     "name": "Σάβα Μικαέλα",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_16",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Στελέχους Αερομεταφοράς - Γαλλικά, Εισαγωγή στην Αεροπορική Ορολογία στα Γαλλικά"
@@ -835,6 +842,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_17",
     "name": "Μαρκάκη Τρυπάκη Πελαγία",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_16",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Στελέχους Αερομεταφοράς - Τουρισμός και Αεροπορική Βιομηχανία, Ταξιδιωτική Γεωγραφία"
@@ -843,6 +851,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_18",
     "name": "Καλογεράκης Μιχάλης",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_16",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Στελέχους Αερομεταφοράς - Αεροπορικό Δίκαιο και Διεθνείς Σχέσεις (IATA – UFTAA – ICAO – BSP)"
@@ -851,6 +860,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_19",
     "name": "Ρεπανάκη Ντέπη",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_16",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Στελέχους Αερομεταφοράς - Αεροπορικοί Ναύλοι Α + Β Εξάμηνο"
@@ -859,6 +869,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_20",
     "name": "Ψαθάκης Μιχαήλ",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_13",
     "phone": "6972636648",
     "email": "",
     "description": "Εκπαιδευτής - Ασφάλεια και Υγιεινή, Τεχνικός Αρτοποιίας – Ζαχαροπλαστικής (ΣΥΜΒΑΣΗ)"
@@ -867,6 +878,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_21",
     "name": "Φυγετάκη Μαρία",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_16",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Στελέχους Αερομεταφοράς - Εισαγωγή στα Συστήματα Κρατήσεων & Κατασκευή Αεροπορικού Ναύλου"
@@ -875,6 +887,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_22",
     "name": "Αναγνωστάκη Νίκη",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_7",
     "phone": "6983756076",
     "email": "ni.anagnostaki@gmail.com",
     "description": "Εκπαιδευτής Στελέχους Διοίκησης και Οικονομίας - Αστικό Δίκαιο (ΤΙΜΟΛΟΓΙΟ)"
@@ -883,6 +896,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_23",
     "name": "Ζεάκη Εμμανουέλα",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_7",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Στελέχους Διοίκησης και Οικονομίας - Εισαγωγή στα Οικονομικά Μαθηματικά, Στατιστική"
@@ -891,6 +905,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_24",
     "name": "Παπαδομανωλάκης Δημήτρης",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_7",
     "phone": "6945452188",
     "email": "dpapadomanolakis@uniwa.gr",
     "description": "Εκπαιδευτής Στελέχους Διοίκησης και Οικονομίας - Εισαγωγή στη Διοίκηση Επιχειρήσεων (ΣΥΜΒΑΣΗ)"
@@ -899,6 +914,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_25",
     "name": "Φυσαράκης Δημήτρης",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_13",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Αρτοποιίας – Ζαχαροπλαστικής - Ζαχαροπλαστική Τέχνη I, II"
@@ -907,6 +923,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_26",
     "name": "Απλαδά Σοφία - Χαρά",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_13",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Αρτοποιίας – Ζαχαροπλαστικής - Στοιχεία Μαγειρικής (Catering) I"
@@ -915,6 +932,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_27",
     "name": "Νεονάκη Μαρίνα",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_13",
     "phone": "6972089035",
     "email": "neonakimar@yahoo.gr",
     "description": "Εκπαιδευτής Αρτοποιίας – Ζαχαροπλαστικής - Υγιεινή και Ασφάλεια, Τρόφογνωσία (ΣΥΜΒΑΣΗ)"
@@ -923,6 +941,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_28",
     "name": "Κουμάκης Κώστας",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_13",
     "phone": "6974120129",
     "email": "info@zaxaroplasteiokoumakis.gr",
     "description": "Εκπαιδευτής Αρτοποιίας – Ζαχαροπλαστικής - Πρακτική Εφαρμογή, Ζαχαροπλαστική Τέχνη ΙΙΙ (ΤΙΜΟΛΟΓΙΟ)"
@@ -931,6 +950,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_29",
     "name": "Χανιωτάκης Χαράλαμπος",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_13",
     "phone": "6977586273",
     "email": "babis.chaniotakis@gmail.com",
     "description": "Εκπαιδευτής Αρτοποιίας – Ζαχαροπλαστικής - Διαχείριση Πρώτων Υλών ΙΙ, Οργάνωση και Λειτουργία Αρτοζαχαροπλαστείου (ΣΥΜΒΑΣΗ)"
@@ -939,6 +959,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_30",
     "name": "Βογιατζής Διονύσης",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_13",
     "phone": "6946076210",
     "email": "nioniosvog@hotmail.com",
     "description": "Εκπαιδευτής Αρτοποιίας – Ζαχαροπλαστικής - Αρτοποιητική Τέχνη Ι, ΙΙ (ΤΙΜΟΛΟΓΙΟ)"
@@ -947,6 +968,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_31",
     "name": "Κυρλάκης Μάριος",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_12",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Μαγειρικής Τέχνης - Τέχνη Μαγειρικής Ι, Πρακτική Εφαρμογή Α΄"
@@ -955,6 +977,7 @@ export const INITIAL_CONTACTS = [
     "id": "contact_32",
     "name": "Πετρουλάκη Τόνια",
     "category": "Εκπαιδευτής",
+    "specialtyId": "spec_12",
     "phone": "",
     "email": "",
     "description": "Εκπαιδευτής Μαγειρικής Τέχνης - Τέχνη Μαγειρικής Ι, Πρακτική Εφαρμογή Α΄"
