@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import {
   X, User, Phone, Mail, BookOpen, GraduationCap,
-  Hash, BarChart2, CheckCircle, AlertCircle, Clock
+  Hash, BarChart2, CheckCircle, AlertCircle, Clock, FileText, Download, Fingerprint, CreditCard, Shield
 } from 'lucide-react';
 
 const gradeColor = (g) => {
@@ -103,6 +103,23 @@ export default function StudentProfileModal({
                 <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Email</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0f172a', fontWeight: '500', fontSize: '0.9rem' }}><Mail size={14} color="#64748b" /> {student.email || '-'}</div>
               </div>
+              
+              {/* IDs Block */}
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>ΑΜΚΑ</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0f172a', fontWeight: '500', fontSize: '0.9rem' }}><Shield size={14} color="#64748b" /> {student.amka || '-'}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>ΑΦΜ</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0f172a', fontWeight: '500', fontSize: '0.9rem' }}><CreditCard size={14} color="#64748b" /> {student.afm || '-'}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Α.Τ. (Ταυτότητα)</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0f172a', fontWeight: '500', fontSize: '0.9rem' }}><Fingerprint size={14} color="#64748b" /> {student.idNumber || '-'}</div>
+                </div>
+              </div>
+
               <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Ειδικότητα</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0f172a', fontWeight: '500', fontSize: '0.9rem' }}><BookOpen size={14} color="#64748b" /> {specialty?.title || '-'}</div>
@@ -113,6 +130,34 @@ export default function StudentProfileModal({
                   <div style={{ color: '#9a3412', fontWeight: '500', fontSize: '0.85rem' }}>Συνολική Οφειλή:</div>
                   <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ea580c' }}>{parseFloat(student.totalDebt || 0).toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</div>
                 </div>
+              </div>
+
+              {/* Documents Section */}
+              <div style={{ background: '#f0fdfa', padding: '12px', borderRadius: '8px', border: '1px solid #ccfbf1' }}>
+                <div style={{ fontSize: '0.7rem', color: '#0f766e', textTransform: 'uppercase', marginBottom: '8px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <FileText size={12} /> Δικαιολογητικά
+                </div>
+                {(!student.documents || student.documents.length === 0) ? (
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }}>Δεν υπάρχουν δικαιολογητικά.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {student.documents.map(doc => (
+                      <div key={doc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', padding: '6px 8px', borderRadius: '4px', border: '1px solid #99f6e4' }}>
+                        <div style={{ fontSize: '0.8rem', color: '#134e4a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }} title={doc.name}>
+                          {doc.name}
+                        </div>
+                        <a 
+                          href={doc.data} 
+                          download={doc.name}
+                          style={{ color: '#0d9488', background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex' }}
+                          title="Λήψη Αρχείου"
+                        >
+                          <Download size={14} />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

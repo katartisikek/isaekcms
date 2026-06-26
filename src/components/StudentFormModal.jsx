@@ -8,7 +8,12 @@ export default function StudentFormModal({
   student = null, 
   specialties = [] 
 }) {
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [amka, setAmka] = useState('');
+  const [afm, setAfm] = useState('');
+  const [idNumber, setIdNumber] = useState('');
+  const [documents, setDocuments] = useState([]);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [specialtyId, setSpecialtyId] = useState('');
@@ -24,7 +29,18 @@ export default function StudentFormModal({
 
   useEffect(() => {
     if (student) {
-      setFullName(student.fullName || '');
+      if (student.fullName) {
+        const parts = student.fullName.split(' ');
+        setLastName(parts[0] || '');
+        setFirstName(parts.slice(1).join(' ') || '');
+      } else {
+        setFirstName('');
+        setLastName('');
+      }
+      setAmka(student.amka || '');
+      setAfm(student.afm || '');
+      setIdNumber(student.idNumber || '');
+      setDocuments(student.documents || []);
       setPhone(student.phone || '');
       setEmail(student.email || '');
       setSpecialtyId(student.specialtyId || '');
@@ -40,7 +56,12 @@ export default function StudentFormModal({
       setDesiredMonthlyAmount(initialInstCount > 0 ? parseFloat((initialDebt / initialInstCount).toFixed(2)) : 0);
       setCalculationMode('by_installments');
     } else {
-      setFullName('');
+      setFirstName('');
+      setLastName('');
+      setAmka('');
+      setAfm('');
+      setIdNumber('');
+      setDocuments([]);
       setPhone('');
       setEmail('');
       setSpecialtyId(specialties.length > 0 ? specialties[0].id : '');
@@ -102,12 +123,40 @@ export default function StudentFormModal({
 
   if (!isOpen) return null;
 
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      if (file.size > 2 * 1024 * 1024) {
+        alert(`Το αρχείο ${file.name} είναι πολύ μεγάλο (όριο 2MB).`);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setDocuments(prev => [...prev, {
+          id: 'doc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+          name: file.name,
+          type: file.type,
+          data: ev.target.result
+        }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = null;
+  };
+
+  const removeDocument = (docId) => {
+    setDocuments(prev => prev.filter(d => d.id !== docId));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
 
-    if (!fullName.trim()) {
-      newErrors.fullName = 'Το ονοματεπώνυμο είναι υποχρεωτικό.';
+    if (!lastName.trim()) {
+      newErrors.lastName = 'Το επώνυμο είναι υποχρεωτικό.';
+    }
+    if (!firstName.trim()) {
+      newErrors.firstName = 'Το όνομα είναι υποχρεωτικό.';
     }
     if (!phone.trim()) {
       newErrors.phone = 'Το τηλέφωνο είναι υποχρεωτικό.';
@@ -153,7 +202,11 @@ export default function StudentFormModal({
     }
 
     const studentData = {
-      fullName: fullName.trim(),
+      fullName: `${lastName.trim()} ${firstName.trim()}`,
+      amka: amka.trim(),
+      afm: afm.trim(),
+      idNumber: idNumber.trim(),
+      documents: documents,
       phone: phone.trim(),
       email: email.trim(),
       specialtyId,
@@ -190,29 +243,94 @@ export default function StudentFormModal({
         <form onSubmit={handleSubmit}>
           <div className="dialog-body">
             
-            {/* Full Name */}
-            <div className="sys-group">
-              <label className="sys-label" htmlFor="fullName">
-                Ονοματεπώνυμο <span style={{ color: 'var(--danger)' }}>*</span>
-              </label>
-              <div style={{ position: 'relative' }}>
+            {/* Name Fields */}
+            <div className="grid-2">
+              <div className="sys-group">
+                <label className="sys-label" htmlFor="lastName">
+                  Επώνυμο <span style={{ color: 'var(--danger)' }}>*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="lastName"
+                    type="text"
+                    className="sys-input"
+                    placeholder="π.χ. Παπαδόπουλος"
+                    value={lastName}
+                    onChange={(e) => {
+                      setLastName(e.target.value);
+                      if (errors.lastName) setErrors({ ...errors, lastName: null });
+                    }}
+                    style={{ width: '100%', paddingLeft: '26px', borderColor: errors.lastName ? 'var(--danger)' : undefined }}
+                  />
+                  <User size={12} color="#94a3b8" style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)' }} />
+                </div>
+                {errors.lastName && (
+                  <span className="sys-error">{errors.lastName}</span>
+                )}
+              </div>
+              <div className="sys-group">
+                <label className="sys-label" htmlFor="firstName">
+                  Όνομα <span style={{ color: 'var(--danger)' }}>*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="firstName"
+                    type="text"
+                    className="sys-input"
+                    placeholder="π.χ. Ιωάννης"
+                    value={firstName}
+                    onChange={(e) => {
+                      setFirstName(e.target.value);
+                      if (errors.firstName) setErrors({ ...errors, firstName: null });
+                    }}
+                    style={{ width: '100%', paddingLeft: '26px', borderColor: errors.firstName ? 'var(--danger)' : undefined }}
+                  />
+                  <User size={12} color="#94a3b8" style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)' }} />
+                </div>
+                {errors.firstName && (
+                  <span className="sys-error">{errors.firstName}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Identifiers Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+              <div className="sys-group">
+                <label className="sys-label" htmlFor="amka">ΑΜΚΑ</label>
                 <input
-                  id="fullName"
+                  id="amka"
                   type="text"
                   className="sys-input"
-                  placeholder="Ιωάννης Παπαδόπουλος"
-                  value={fullName}
-                  onChange={(e) => {
-                    setFullName(e.target.value);
-                    if (errors.fullName) setErrors({ ...errors, fullName: null });
-                  }}
-                  style={{ width: '100%', paddingLeft: '26px', borderColor: errors.fullName ? 'var(--danger)' : undefined }}
+                  placeholder="11 ψηφία"
+                  value={amka}
+                  onChange={(e) => setAmka(e.target.value)}
+                  style={{ width: '100%' }}
                 />
-                <User size={12} color="#94a3b8" style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)' }} />
               </div>
-              {errors.fullName && (
-                <span className="sys-error">{errors.fullName}</span>
-              )}
+              <div className="sys-group">
+                <label className="sys-label" htmlFor="afm">ΑΦΜ</label>
+                <input
+                  id="afm"
+                  type="text"
+                  className="sys-input"
+                  placeholder="9 ψηφία"
+                  value={afm}
+                  onChange={(e) => setAfm(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div className="sys-group">
+                <label className="sys-label" htmlFor="idNumber">Α.Τ.</label>
+                <input
+                  id="idNumber"
+                  type="text"
+                  className="sys-input"
+                  placeholder="Αριθμός Ταυτότητας"
+                  value={idNumber}
+                  onChange={(e) => setIdNumber(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
             </div>
 
             {/* Layout Grid for Phone & Email to keep form compact */}
@@ -500,6 +618,48 @@ export default function StudentFormModal({
                 />
                 <FileText size={12} color="#94a3b8" style={{ position: 'absolute', left: '8px', top: '10px' }} />
               </div>
+            </div>
+
+            {/* Documents Upload */}
+            <div className="sys-group">
+              <label className="sys-label" htmlFor="docUpload">
+                Δικαιολογητικά (Εικόνες ή PDF)
+              </label>
+              <input
+                id="docUpload"
+                type="file"
+                multiple
+                accept="image/png, image/jpeg, application/pdf"
+                className="sys-input"
+                onChange={handleFileUpload}
+                style={{ width: '100%' }}
+              />
+              <small style={{ color: '#64748b', display: 'block', marginTop: '4px' }}>
+                Μέγιστο μέγεθος ανά αρχείο: 2MB. 
+              </small>
+              
+              {documents.length > 0 && (
+                <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {documents.map((doc, i) => (
+                    <div key={doc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                        <FileText size={14} color="#3b82f6" style={{ flexShrink: 0 }} />
+                        <span style={{ fontSize: '13px', color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {doc.name}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeDocument(doc.id)}
+                        style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' }}
+                        title="Διαγραφή"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
           </div>
