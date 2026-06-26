@@ -1454,3 +1454,19 @@ export const COURSES_BY_SPECIALTY = {
     ]
   }
 };
+
+export const INITIAL_GRADES = [
+  { id: 'grd_fake1', studentId: 'stud_11_1', courseTitle: 'Φυσικά Πετρώματα', progressGrade: '8', finalGrade: '9' },
+  { id: 'grd_fake2', studentId: 'stud_11_2', courseTitle: 'Φυσικά Πετρώματα', progressGrade: '6', finalGrade: '7' },
+  { id: 'grd_fake3', studentId: 'stud_11_3', courseTitle: 'Φυσικά Πετρώματα', progressGrade: '4', finalGrade: '5' },
+  
+  { id: 'grd_fake4', studentId: 'stud_11_1', courseTitle: 'Γραμμικό Σχέδιο', progressGrade: '9', finalGrade: '10' },
+  { id: 'grd_fake5', studentId: 'stud_11_2', courseTitle: 'Γραμμικό Σχέδιο', progressGrade: '7', finalGrade: '8' },
+  
+  { id: 'grd_fake6', studentId: 'stud_13_1', courseTitle: 'Ζαχαροπλαστική Τέχνη Ι', progressGrade: '10', finalGrade: '10' },
+  { id: 'grd_fake7', studentId: 'stud_13_2', courseTitle: 'Ζαχαροπλαστική Τέχνη Ι', progressGrade: '8', finalGrade: '9' },
+  { id: 'grd_fake8', studentId: 'stud_13_3', courseTitle: 'Ζαχαροπλαστική Τέχνη Ι', progressGrade: '5', finalGrade: '4' },
+  
+  { id: 'grd_fake9', studentId: 'stud_12_1', courseTitle: 'Τέχνη Μαγειρικής Ι', progressGrade: '7', finalGrade: '8' },
+  { id: 'grd_fake10', studentId: 'stud_12_2', courseTitle: 'Τέχνη Μαγειρικής Ι', progressGrade: '9', finalGrade: '9' }
+];

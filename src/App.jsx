@@ -15,7 +15,8 @@ import ScheduleCalendar from './components/ScheduleCalendar';
 import EventFormModal from './components/EventFormModal';
 import LoginScreen from './components/LoginScreen';
 import TeacherPortal from './components/TeacherPortal';
-import { SEED_SPECIALTIES, INITIAL_STUDENTS, INITIAL_TASKS, INITIAL_CONTACTS, COURSES_BY_SPECIALTY } from './mockData';
+import AdminGradesView from './components/AdminGradesView';
+import { SEED_SPECIALTIES, INITIAL_STUDENTS, INITIAL_TASKS, INITIAL_CONTACTS, COURSES_BY_SPECIALTY, INITIAL_GRADES } from './mockData';
 
 export default function App() {
   // 1. Core Data State
@@ -23,7 +24,7 @@ export default function App() {
     const saved = localStorage.getItem('isaek_students');
     const dataVersion = localStorage.getItem('isaek_data_version');
     // If version doesn't match, use fresh seed data
-    if (saved && dataVersion === '3.0') {
+    if (saved && dataVersion === '4.0') {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -48,7 +49,7 @@ export default function App() {
   const [tasks, setTasks] = useState(() => {
     const saved = localStorage.getItem('isaek_tasks');
     const dataVersion = localStorage.getItem('isaek_data_version');
-    if (saved && dataVersion === '3.0') {
+    if (saved && dataVersion === '4.0') {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -89,7 +90,7 @@ export default function App() {
   const [contacts, setContacts] = useState(() => {
     const saved = localStorage.getItem('isaek_contacts');
     const dataVersion = localStorage.getItem('isaek_data_version');
-    if (saved && dataVersion === '3.0') {
+    if (saved && dataVersion === '4.0') {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -166,13 +167,22 @@ export default function App() {
 
   const [grades, setGrades] = useState(() => {
     const saved = localStorage.getItem('isaek_grades');
-    return saved ? JSON.parse(saved) : [];
+    const dataVersion = localStorage.getItem('isaek_data_version');
+    if (saved && dataVersion === '4.0') {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.length > 0) return parsed;
+      } catch (e) {
+        console.error('Error parsing grades:', e);
+      }
+    }
+    return INITIAL_GRADES || [];
   });
 
   // Save to LocalStorage
   useEffect(() => {
     localStorage.setItem('isaek_students', JSON.stringify(students));
-    localStorage.setItem('isaek_data_version', '3.0');
+    localStorage.setItem('isaek_data_version', '4.0');
   }, [students]);
 
   useEffect(() => {
@@ -603,6 +613,14 @@ export default function App() {
                 </div>
               </button>
               
+              <button className="premium-quick-btn" onClick={() => { setCurrentView('grades'); setShowStartScreen(false); }}>
+                <div className="btn-icon" style={{ background: '#ffedd5', color: '#ea580c' }}><FileText size={20} /></div>
+                <div className="btn-text">
+                  <span>Βαθμολογίες</span>
+                  <small>Εκπαιδευτών</small>
+                </div>
+              </button>
+              
               <button className="premium-quick-btn" onClick={() => { setCurrentView('settings'); setShowStartScreen(false); }}>
                 <div className="btn-icon" style={{ background: '#f1f5f9', color: '#475569' }}><Settings size={20} /></div>
                 <div className="btn-text">
@@ -658,6 +676,13 @@ export default function App() {
                       <div>
                         <h3>Κατάλογος Επαφών</h3>
                         <p>Τηλέφωνα & Συνεργάτες</p>
+                      </div>
+                    </button>
+                    <button className="nav-module-card" onClick={() => { setCurrentView('grades'); setShowStartScreen(false); }}>
+                      <FileText size={24} color="#ea580c" />
+                      <div>
+                        <h3>Βαθμολογίες</h3>
+                        <p>Έλεγχος επίδοσης</p>
                       </div>
                     </button>
                   </div>
@@ -794,6 +819,16 @@ export default function App() {
                 <CalendarIcon size={14} />
                 <span>Ημερολόγιο (Πρόγραμμα)</span>
               </li>
+              <li 
+                className={`sector-item ${currentView === 'grades' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentView('grades');
+                  setShowStartScreen(false);
+                }}
+              >
+                <FileText size={14} />
+                <span>Βαθμολογίες</span>
+              </li>
             </ul>
 
             <h4 className="sidebar-title">Διαχείριση Συστήματος</h4>
@@ -873,6 +908,17 @@ export default function App() {
                 onAddEvent={handleAddEventClick}
                 onEditEvent={handleEditEventClick}
                 onDeleteEvent={handleDeleteEvent}
+              />
+            </div>
+          )}
+
+          {currentView === 'grades' && (
+            <div className="desktop-content" style={{ padding: '12px', background: '#f8fafc' }}>
+              <AdminGradesView 
+                students={students}
+                specialties={specialties}
+                grades={grades}
+                courses={courses}
               />
             </div>
           )}
