@@ -152,5 +152,21 @@ export const api = {
   async deleteEvent(id) {
     const { error } = await supabase.from('events').delete().eq('id', id);
     if (error) throw error;
+  },
+
+  // Interests
+  async fetchInterests() {
+    const { data, error } = await supabase.from('interests').select('*').order('createdAt', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+  async upsertInterest(interest) {
+    const { data, error } = await supabase.from('interests').upsert([interest]).select();
+    if (error) throw error;
+    return data[0];
+  },
+  async deleteInterest(id) {
+    const { error } = await supabase.from('interests').delete().eq('id', id);
+    if (error) throw error;
   }
 };

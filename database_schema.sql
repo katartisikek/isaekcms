@@ -105,3 +105,16 @@ ALTER TABLE absences DISABLE ROW LEVEL SECURITY;
 ALTER TABLE teacher_reports DISABLE ROW LEVEL SECURITY;
 ALTER TABLE events DISABLE ROW LEVEL SECURITY;
 ALTER TABLE courses_data DISABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS interests (
+  id text PRIMARY KEY,
+  "lastName" text NOT NULL,
+  "firstName" text NOT NULL,
+  email text,
+  phone text,
+  "specialtyId" text,
+  comments text,
+  "createdAt" timestamp with time zone DEFAULT now()
+);
+
+ALTER TABLE interests DISABLE ROW LEVEL SECURITY;

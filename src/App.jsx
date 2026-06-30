@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Search, UserPlus, Folder, FolderOpen, Database, Home, BarChart4, CheckSquare, Plus, Phone, BookOpen, Settings, LogOut, Calendar as CalendarIcon, Clock, MapPin, FileText, GraduationCap
+  Search, UserPlus, Folder, FolderOpen, Database, Home, BarChart4, CheckSquare, Plus, Phone, BookOpen, Settings, LogOut, Calendar as CalendarIcon, Clock, MapPin, FileText, GraduationCap, MessageSquare
 } from 'lucide-react';
 import StudentTable from './components/StudentTable';
 import StudentFormModal from './components/StudentFormModal';
@@ -17,6 +17,8 @@ import LoginScreen from './components/LoginScreen';
 import TeacherPortal from './components/TeacherPortal';
 import AdminGradesView from './components/AdminGradesView';
 import AdminTeacherReportsView from './components/AdminTeacherReportsView';
+import InterestList from './components/InterestList';
+import InterestFormModal from './components/InterestFormModal';
 import { api } from './services/api';
 import { syncLocalDataToCloud } from './services/syncData';
 import { Loader2, RefreshCw } from 'lucide-react';
@@ -36,6 +38,7 @@ export default function App() {
   const [grades, setGrades] = useState([]);
   const [teacherReports, setTeacherReports] = useState([]);
   const [sections, setSections] = useState([]);
+  const [interests, setInterests] = useState([]);
 
   // UI State
   const [currentView, setCurrentView] = useState('students');
@@ -55,6 +58,8 @@ export default function App() {
   const [editingContact, setEditingContact] = useState(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [isInterestModalOpen, setIsInterestModalOpen] = useState(false);
+  const [editingInterest, setEditingInterest] = useState(null);
   const [showAnalytics, setShowAnalytics] = useState(true);
 
   const [loggedInUser, setLoggedInUser] = useState(() => {
@@ -82,7 +87,7 @@ export default function App() {
           api.fetchStudents(), api.fetchSpecialties(), api.fetchTasks(),
           api.fetchContacts(), api.fetchCourses(), api.fetchEvents(),
           api.fetchAbsences(), api.fetchGrades(), api.fetchTeacherReports(),
-          api.fetchSections()
+          api.fetchSections(), api.fetchInterests()
         ]);
         
         setStudents(s);
@@ -99,6 +104,7 @@ export default function App() {
         setGrades(g);
         setTeacherReports(tr);
         setSections(sec);
+        setInterests(int);
       } catch (err) {
         console.error("Failed to load from Supabase:", err);
       } finally {
@@ -395,6 +401,47 @@ export default function App() {
     }
   };
 
+  // Interest CRUD Handlers
+  const handleAddInterestClick = () => {
+    setEditingInterest(null);
+    setIsInterestModalOpen(true);
+  };
+
+  const handleEditInterestClick = (interest) => {
+    setEditingInterest(interest);
+    setIsInterestModalOpen(true);
+  };
+
+  const handleDeleteInterest = async (interestId) => {
+    if (window.confirm('Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτή την εκδήλωση ενδιαφέροντος;')) {
+      try {
+        await api.deleteInterest(interestId);
+        setInterests((prev) => prev.filter((i) => i.id !== interestId));
+      } catch (e) {
+        window.alert('Σφάλμα: ' + e.message);
+      }
+    }
+  };
+
+  const handleInterestFormSubmit = async (interestData) => {
+    try {
+      if (interestData.id) {
+        const saved = await api.upsertInterest(interestData);
+        setInterests((prev) => prev.map((i) => (i.id === saved.id ? saved : i)));
+      } else {
+        const newInterest = {
+          ...interestData,
+          id: `int_${Date.now()}`
+        };
+        const saved = await api.upsertInterest(newInterest);
+        setInterests((prev) => [saved, ...prev]);
+      }
+      setIsInterestModalOpen(false);
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
+    }
+  };
+
   // Helper menu links action
   const handleMenuHelp = () => {
     window.alert(
@@ -619,6 +666,14 @@ export default function App() {
                 </div>
               </button>
               
+              <button className="premium-quick-btn" onClick={() => { setCurrentView('interests'); setShowStartScreen(false); handleAddInterestClick(); }}>
+                <div className="btn-icon" style={{ background: '#fce7f3', color: '#db2777' }}><MessageSquare size={20} /></div>
+                <div className="btn-text">
+                  <span>Νέο Ενδιαφέρον</span>
+                  <small>Καταγραφή</small>
+                </div>
+              </button>
+              
               <button className="premium-quick-btn" onClick={() => { setCurrentView('grades'); setShowStartScreen(false); }}>
                 <div className="btn-icon" style={{ background: '#ffedd5', color: '#ea580c' }}><FileText size={20} /></div>
                 <div className="btn-text">
@@ -694,6 +749,13 @@ export default function App() {
                       <div>
                         <h3>Βαθμολογίες</h3>
                         <p>Έλεγχος επίδοσης</p>
+                      </div>
+                    </button>
+                    <button className="nav-module-card" onClick={() => { setCurrentView('interests'); setShowStartScreen(false); }}>
+                      <MessageSquare size={24} color="#db2777" />
+                      <div>
+                        <h3>Εκδηλώσεις Ενδιαφέροντος</h3>
+                        <p>Λίστα ενδιαφερομένων</p>
                       </div>
                     </button>
                   </div>
@@ -862,6 +924,16 @@ export default function App() {
                 <FileText size={14} />
                 <span>Βαθμολογίες</span>
               </li>
+              <li 
+                className={`sector-item ${currentView === 'interests' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentView('interests');
+                  setShowStartScreen(false);
+                }}
+              >
+                <MessageSquare size={14} />
+                <span>Εκδηλώσεις Ενδιαφέροντος</span>
+              </li>
             </ul>
 
             <h4 className="sidebar-title">Διαχείριση Συστήματος</h4>
@@ -957,6 +1029,24 @@ export default function App() {
                 onAddContactClick={handleAddContactClick}
                 onEditContactClick={handleEditContactClick}
                 onDeleteContact={handleDeleteContact}
+              />
+            </div>
+          )}
+
+          {currentView === 'interests' && (
+            <div className="desktop-content" style={{ padding: '12px', background: '#f8fafc' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>Εκδηλώσεις Ενδιαφέροντος</h2>
+                <button className="btn-sys primary" onClick={handleAddInterestClick}>
+                  <Plus size={14} />
+                  Νέα Εκδήλωση
+                </button>
+              </div>
+              <InterestList
+                interests={interests}
+                specialties={specialties}
+                onEdit={handleEditInterestClick}
+                onDelete={handleDeleteInterest}
               />
             </div>
           )}
@@ -1069,6 +1159,15 @@ export default function App() {
         specialties={specialties}
         courses={courses}
         contacts={contacts}
+      />
+
+      {/* Interest Form Dialog Box Modal */}
+      <InterestFormModal
+        isOpen={isInterestModalOpen}
+        onClose={() => setIsInterestModalOpen(false)}
+        onSubmit={handleInterestFormSubmit}
+        interest={editingInterest}
+        specialties={specialties}
       />
     </div>
   );
