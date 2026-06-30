@@ -48,6 +48,7 @@ export default function App() {
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [lastSeenNotifications, setLastSeenNotifications] = useState('[]');
 
   // Smart Notifications Logic
   const notifications = useMemo(() => {
@@ -95,6 +96,17 @@ export default function App() {
 
     return alerts;
   }, [tasks, interests, students]);
+
+  const unseenCount = notifications.length > 0 && JSON.stringify(notifications.map(n => n.id)) !== lastSeenNotifications 
+    ? notifications.length 
+    : 0;
+
+  const handleToggleNotifications = () => {
+    if (!showNotifications) {
+      setLastSeenNotifications(JSON.stringify(notifications.map(n => n.id)));
+    }
+    setShowNotifications(!showNotifications);
+  };
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -644,10 +656,10 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center' }}>
           
           {/* Notifications Bell */}
-          <div className="menu-item" style={{ position: 'relative' }} onClick={() => setShowNotifications(!showNotifications)}>
+          <div className="menu-item" style={{ position: 'relative' }} onClick={handleToggleNotifications}>
             <Bell size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
             Ειδοποιήσεις
-            {notifications.length > 0 && <span className="notification-badge">{notifications.length}</span>}
+            {unseenCount > 0 && <span className="notification-badge">{unseenCount}</span>}
             
             {/* Notifications Dropdown Modal */}
             {showNotifications && (
