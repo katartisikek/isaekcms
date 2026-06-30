@@ -1,5 +1,6 @@
 import React from 'react';
-import { Edit2, Trash2, Mail, Phone, BookOpen, Clock, UserPlus } from 'lucide-react';
+import { Edit2, Trash2, Mail, Phone, BookOpen, Clock, UserPlus, Download } from 'lucide-react';
+import { exportInterests } from '../services/exportExcel';
 
 export default function InterestList({ interests, specialties, onEdit, onDelete, onConvert }) {
   if (!interests || interests.length === 0) {
@@ -12,6 +13,17 @@ export default function InterestList({ interests, specialties, onEdit, onDelete,
 
   return (
     <div className="table-responsive">
+      {/* Export row */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+        <button
+          className="btn-sys"
+          onClick={() => exportInterests(interests, specialties)}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '5px 12px' }}
+        >
+          <Download size={14} />
+          Excel ({interests.length})
+        </button>
+      </div>
       <table className="sys-table">
         <thead>
           <tr>

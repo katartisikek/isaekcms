@@ -12,8 +12,10 @@ import {
   Mail, 
   Notebook,
   ExternalLink,
-  GraduationCap
+  GraduationCap,
+  Download
 } from 'lucide-react';
+import { exportContacts } from '../services/exportExcel';
 
 export default function ContactDirectory({ 
   contacts = [], 
@@ -107,6 +109,10 @@ export default function ContactDirectory({
           <button className="btn-sys primary" onClick={onAddContactClick}>
             <Plus size={14} />
             <span>Νέα Επαφή</span>
+          </button>
+          <button className="btn-sys" onClick={() => exportContacts(filteredContacts, specialties)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Download size={14} />
+            <span>Excel ({filteredContacts.length})</span>
           </button>
         </div>
       </div>

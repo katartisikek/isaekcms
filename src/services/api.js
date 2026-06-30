@@ -168,5 +168,27 @@ export const api = {
   async deleteInterest(id) {
     const { error } = await supabase.from('interests').delete().eq('id', id);
     if (error) throw error;
+  },
+
+  // Audit Log
+  async fetchAuditLog() {
+    const { data, error } = await supabase.from('audit_log').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.error('fetchAuditLog error:', error);
+      return []; // Return empty array instead of throwing to prevent breaking UI if table doesn't exist yet
+    }
+    return data || [];
+  },
+  async logAction(action, entity, entityName, userName, details = '') {
+    const { error } = await supabase.from('audit_log').insert([{
+      action,
+      entity,
+      entity_name: entityName,
+      user_name: userName,
+      details
+    }]);
+    if (error) {
+      console.error('logAction error:', error);
+    }
   }
 };

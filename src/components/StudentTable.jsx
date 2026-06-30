@@ -1,5 +1,6 @@
 import React from 'react';
-import { Edit2, Trash2, FileText, AlertCircle, Award, GraduationCap } from 'lucide-react';
+import { Edit2, Trash2, FileText, AlertCircle, Award, GraduationCap, Download } from 'lucide-react';
+import { exportStudents } from '../services/exportExcel';
 
 export default function StudentTable({ students = [], specialties = [], onViewProfile, onEdit, onDelete }) {
   
@@ -24,6 +25,20 @@ export default function StudentTable({ students = [], specialties = [], onViewPr
 
   return (
     <div style={{ height: '100%', width: '100%' }}>
+      {/* Export button row */}
+      {students.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
+          <button
+            className="btn-sys"
+            onClick={() => exportStudents(students, specialties)}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '5px 12px' }}
+            title={`Εξαγωγή ${students.length} εγγραφών σε Excel`}
+          >
+            <Download size={14} />
+            Excel ({students.length})
+          </button>
+        </div>
+      )}
       {students.length === 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af', gap: '8px' }}>
           <AlertCircle size={36} style={{ opacity: 0.5 }} />

@@ -1,5 +1,7 @@
 import React from 'react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { el } from 'date-fns/locale/el';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -8,6 +10,8 @@ import { Plus } from 'lucide-react';
 const locales = {
   'el': el,
 };
+
+const DnDCalendar = withDragAndDrop(Calendar);
 
 const localizer = dateFnsLocalizer({
   format,

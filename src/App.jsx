@@ -19,6 +19,7 @@ import AdminGradesView from './components/AdminGradesView';
 import AdminTeacherReportsView from './components/AdminTeacherReportsView';
 import InterestList from './components/InterestList';
 import InterestFormModal from './components/InterestFormModal';
+import AuditLogView from './components/AuditLogView';
 import { api } from './services/api';
 import { syncLocalDataToCloud } from './services/syncData';
 import { Loader2, RefreshCw } from 'lucide-react';
@@ -467,6 +468,50 @@ export default function App() {
     // Navigate to students view so context is clear
     setCurrentView('students');
     setShowStartScreen(false);
+  };
+
+
+  const handleEventDrop = async ({ event, start, end }) => {
+    try {
+      const updatedEvent = {
+        ...event,
+        start_time: new Date(start).toISOString(),
+        end_time: new Date(end).toISOString()
+      };
+      // prevent mutating original event fields directly for the API call if they shouldn't go to DB
+      const { start: _start, end: _end, ...dbEvent } = updatedEvent;
+      
+      const saved = await api.upsertEvent(dbEvent);
+      setEvents((prev) => prev.map((e) => (e.id === saved.id ? {
+        ...saved,
+        start: saved.start_time ? new Date(saved.start_time) : new Date(),
+        end: saved.end_time ? new Date(saved.end_time) : new Date()
+      } : e)));
+      await api.logAction('UPDATE', 'event', saved.title, loggedInUser?.username || 'Unknown', 'Drag and drop μετακίνηση');
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
+    }
+  };
+
+  const handleEventResize = async ({ event, start, end }) => {
+    try {
+      const updatedEvent = {
+        ...event,
+        start_time: new Date(start).toISOString(),
+        end_time: new Date(end).toISOString()
+      };
+      const { start: _start, end: _end, ...dbEvent } = updatedEvent;
+      
+      const saved = await api.upsertEvent(dbEvent);
+      setEvents((prev) => prev.map((e) => (e.id === saved.id ? {
+        ...saved,
+        start: saved.start_time ? new Date(saved.start_time) : new Date(),
+        end: saved.end_time ? new Date(saved.end_time) : new Date()
+      } : e)));
+      await api.logAction('UPDATE', 'event', saved.title, loggedInUser?.username || 'Unknown', 'Αλλαγή διάρκειας');
+    } catch (e) {
+      window.alert('Σφάλμα: ' + e.message);
+    }
   };
 
   // Helper menu links action
@@ -1077,6 +1122,10 @@ export default function App() {
                 onConvert={handleConvertInterest}
               />
             </div>
+          )}
+
+          {currentView === 'audit_log' && (
+            <AuditLogView />
           )}
 
           {currentView === 'calendar' && (
