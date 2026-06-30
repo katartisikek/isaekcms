@@ -83,7 +83,7 @@ export default function App() {
     const loadData = async () => {
       try {
         const [
-          s, sp, t, c, crs, e, a, g, tr, sec
+          s, sp, t, c, crs, e, a, g, tr, sec, ints
         ] = await Promise.all([
           api.fetchStudents(), api.fetchSpecialties(), api.fetchTasks(),
           api.fetchContacts(), api.fetchCourses(), api.fetchEvents(),
@@ -105,7 +105,7 @@ export default function App() {
         setGrades(g);
         setTeacherReports(tr);
         setSections(sec);
-        setInterests(int);
+        setInterests(ints);
       } catch (err) {
         console.error("Failed to load from Supabase:", err);
       } finally {
