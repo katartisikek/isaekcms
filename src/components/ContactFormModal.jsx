@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X, PhoneCall } from 'lucide-react';
+import { X, PhoneCall, Plus, Trash2, BookOpen } from 'lucide-react';
 
-export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = null, specialties = [] }) {
+export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = null, specialties = [], courses = {} }) {
   const [formData, setFormData] = useState({
     name: '',
     category: 'Προμηθευτής',
     phone: '',
     email: '',
     description: '',
-    specialtyId: ''
+    assignments: []
   });
 
   const [errors, setErrors] = useState({});
@@ -22,7 +22,7 @@ export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = 
         phone: contact.phone || '',
         email: contact.email || '',
         description: contact.description || '',
-        specialtyId: contact.specialtyId || ''
+        assignments: contact.assignments || []
       });
     } else {
       setFormData({
@@ -31,7 +31,7 @@ export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = 
         phone: '',
         email: '',
         description: '',
-        specialtyId: ''
+        assignments: []
       });
     }
     setErrors({});
@@ -49,6 +49,32 @@ export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = 
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }));
     }
+  };
+
+    const handleAddAssignment = () => {
+    setFormData(prev => ({
+      ...prev,
+      assignments: [...prev.assignments, { specialtyId: '', courseId: '' }]
+    }));
+  };
+
+  const handleRemoveAssignment = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      assignments: prev.assignments.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAssignmentChange = (index, field, value) => {
+    setFormData(prev => {
+      const newAssignments = [...prev.assignments];
+      newAssignments[index] = { ...newAssignments[index], [field]: value };
+      // if specialty changes, reset course
+      if (field === 'specialtyId') {
+        newAssignments[index].courseId = '';
+      }
+      return { ...prev, assignments: newAssignments };
+    });
   };
 
   const validate = () => {
@@ -123,19 +149,63 @@ export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = 
 
           {/* Specialty Selector for Instructors */}
           {formData.category === 'Εκπαιδευτής' && (
-            <div className="sys-group">
-              <label className="sys-label">Ειδικότητα</label>
-              <select
-                name="specialtyId"
-                className="sys-input"
-                value={formData.specialtyId}
-                onChange={handleChange}
-              >
-                <option value="">-- Επιλέξτε Ειδικότητα --</option>
-                {specialties.map(s => (
-                  <option key={s.id} value={s.id}>{s.title}</option>
-                ))}
-              </select>
+            <div className="sys-group" style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <label className="sys-label" style={{ margin: 0, color: '#0f172a' }}>
+                  <BookOpen size={14} style={{ verticalAlign: 'middle', marginRight: '6px' }}/>
+                  Αναθέσεις Μαθημάτων
+                </label>
+                <button type="button" onClick={handleAddAssignment} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
+                  <Plus size={12} /> Προσθήκη
+                </button>
+              </div>
+
+              {formData.assignments.length === 0 ? (
+                <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', padding: '8px 0' }}>
+                  Δεν υπάρχουν αναθέσεις ακόμα.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {formData.assignments.map((assignment, idx) => {
+                    // Filter courses based on specialty
+                    const specialtyCourses = courses[assignment.specialtyId] || [];
+                    
+                    return (
+                      <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: '#fff', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <select
+                            className="sys-input"
+                            value={assignment.specialtyId}
+                            onChange={(e) => handleAssignmentChange(idx, 'specialtyId', e.target.value)}
+                            style={{ fontSize: '12px', padding: '4px 8px' }}
+                          >
+                            <option value="">-- Επιλογή Ειδικότητας --</option>
+                            {specialties.map((s) => (
+                              <option key={s.id} value={s.id}>{s.title}</option>
+                            ))}
+                          </select>
+                          
+                          <select
+                            className="sys-input"
+                            value={assignment.courseId}
+                            onChange={(e) => handleAssignmentChange(idx, 'courseId', e.target.value)}
+                            style={{ fontSize: '12px', padding: '4px 8px' }}
+                            disabled={!assignment.specialtyId}
+                          >
+                            <option value="">-- Επιλογή Μαθήματος --</option>
+                            {specialtyCourses.map((c) => (
+                              <option key={c.id} value={c.id}>{c.title} (Εξ. {c.semester})</option>
+                            ))}
+                          </select>
+                        </div>
+                        <button type="button" onClick={() => handleRemoveAssignment(idx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }} title="Διαγραφή ανάθεσης">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 

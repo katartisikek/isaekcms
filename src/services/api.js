@@ -88,12 +88,56 @@ export const api = {
   async fetchContacts() {
     const { data, error } = await supabase.from('contacts').select('*');
     if (error) throw error;
-    return data || [];
+    return (data || []).map(c => {
+      let assignments = [];
+      try {
+        if (c.department && c.department.startsWith('[')) {
+          assignments = JSON.parse(c.department);
+        } else if (c.department) {
+          // Fallback for old data where department was just a string
+          assignments = [{ specialtyId: c.department, courseId: '' }];
+        }
+      } catch (e) {
+        // Fallback
+        assignments = [{ specialtyId: c.department, courseId: '' }];
+      }
+      return {
+        ...c,
+        category: c.role || 'Προμηθευτής',
+        assignments
+      };
+    });
   },
   async upsertContact(contact) {
-    const { data, error } = await supabase.from('contacts').upsert([contact]).select();
+    const dbContact = {
+      ...contact,
+      role: contact.category,
+      department: contact.assignments ? JSON.stringify(contact.assignments) : (contact.specialtyId || '')
+    };
+    // Don't send custom UI fields to DB if they don't exist in schema (prevent errors)
+    delete dbContact.category;
+    delete dbContact.assignments;
+    delete dbContact.specialtyId;
+
+    const { data, error } = await supabase.from('contacts').upsert([dbContact]).select();
     if (error) throw error;
-    return data[0];
+
+    let assignments = [];
+    try {
+      if (data[0].department && data[0].department.startsWith('[')) {
+        assignments = JSON.parse(data[0].department);
+      } else if (data[0].department) {
+        assignments = [{ specialtyId: data[0].department, courseId: '' }];
+      }
+    } catch (e) {
+      assignments = [];
+    }
+
+    return {
+      ...data[0],
+      category: data[0].role || 'Προμηθευτής',
+      assignments
+    };
   },
   async deleteContact(id) {
     const { error } = await supabase.from('contacts').delete().eq('id', id);

@@ -1199,6 +1199,7 @@ export default function App() {
               <ContactDirectory
                 contacts={contacts}
                 specialties={specialties}
+                courses={courses}
                 onAddContactClick={handleAddContactClick}
                 onEditContactClick={handleEditContactClick}
                 onDeleteContact={handleDeleteContact}
@@ -1325,6 +1326,7 @@ export default function App() {
         onSubmit={handleContactFormSubmit}
         contact={editingContact}
         specialties={specialties}
+        courses={courses}
       />
 
       {/* Event Form Dialog Box Modal */}
