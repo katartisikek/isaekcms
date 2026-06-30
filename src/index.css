@@ -472,11 +472,12 @@ body {
 /* 9. Welcome / Search Launcher Dialog Box (Start Screen) */
 .start-screen-overlay {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   flex: 1;
   background-color: #e2e8f0;
-  padding: 20px;
+  padding: 40px 20px;
+  overflow-y: auto;
 }
 
 .start-screen-box {

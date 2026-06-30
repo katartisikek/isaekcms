@@ -703,7 +703,7 @@ export default function App() {
             </div>
 
             {/* Quick Actions Bar */}
-            <div style={{ display: 'flex', gap: '12px', background: '#fff', padding: '16px', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', background: '#fff', padding: '16px', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
               <button className="premium-quick-btn" onClick={() => { setCurrentView('students'); setShowStartScreen(false); handleAddClick(); }}>
                 <div className="btn-icon" style={{ background: '#dcfce7', color: '#16a34a' }}><UserPlus size={20} /></div>
                 <div className="btn-text">
