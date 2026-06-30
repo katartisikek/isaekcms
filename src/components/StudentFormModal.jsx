@@ -37,6 +37,10 @@ export default function StudentFormModal({
         const parts = student.fullName.split(' ');
         setLastName(parts[0] || '');
         setFirstName(parts.slice(1).join(' ') || '');
+      } else if (student.firstName !== undefined || student.lastName !== undefined) {
+        // Pre-filled from interest conversion
+        setLastName(student.lastName || '');
+        setFirstName(student.firstName || '');
       } else {
         setFirstName('');
         setLastName('');

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Edit2, Trash2, Mail, Phone, BookOpen, Clock } from 'lucide-react';
+import { Edit2, Trash2, Mail, Phone, BookOpen, Clock, UserPlus } from 'lucide-react';
 
-export default function InterestList({ interests, specialties, onEdit, onDelete }) {
+export default function InterestList({ interests, specialties, onEdit, onDelete, onConvert }) {
   if (!interests || interests.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '40px', background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
@@ -68,6 +68,14 @@ export default function InterestList({ interests, specialties, onEdit, onDelete 
                   </div>
                 </td>
                 <td className="actions-col">
+                  <button
+                    className="action-btn"
+                    onClick={() => onConvert(interest)}
+                    title="Εγγραφή ως Σπουδαστής"
+                    style={{ background: '#dcfce7', color: '#16a34a', border: '1px solid #bbf7d0' }}
+                  >
+                    <UserPlus size={16} />
+                  </button>
                   <button className="action-btn edit" onClick={() => onEdit(interest)} title="Επεξεργασία">
                     <Edit2 size={16} />
                   </button>

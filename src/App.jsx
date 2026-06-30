@@ -442,6 +442,33 @@ export default function App() {
     }
   };
 
+  // Convert Interest -> Student
+  const handleConvertInterest = (interest) => {
+    // Pre-fill student form with data from the interest record
+    const prefilled = {
+      lastName: interest.lastName || '',
+      firstName: interest.firstName || '',
+      phone: interest.phone || '',
+      email: interest.email || '',
+      specialtyId: interest.specialtyId || '',
+      // Leave rest blank for secretary to fill in
+      amka: '',
+      afm: '',
+      idNumber: '',
+      year: '1ο Έτος',
+      status: 'active',
+      totalDebt: 0,
+      hasInstallments: false,
+      numberOfInstallments: 1,
+      notes: `Μετατράπηκε από Εκδήλωση Ενδιαφέροντος. ${interest.comments ? 'Σχόλια: ' + interest.comments : ''}`.trim(),
+    };
+    setEditingStudent(prefilled);
+    setIsModalOpen(true);
+    // Navigate to students view so context is clear
+    setCurrentView('students');
+    setShowStartScreen(false);
+  };
+
   // Helper menu links action
   const handleMenuHelp = () => {
     window.alert(
@@ -1047,6 +1074,7 @@ export default function App() {
                 specialties={specialties}
                 onEdit={handleEditInterestClick}
                 onDelete={handleDeleteInterest}
+                onConvert={handleConvertInterest}
               />
             </div>
           )}
