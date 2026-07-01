@@ -1782,6 +1782,9 @@ body {
   display: flex;
   align-items: center;
   border-top: 1px solid #f1f5f9;
+  margin: 0 -24px -24px -24px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .modal-body .sys-group {
