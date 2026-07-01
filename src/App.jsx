@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Search, UserPlus, Folder, FolderOpen, Database, Home, BarChart4, CheckSquare, Plus, Phone, BookOpen, Settings, LogOut, Calendar as CalendarIcon, Clock, MapPin, FileText, GraduationCap, MessageSquare, Bell, AlertTriangle
+  Search, User, UserPlus, Folder, FolderOpen, Database, Home, BarChart4, CheckSquare, Plus, Phone, BookOpen, Settings, LogOut, Calendar as CalendarIcon, Clock, MapPin, FileText, GraduationCap, MessageSquare, Bell, AlertTriangle
 } from 'lucide-react';
 import StudentTable from './components/StudentTable';
 import StudentFormModal from './components/StudentFormModal';
@@ -10,6 +10,7 @@ import DashboardStats from './components/DashboardStats';
 import TaskBoard from './components/TaskBoard';
 import TaskFormModal from './components/TaskFormModal';
 import ContactDirectory from './components/ContactDirectory';
+import TeacherDirectory from './components/TeacherDirectory';
 import TeacherDirectory from './components/TeacherDirectory';
 import ContactFormModal from './components/ContactFormModal';
 import ScheduleCalendar from './components/ScheduleCalendar';
@@ -1061,6 +1062,18 @@ export default function App() {
                 <span>Καθηγητές</span>
               </li>
               <li 
+                className={`sector-item ${currentView === 'teachers' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentView('teachers');
+                  setSelectedSector('');
+                  setSelectedSpecialty('');
+                  setShowStartScreen(false);
+                }}
+              >
+                <User size={14} />
+                <span>Καθηγητές</span>
+              </li>
+              <li 
                 className={`sector-item ${currentView === 'tasks' ? 'active' : ''}`}
                 onClick={() => {
                   setCurrentView('tasks');
@@ -1211,6 +1224,19 @@ export default function App() {
             <div className="desktop-content">
               <ContactDirectory
                 contacts={contacts.filter(c => c.role !== 'Καθηγητής' && c.category !== 'Εκπαιδευτής')}
+                specialties={specialties}
+                courses={courses}
+                onAddContactClick={handleAddContactClick}
+                onEditContactClick={handleEditContactClick}
+                onDeleteContact={handleDeleteContact}
+              />
+            </div>
+          )}
+
+          {currentView === 'teachers' && (
+            <div className="desktop-content">
+              <TeacherDirectory
+                contacts={contacts.filter(c => c.role === 'Καθηγητής' || c.category === 'Εκπαιδευτής')}
                 specialties={specialties}
                 courses={courses}
                 onAddContactClick={handleAddContactClick}
