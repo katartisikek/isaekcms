@@ -11,7 +11,6 @@ import TaskBoard from './components/TaskBoard';
 import TaskFormModal from './components/TaskFormModal';
 import ContactDirectory from './components/ContactDirectory';
 import TeacherDirectory from './components/TeacherDirectory';
-import TeacherDirectory from './components/TeacherDirectory';
 import ContactFormModal from './components/ContactFormModal';
 import ScheduleCalendar from './components/ScheduleCalendar';
 import EventFormModal from './components/EventFormModal';
@@ -1062,18 +1061,6 @@ export default function App() {
                 <span>Καθηγητές</span>
               </li>
               <li 
-                className={`sector-item ${currentView === 'teachers' ? 'active' : ''}`}
-                onClick={() => {
-                  setCurrentView('teachers');
-                  setSelectedSector('');
-                  setSelectedSpecialty('');
-                  setShowStartScreen(false);
-                }}
-              >
-                <User size={14} />
-                <span>Καθηγητές</span>
-              </li>
-              <li 
                 className={`sector-item ${currentView === 'tasks' ? 'active' : ''}`}
                 onClick={() => {
                   setCurrentView('tasks');
@@ -1224,19 +1211,6 @@ export default function App() {
             <div className="desktop-content">
               <ContactDirectory
                 contacts={contacts.filter(c => c.role !== 'Καθηγητής' && c.category !== 'Εκπαιδευτής')}
-                specialties={specialties}
-                courses={courses}
-                onAddContactClick={handleAddContactClick}
-                onEditContactClick={handleEditContactClick}
-                onDeleteContact={handleDeleteContact}
-              />
-            </div>
-          )}
-
-          {currentView === 'teachers' && (
-            <div className="desktop-content">
-              <TeacherDirectory
-                contacts={contacts.filter(c => c.role === 'Καθηγητής' || c.category === 'Εκπαιδευτής')}
                 specialties={specialties}
                 courses={courses}
                 onAddContactClick={handleAddContactClick}
