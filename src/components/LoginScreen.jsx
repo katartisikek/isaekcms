@@ -7,7 +7,7 @@ export default function LoginScreen({ onLogin, contacts }) {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
 
-  const teachers = contacts.filter(c => c.category === 'Εκπαιδευτής');
+  const teachers = contacts.filter(c => c.category === 'Καθηγητής' || c.category === 'Εκπαιδευτής' || c.role === 'Καθηγητής');
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -28,7 +28,7 @@ export default function LoginScreen({ onLogin, contacts }) {
       // For Teachers, simple mock PIN '1234'
       if (pin === '1234' || pin === '') {
         const teacher = teachers.find(t => t.id === selectedTeacherId);
-        onLogin({ role: 'teacher', id: teacher.id, name: teacher.name, specialtyId: teacher.specialtyId });
+        onLogin({ role: 'teacher', id: teacher.id, name: teacher.name, assignments: teacher.assignments || [] });
       } else {
         setError('Λάθος PIN Καθηγητή. Δοκιμάστε 1234 (ή αφήστε το κενό)');
       }

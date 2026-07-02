@@ -1,5 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { BookOpen, CheckCircle, FileText, Calendar as CalendarIcon, Clock, Users, ArrowLeft, Save } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { 
+  BookOpen, CheckCircle, FileText, Calendar as CalendarIcon, Clock, Users, 
+  Save, LogOut, BarChart3, ClipboardList, GraduationCap, ChevronDown,
+  AlertCircle, TrendingUp, History, X, Check, ArrowRight
+} from 'lucide-react';
 import { api } from '../services/api';
 
 export default function TeacherPortal({ 
@@ -17,41 +21,78 @@ export default function TeacherPortal({
   courses = {},
   onLogout
 }) {
-  const [activeTab, setActiveTab] = useState('report'); // 'report' or 'grades'
+  const [activeTab, setActiveTab] = useState('dashboard');
   
-  // State for Report Form
-  const [reportSectionId, setReportSectionId] = useState('');
+  // Report state
+  const [reportSpecialtyId, setReportSpecialtyId] = useState('');
   const [reportCourse, setReportCourse] = useState('');
   const [reportDate, setReportDate] = useState(new Date().toISOString().split('T')[0]);
-  const [reportHours, setReportHours] = useState('');
+  const [reportArrivalTime, setReportArrivalTime] = useState('');
+  const [reportDepartureTime, setReportDepartureTime] = useState('');
   const [currentReportAbsences, setCurrentReportAbsences] = useState({});
   const [reportSubmitted, setReportSubmitted] = useState(false);
+  const [reportSaving, setReportSaving] = useState(false);
 
-  // State for Grades Form
-  const [gradesSectionId, setGradesSectionId] = useState('');
+  // Grades state
+  const [gradesSpecialtyId, setGradesSpecialtyId] = useState('');
   const [gradesCourse, setGradesCourse] = useState('');
   const [currentGrades, setCurrentGrades] = useState({});
   const [gradesSubmitted, setGradesSubmitted] = useState(false);
+  const [gradesSaving, setGradesSaving] = useState(false);
 
-  // --- Handlers for Report Tab ---
-  
-  const selectedReportSection = useMemo(() => sections.find(s => s.id === reportSectionId), [sections, reportSectionId]);
-  
-  const reportCoursesOptions = useMemo(() => {
-    if (!selectedReportSection) return [];
-    const specId = selectedReportSection.specialtyId;
-    const sem = selectedReportSection.semester || 'semester1';
-    const specCourses = courses[specId];
-    if (specCourses && specCourses[sem]) {
-      return specCourses[sem];
-    }
-    return [];
-  }, [selectedReportSection, courses]);
+  // ──────────────────────────────────────────────
+  // Derive teacher's assignments
+  // ──────────────────────────────────────────────
+  const teacherAssignments = useMemo(() => {
+    return teacher.assignments || [];
+  }, [teacher]);
 
+  // Get unique specialty IDs this teacher teaches
+  const teacherSpecialtyIds = useMemo(() => {
+    return [...new Set(teacherAssignments.map(a => a.specialtyId))];
+  }, [teacherAssignments]);
+
+  // Get the actual specialty objects
+  const teacherSpecialties = useMemo(() => {
+    return specialties.filter(s => teacherSpecialtyIds.includes(s.id));
+  }, [specialties, teacherSpecialtyIds]);
+
+  // Get courses for a selected specialty (from teacher's assignments)
+  const getTeacherCourses = (specId) => {
+    return teacherAssignments
+      .filter(a => a.specialtyId === specId && a.courseId)
+      .map(a => a.courseId);
+  };
+
+  // Get students for a specialty
+  const getStudentsForSpecialty = (specId) => {
+    return students.filter(s => s.specialtyId === specId);
+  };
+
+  // Calculate hours from arrival/departure
+  const calculatedHours = useMemo(() => {
+    if (!reportArrivalTime || !reportDepartureTime) return null;
+    const [aH, aM] = reportArrivalTime.split(':').map(Number);
+    const [dH, dM] = reportDepartureTime.split(':').map(Number);
+    const totalMinutes = (dH * 60 + dM) - (aH * 60 + aM);
+    if (totalMinutes <= 0) return null;
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+    return { hours, mins, totalMinutes };
+  }, [reportArrivalTime, reportDepartureTime]);
+
+  // ──────────────────────────────────────────────
+  // REPORT HANDLERS
+  // ──────────────────────────────────────────────
   const reportStudents = useMemo(() => {
-    if (!reportSectionId) return [];
-    return students.filter(s => s.sectionId === reportSectionId);
-  }, [students, reportSectionId]);
+    if (!reportSpecialtyId) return [];
+    return getStudentsForSpecialty(reportSpecialtyId);
+  }, [reportSpecialtyId, students]);
+
+  const reportCourseOptions = useMemo(() => {
+    if (!reportSpecialtyId) return [];
+    return getTeacherCourses(reportSpecialtyId);
+  }, [reportSpecialtyId, teacherAssignments]);
 
   const handleToggleAbsence = (studentId) => {
     setCurrentReportAbsences(prev => ({
@@ -61,20 +102,20 @@ export default function TeacherPortal({
   };
 
   const handleSubmitReport = async () => {
-    if (!reportSectionId || !reportCourse || !reportDate || !reportHours) {
-      alert('Παρακαλώ συμπληρώστε όλα τα πεδία (Τμήμα, Μάθημα, Ημερομηνία, Ώρες).');
+    if (!reportSpecialtyId || !reportCourse || !reportDate || !reportArrivalTime || !reportDepartureTime) {
+      alert('Παρακαλώ συμπληρώστε όλα τα πεδία.');
+      return;
+    }
+    if (!calculatedHours || calculatedHours.totalMinutes <= 0) {
+      alert('Η ώρα αναχώρησης πρέπει να είναι μετά την ώρα άφιξης.');
       return;
     }
 
-    const hoursNum = parseInt(reportHours, 10);
-    if (isNaN(hoursNum) || hoursNum <= 0) {
-      alert('Οι ώρες πρέπει να είναι έγκυρος αριθμός.');
-      return;
-    }
-
+    setReportSaving(true);
     try {
-      const specialtyTitle = specialties.find(s => s.id === selectedReportSection.specialtyId)?.title || 'Άγνωστη Ειδικότητα';
+      const specialtyTitle = specialties.find(s => s.id === reportSpecialtyId)?.title || '';
 
+      // Save absences
       const newAbsences = [];
       Object.keys(currentReportAbsences).forEach(studentId => {
         if (currentReportAbsences[studentId]) {
@@ -83,36 +124,41 @@ export default function TeacherPortal({
             studentId,
             courseTitle: reportCourse,
             date: reportDate,
-            hours: hoursNum,
-            justified: false
+            hours: calculatedHours.hours || 1,
+            type: 'absence',
+            notes: `Ώρα: ${reportArrivalTime} - ${reportDepartureTime}`
           });
         }
       });
       
-      for (const abs of newAbsences) {
-        await api.upsertAbsence(abs);
+      if (newAbsences.length > 0) {
+        await api.upsertAbsences(newAbsences);
+        setAbsences(prev => [...prev, ...newAbsences]);
       }
-      setAbsences(prev => [...prev, ...newAbsences]);
 
-      const absentStudentIds = Object.keys(currentReportAbsences).filter(id => currentReportAbsences[id]);
-      const absentStudentNames = absentStudentIds.map(id => {
-        const st = students.find(s => s.id === id);
-        return st ? st.fullName : 'Άγνωστος';
-      });
+      // Save report
+      const absentStudentNames = Object.keys(currentReportAbsences)
+        .filter(id => currentReportAbsences[id])
+        .map(id => {
+          const st = students.find(s => s.id === id);
+          return st ? st.fullName : 'Άγνωστος';
+        });
 
       const newReport = {
         id: `rep_${Date.now()}`,
         teacherId: teacher.id,
         teacherName: teacher.name,
-        sectionId: reportSectionId,
-        sectionName: selectedReportSection.name,
+        sectionId: reportSpecialtyId,
+        sectionName: specialtyTitle,
         specialtyTitle,
         courseTitle: reportCourse,
         date: reportDate,
-        hours: hoursNum,
+        hours: calculatedHours.hours || 1,
         timestamp: new Date().toISOString(),
         absentStudents: absentStudentNames,
-        status: 'submitted'
+        status: 'submitted',
+        arrivalTime: reportArrivalTime,
+        departureTime: reportDepartureTime
       };
 
       const savedReport = await api.upsertTeacherReport(newReport);
@@ -122,38 +168,32 @@ export default function TeacherPortal({
       setTimeout(() => {
         setReportSubmitted(false);
         setReportCourse('');
-        setReportHours('');
+        setReportArrivalTime('');
+        setReportDepartureTime('');
         setCurrentReportAbsences({});
       }, 3000);
     } catch (e) {
       alert('Σφάλμα: ' + e.message);
+    } finally {
+      setReportSaving(false);
     }
   };
 
-
-  // --- Handlers for Grades Tab ---
-
-  const selectedGradesSection = useMemo(() => sections.find(s => s.id === gradesSectionId), [sections, gradesSectionId]);
-  
-  const gradesCoursesOptions = useMemo(() => {
-    if (!selectedGradesSection) return [];
-    const specId = selectedGradesSection.specialtyId;
-    const sem = selectedGradesSection.semester || 'semester1';
-    const specCourses = courses[specId];
-    if (specCourses && specCourses[sem]) {
-      return specCourses[sem];
-    }
-    return [];
-  }, [selectedGradesSection, courses]);
+  // ──────────────────────────────────────────────
+  // GRADES HANDLERS
+  // ──────────────────────────────────────────────
+  const gradesCourseOptions = useMemo(() => {
+    if (!gradesSpecialtyId) return [];
+    return getTeacherCourses(gradesSpecialtyId);
+  }, [gradesSpecialtyId, teacherAssignments]);
 
   const gradesStudents = useMemo(() => {
-    if (!gradesSectionId) return [];
-    return students.filter(s => s.sectionId === gradesSectionId);
-  }, [students, gradesSectionId]);
+    if (!gradesSpecialtyId) return [];
+    return getStudentsForSpecialty(gradesSpecialtyId);
+  }, [gradesSpecialtyId, students]);
 
-  // Load existing grades when course and section are selected
-  React.useEffect(() => {
-    if (gradesSectionId && gradesCourse) {
+  useEffect(() => {
+    if (gradesSpecialtyId && gradesCourse) {
       const existing = {};
       gradesStudents.forEach(st => {
         const gradeRecord = grades.find(g => g.studentId === st.id && g.courseTitle === gradesCourse);
@@ -168,7 +208,7 @@ export default function TeacherPortal({
     } else {
       setCurrentGrades({});
     }
-  }, [gradesSectionId, gradesCourse, grades, gradesStudents]);
+  }, [gradesSpecialtyId, gradesCourse, grades, gradesStudents]);
 
   const handleGradeChange = (studentId, type, val) => {
     setCurrentGrades(prev => ({
@@ -181,324 +221,540 @@ export default function TeacherPortal({
   };
 
   const handleSubmitGrades = async () => {
-    if (!gradesSectionId || !gradesCourse) {
-      alert('Παρακαλώ επιλέξτε Τμήμα και Μάθημα.');
+    if (!gradesSpecialtyId || !gradesCourse) {
+      alert('Παρακαλώ επιλέξτε Ειδικότητα και Μάθημα.');
       return;
     }
-
+    setGradesSaving(true);
     try {
-      const updatedGradesToSave = [];
+      const toSave = [];
       Object.keys(currentGrades).forEach(studentId => {
         const { progressGrade, finalGrade } = currentGrades[studentId];
         if (progressGrade || finalGrade) {
-          const existingGrade = grades.find(g => g.studentId === studentId && g.courseTitle === gradesCourse);
-          if (existingGrade) {
-            updatedGradesToSave.push({
-              ...existingGrade,
-              progressGrade,
-              finalGrade
-            });
-          } else {
-            updatedGradesToSave.push({
-              id: `grd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              studentId,
-              courseTitle: gradesCourse,
-              progressGrade,
-              finalGrade
-            });
-          }
+          const existing = grades.find(g => g.studentId === studentId && g.courseTitle === gradesCourse);
+          toSave.push({
+            id: existing?.id || `grd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            studentId,
+            courseTitle: gradesCourse,
+            progressGrade,
+            finalGrade
+          });
         }
       });
 
-      for (const gr of updatedGradesToSave) {
-        await api.upsertGrade(gr);
-      }
-
-      setGrades(prev => {
-        let newGrades = [...prev];
-        updatedGradesToSave.forEach(ug => {
-          const idx = newGrades.findIndex(g => g.id === ug.id);
-          if (idx >= 0) newGrades[idx] = ug;
-          else newGrades.push(ug);
+      if (toSave.length > 0) {
+        await api.upsertGrades(toSave);
+        setGrades(prev => {
+          let updated = [...prev];
+          toSave.forEach(ug => {
+            const idx = updated.findIndex(g => g.id === ug.id);
+            if (idx >= 0) updated[idx] = ug;
+            else updated.push(ug);
+          });
+          return updated;
         });
-        return newGrades;
-      });
+      }
 
       setGradesSubmitted(true);
       setTimeout(() => setGradesSubmitted(false), 3000);
     } catch (e) {
       alert('Σφάλμα: ' + e.message);
+    } finally {
+      setGradesSaving(false);
     }
   };
 
+  // ──────────────────────────────────────────────
+  // STATS for dashboard
+  // ──────────────────────────────────────────────
+  const myReports = useMemo(() => {
+    return teacherReports.filter(r => r.teacherId === teacher.id);
+  }, [teacherReports, teacher.id]);
+
+  const totalStudents = useMemo(() => {
+    const ids = new Set();
+    teacherSpecialtyIds.forEach(specId => {
+      students.filter(s => s.specialtyId === specId).forEach(s => ids.add(s.id));
+    });
+    return ids.size;
+  }, [students, teacherSpecialtyIds]);
+
+  const totalCourses = useMemo(() => {
+    return teacherAssignments.filter(a => a.courseId).length;
+  }, [teacherAssignments]);
+
+  // ──────────────────────────────────────────────
+  // RENDER
+  // ──────────────────────────────────────────────
+  const tabs = [
+    { id: 'dashboard', label: 'Αρχική', icon: <BarChart3 size={18} /> },
+    { id: 'report', label: 'Αναφορά', icon: <ClipboardList size={18} /> },
+    { id: 'grades', label: 'Βαθμολογία', icon: <GraduationCap size={18} /> },
+    { id: 'history', label: 'Ιστορικό', icon: <History size={18} /> },
+  ];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
-      {/* Top Navbar */}
-      <header style={{ background: '#fff', padding: '16px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', background: '#f0fdf4', color: '#16a34a', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-            {teacher.name.charAt(0)}
-          </div>
+    <div className="tp-container">
+      {/* ─── HEADER ─── */}
+      <header className="tp-header">
+        <div className="tp-header-left">
+          <div className="tp-avatar">{teacher.name.charAt(0)}</div>
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: '600', color: '#0f172a', margin: 0 }}>{teacher.name}</h2>
-            <span style={{ fontSize: '13px', color: '#64748b' }}>Πύλη Εκπαιδευτή</span>
+            <h2 className="tp-teacher-name">{teacher.name}</h2>
+            <span className="tp-subtitle">Πύλη Εκπαιδευτή ΙΣΑΕΚ</span>
           </div>
         </div>
-        <button 
-          onClick={onLogout}
-          style={{ background: 'transparent', border: '1px solid #e2e8f0', padding: '8px 16px', borderRadius: '8px', color: '#64748b', cursor: 'pointer', fontWeight: '500', transition: 'all 0.2s' }}
-          onMouseOver={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#ef4444'; }}
-          onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748b'; }}
-        >
-          Αποσύνδεση
+        <button className="tp-logout-btn" onClick={onLogout}>
+          <LogOut size={16} /> Αποσύνδεση
         </button>
       </header>
 
-      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '32px 24px' }}>
-        
-        <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b', marginBottom: '24px' }}>Καλώς ήρθατε, Καθηγητά</h1>
-
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0', paddingBottom: '16px' }}>
-          <button 
-            onClick={() => setActiveTab('report')}
-            style={{
-              padding: '10px 20px', background: activeTab === 'report' ? '#eff6ff' : 'transparent',
-              color: activeTab === 'report' ? '#2563eb' : '#64748b', border: activeTab === 'report' ? '1px solid #bfdbfe' : '1px solid transparent',
-              borderRadius: '6px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
-            }}
+      {/* ─── TABS ─── */}
+      <nav className="tp-tabs">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            className={`tp-tab ${activeTab === tab.id ? 'tp-tab-active' : ''}`}
+            onClick={() => setActiveTab(tab.id)}
           >
-            <CheckCircle size={18} /> ΑΝΑΦΟΡΑ
+            {tab.icon}
+            <span>{tab.label}</span>
           </button>
-          <button 
-            onClick={() => setActiveTab('grades')}
-            style={{
-              padding: '10px 20px', background: activeTab === 'grades' ? '#eff6ff' : 'transparent',
-              color: activeTab === 'grades' ? '#2563eb' : '#64748b', border: activeTab === 'grades' ? '1px solid #bfdbfe' : '1px solid transparent',
-              borderRadius: '6px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
-            }}
-          >
-            <FileText size={18} /> ΒΑΘΜΟΛΟΓΙΑ
-          </button>
-        </div>
+        ))}
+      </nav>
 
+      {/* ─── CONTENT ─── */}
+      <main className="tp-main">
 
-        {/* Content: ΑΝΑΦΟΡΑ */}
-        {activeTab === 'report' && (
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#0f172a' }}>Δήλωση Μαθήματος & Απουσιών</h2>
+        {/* ═══ DASHBOARD ═══ */}
+        {activeTab === 'dashboard' && (
+          <div className="tp-dashboard">
+            <h1 className="tp-welcome">Καλώς ήρθατε, <span className="tp-name-highlight">{teacher.name.split(' ')[0]}</span></h1>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#475569' }}>Τμήμα</label>
-                <select 
-                  value={reportSectionId}
-                  onChange={(e) => { setReportSectionId(e.target.value); setReportCourse(''); }}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-                >
-                  <option value="">Επιλέξτε Τμήμα...</option>
-                  {sections.map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
+            {/* Stats Row */}
+            <div className="tp-stats-row">
+              <div className="tp-stat-card tp-stat-blue">
+                <BookOpen size={24} />
+                <div>
+                  <span className="tp-stat-number">{totalCourses}</span>
+                  <span className="tp-stat-label">Μαθήματα</span>
+                </div>
               </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#475569' }}>Μάθημα</label>
-                <select 
-                  value={reportCourse}
-                  onChange={(e) => setReportCourse(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-                  disabled={!reportSectionId}
-                >
-                  <option value="">Επιλέξτε Μάθημα...</option>
-                  {reportCoursesOptions.map((c, i) => (
-                    <option key={i} value={c}>{c}</option>
-                  ))}
-                </select>
+              <div className="tp-stat-card tp-stat-green">
+                <Users size={24} />
+                <div>
+                  <span className="tp-stat-number">{totalStudents}</span>
+                  <span className="tp-stat-label">Μαθητές</span>
+                </div>
               </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#475569' }}>Ημερομηνία</label>
-                <input 
-                  type="date"
-                  value={reportDate}
-                  onChange={(e) => setReportDate(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-                />
+              <div className="tp-stat-card tp-stat-purple">
+                <FileText size={24} />
+                <div>
+                  <span className="tp-stat-number">{myReports.length}</span>
+                  <span className="tp-stat-label">Αναφορές</span>
+                </div>
               </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#475569' }}>Ώρες Διδασκαλίας</label>
-                <input 
-                  type="number"
-                  min="1"
-                  max="8"
-                  value={reportHours}
-                  onChange={(e) => setReportHours(e.target.value)}
-                  placeholder="π.χ. 3"
-                  style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-                />
+              <div className="tp-stat-card tp-stat-amber">
+                <TrendingUp size={24} />
+                <div>
+                  <span className="tp-stat-number">{teacherSpecialties.length}</span>
+                  <span className="tp-stat-label">Ειδικότητες</span>
+                </div>
               </div>
             </div>
 
-            {reportSectionId && reportCourse ? (
-              <div style={{ marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#0f172a' }}>Απουσιολόγιο ({reportStudents.length} σπουδαστές)</h3>
-                {reportStudents.length === 0 ? (
-                  <p style={{ color: '#64748b' }}>Δεν βρέθηκαν σπουδαστές εγγεγραμμένοι σε αυτό το τμήμα.</p>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
-                    {reportStudents.map(student => (
-                      <label key={student.id} style={{ display: 'flex', alignItems: 'center', padding: '12px', background: currentReportAbsences[student.id] ? '#fef2f2' : '#f8fafc', border: `1px solid ${currentReportAbsences[student.id] ? '#fecaca' : '#e2e8f0'}`, borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s' }}>
-                        <input 
-                          type="checkbox"
-                          checked={!!currentReportAbsences[student.id]}
-                          onChange={() => handleToggleAbsence(student.id)}
-                          style={{ width: '18px', height: '18px', marginRight: '12px', cursor: 'pointer' }}
-                        />
-                        <span style={{ fontWeight: '500', color: currentReportAbsences[student.id] ? '#991b1b' : '#334155' }}>
-                          {student.fullName}
-                        </span>
-                        {currentReportAbsences[student.id] && (
-                          <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#dc2626', fontWeight: '600', background: '#fee2e2', padding: '2px 8px', borderRadius: '12px' }}>
-                            Απών / Απούσα
-                          </span>
-                        )}
-                      </label>
-                    ))}
+            {/* My Courses Grid */}
+            <h2 className="tp-section-title">Τα Μαθήματά Μου</h2>
+            <div className="tp-courses-grid">
+              {teacherSpecialties.map(spec => {
+                const myCourses = getTeacherCourses(spec.id);
+                const myStudents = getStudentsForSpecialty(spec.id);
+                return (
+                  <div key={spec.id} className="tp-course-card">
+                    <div className="tp-course-card-header">
+                      <GraduationCap size={20} />
+                      <span>{spec.title}</span>
+                    </div>
+                    <div className="tp-course-card-body">
+                      <div className="tp-course-meta">
+                        <span><Users size={14} /> {myStudents.length} μαθητές</span>
+                        <span><BookOpen size={14} /> {myCourses.length} μαθήματα</span>
+                      </div>
+                      <div className="tp-course-list">
+                        {myCourses.map((c, i) => (
+                          <div key={i} className="tp-course-item">
+                            <ArrowRight size={12} /> {c}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <button 
+                      className="tp-course-card-action"
+                      onClick={() => { setReportSpecialtyId(spec.id); setActiveTab('report'); }}
+                    >
+                      <ClipboardList size={14} /> Νέα Αναφορά
+                    </button>
                   </div>
-                )}
-                
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px' }}>
-                  {reportSubmitted && (
-                    <span style={{ color: '#16a34a', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <CheckCircle size={18} /> Η αναφορά υποβλήθηκε επιτυχώς!
-                    </span>
-                  )}
-                  <button
-                    onClick={handleSubmitReport}
-                    disabled={reportSubmitted || reportStudents.length === 0}
-                    style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: (reportSubmitted || reportStudents.length === 0) ? 0.7 : 1 }}
+                );
+              })}
+              {teacherSpecialties.length === 0 && (
+                <div className="tp-empty-state">
+                  <AlertCircle size={32} />
+                  <p>Δεν βρέθηκαν αντιστοιχισμένα μαθήματα.</p>
+                  <small>Επικοινωνήστε με τη γραμματεία.</small>
+                </div>
+              )}
+            </div>
+
+            {/* Recent Reports */}
+            {myReports.length > 0 && (
+              <>
+                <h2 className="tp-section-title">Πρόσφατες Αναφορές</h2>
+                <div className="tp-recent-reports">
+                  {myReports.slice(-3).reverse().map(r => (
+                    <div key={r.id} className="tp-report-mini">
+                      <div className="tp-report-mini-left">
+                        <span className="tp-report-mini-date">{r.date}</span>
+                        <span className="tp-report-mini-course">{r.courseTitle}</span>
+                      </div>
+                      <div className="tp-report-mini-right">
+                        <span className="tp-report-mini-hours">
+                          {r.arrivalTime && r.departureTime 
+                            ? `${r.arrivalTime} - ${r.departureTime}` 
+                            : `${r.hours} ώρ.`}
+                        </span>
+                        <span className="tp-report-mini-status">✓ Υποβλήθηκε</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ═══ REPORT TAB ═══ */}
+        {activeTab === 'report' && (
+          <div className="tp-report-view">
+            <h2 className="tp-section-title"><ClipboardList size={22} /> Δήλωση Μαθήματος & Απουσιολόγιο</h2>
+
+            <div className="tp-form-card">
+              <div className="tp-form-grid">
+                {/* Specialty */}
+                <div className="tp-form-group">
+                  <label className="tp-label">Ειδικότητα</label>
+                  <select
+                    className="tp-select"
+                    value={reportSpecialtyId}
+                    onChange={e => { setReportSpecialtyId(e.target.value); setReportCourse(''); }}
                   >
-                    <Save size={18} /> Υποβολή Αναφοράς
-                  </button>
+                    <option value="">Επιλέξτε ειδικότητα...</option>
+                    {teacherSpecialties.map(s => (
+                      <option key={s.id} value={s.id}>{s.title}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Course */}
+                <div className="tp-form-group">
+                  <label className="tp-label">Μάθημα</label>
+                  <select
+                    className="tp-select"
+                    value={reportCourse}
+                    onChange={e => setReportCourse(e.target.value)}
+                    disabled={!reportSpecialtyId}
+                  >
+                    <option value="">Επιλέξτε μάθημα...</option>
+                    {reportCourseOptions.map((c, i) => (
+                      <option key={i} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Date */}
+                <div className="tp-form-group">
+                  <label className="tp-label"><CalendarIcon size={14} /> Ημερομηνία</label>
+                  <input
+                    type="date"
+                    className="tp-input"
+                    value={reportDate}
+                    onChange={e => setReportDate(e.target.value)}
+                  />
+                </div>
+
+                {/* Arrival Time */}
+                <div className="tp-form-group">
+                  <label className="tp-label"><Clock size={14} /> Ώρα Άφιξης</label>
+                  <input
+                    type="time"
+                    className="tp-input"
+                    value={reportArrivalTime}
+                    onChange={e => setReportArrivalTime(e.target.value)}
+                    placeholder="π.χ. 09:00"
+                  />
+                </div>
+
+                {/* Departure Time */}
+                <div className="tp-form-group">
+                  <label className="tp-label"><Clock size={14} /> Ώρα Αναχώρησης</label>
+                  <input
+                    type="time"
+                    className="tp-input"
+                    value={reportDepartureTime}
+                    onChange={e => setReportDepartureTime(e.target.value)}
+                    placeholder="π.χ. 13:00"
+                  />
+                </div>
+
+                {/* Calculated Duration */}
+                <div className="tp-form-group">
+                  <label className="tp-label">Διάρκεια</label>
+                  <div className="tp-duration-display">
+                    {calculatedHours 
+                      ? <><Clock size={16} /> <strong>{calculatedHours.hours} ώρ. {calculatedHours.mins > 0 ? `${calculatedHours.mins} λεπτά` : ''}</strong></>
+                      : <span className="tp-muted">Συμπληρώστε ώρες...</span>
+                    }
+                  </div>
                 </div>
               </div>
+
+              {/* Attendance List */}
+              {reportSpecialtyId && reportCourse && (
+                <div className="tp-attendance-section">
+                  <h3 className="tp-subsection-title">
+                    <Users size={18} /> Απουσιολόγιο 
+                    <span className="tp-badge">{reportStudents.length} σπουδαστές</span>
+                    {Object.values(currentReportAbsences).filter(Boolean).length > 0 && (
+                      <span className="tp-badge tp-badge-red">
+                        {Object.values(currentReportAbsences).filter(Boolean).length} απόντες
+                      </span>
+                    )}
+                  </h3>
+                  
+                  {reportStudents.length === 0 ? (
+                    <div className="tp-empty-state-sm">
+                      <p>Δεν βρέθηκαν εγγεγραμμένοι μαθητές σε αυτή την ειδικότητα.</p>
+                    </div>
+                  ) : (
+                    <div className="tp-attendance-list">
+                      {reportStudents.map(student => (
+                        <label 
+                          key={student.id} 
+                          className={`tp-attendance-item ${currentReportAbsences[student.id] ? 'tp-absent' : ''}`}
+                        >
+                          <div className="tp-attendance-check">
+                            <input
+                              type="checkbox"
+                              checked={!!currentReportAbsences[student.id]}
+                              onChange={() => handleToggleAbsence(student.id)}
+                            />
+                            <div className={`tp-custom-check ${currentReportAbsences[student.id] ? 'checked' : ''}`}>
+                              {currentReportAbsences[student.id] && <X size={12} />}
+                            </div>
+                          </div>
+                          <span className="tp-attendance-name">{student.fullName}</span>
+                          {currentReportAbsences[student.id] && (
+                            <span className="tp-absent-badge">Απών/ούσα</span>
+                          )}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Submit */}
+                  <div className="tp-form-actions">
+                    {reportSubmitted && (
+                      <span className="tp-success-msg">
+                        <CheckCircle size={18} /> Η αναφορά υποβλήθηκε επιτυχώς!
+                      </span>
+                    )}
+                    <button
+                      className="tp-submit-btn"
+                      onClick={handleSubmitReport}
+                      disabled={reportSubmitted || reportSaving}
+                    >
+                      {reportSaving ? 'Αποθήκευση...' : <><Save size={18} /> Υποβολή Αναφοράς</>}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {(!reportSpecialtyId || !reportCourse) && (
+                <div className="tp-empty-state-sm">
+                  <BookOpen size={28} />
+                  <p>Επιλέξτε Ειδικότητα και Μάθημα για να φορτώσετε το απουσιολόγιο.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ GRADES TAB ═══ */}
+        {activeTab === 'grades' && (
+          <div className="tp-grades-view">
+            <h2 className="tp-section-title"><GraduationCap size={22} /> Καταχώρηση Βαθμολογιών</h2>
+
+            <div className="tp-form-card">
+              <div className="tp-form-grid tp-form-grid-2">
+                <div className="tp-form-group">
+                  <label className="tp-label">Ειδικότητα</label>
+                  <select
+                    className="tp-select"
+                    value={gradesSpecialtyId}
+                    onChange={e => { setGradesSpecialtyId(e.target.value); setGradesCourse(''); }}
+                  >
+                    <option value="">Επιλέξτε ειδικότητα...</option>
+                    {teacherSpecialties.map(s => (
+                      <option key={s.id} value={s.id}>{s.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="tp-form-group">
+                  <label className="tp-label">Μάθημα</label>
+                  <select
+                    className="tp-select"
+                    value={gradesCourse}
+                    onChange={e => setGradesCourse(e.target.value)}
+                    disabled={!gradesSpecialtyId}
+                  >
+                    <option value="">Επιλέξτε μάθημα...</option>
+                    {gradesCourseOptions.map((c, i) => (
+                      <option key={i} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {gradesSpecialtyId && gradesCourse ? (
+                <div className="tp-grades-section">
+                  <h3 className="tp-subsection-title">
+                    <Users size={18} /> Σπουδαστές
+                    <span className="tp-badge">{gradesStudents.length}</span>
+                  </h3>
+
+                  {gradesStudents.length === 0 ? (
+                    <div className="tp-empty-state-sm">
+                      <p>Δεν βρέθηκαν εγγεγραμμένοι μαθητές.</p>
+                    </div>
+                  ) : (
+                    <div className="tp-grades-table-wrap">
+                      <table className="tp-grades-table">
+                        <thead>
+                          <tr>
+                            <th>Σπουδαστής</th>
+                            <th style={{ width: '18%' }}>Βαθμός Προόδου</th>
+                            <th style={{ width: '18%' }}>Τελικός Βαθμός</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {gradesStudents.map(student => (
+                            <tr key={student.id}>
+                              <td className="tp-grade-name">{student.fullName}</td>
+                              <td>
+                                <input
+                                  type="text"
+                                  className="tp-grade-input"
+                                  placeholder="—"
+                                  value={currentGrades[student.id]?.progressGrade || ''}
+                                  onChange={e => handleGradeChange(student.id, 'progressGrade', e.target.value)}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="text"
+                                  className="tp-grade-input"
+                                  placeholder="—"
+                                  value={currentGrades[student.id]?.finalGrade || ''}
+                                  onChange={e => handleGradeChange(student.id, 'finalGrade', e.target.value)}
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <div className="tp-form-actions">
+                    {gradesSubmitted && (
+                      <span className="tp-success-msg">
+                        <CheckCircle size={18} /> Η βαθμολογία αποθηκεύτηκε!
+                      </span>
+                    )}
+                    <button
+                      className="tp-submit-btn"
+                      onClick={handleSubmitGrades}
+                      disabled={gradesSubmitted || gradesSaving}
+                    >
+                      {gradesSaving ? 'Αποθήκευση...' : <><Save size={18} /> Αποθήκευση Βαθμολογίας</>}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="tp-empty-state-sm">
+                  <GraduationCap size={28} />
+                  <p>Επιλέξτε Ειδικότητα και Μάθημα για να δείτε τη λίστα σπουδαστών.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ HISTORY TAB ═══ */}
+        {activeTab === 'history' && (
+          <div className="tp-history-view">
+            <h2 className="tp-section-title"><History size={22} /> Ιστορικό Αναφορών</h2>
+            
+            {myReports.length === 0 ? (
+              <div className="tp-empty-state">
+                <FileText size={40} />
+                <p>Δεν υπάρχουν αναφορές ακόμα.</p>
+                <small>Υποβάλετε την πρώτη σας αναφορά από το tab "Αναφορά".</small>
+              </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '40px', background: '#f8fafc', borderRadius: '12px', color: '#94a3b8', border: '1px dashed #cbd5e1' }}>
-                Επιλέξτε Τμήμα και Μάθημα για να φορτώσετε το απουσιολόγιο.
+              <div className="tp-history-list">
+                {[...myReports].reverse().map(report => (
+                  <div key={report.id} className="tp-history-card">
+                    <div className="tp-history-header">
+                      <div className="tp-history-date-block">
+                        <CalendarIcon size={16} />
+                        <span className="tp-history-date">{report.date}</span>
+                      </div>
+                      <span className="tp-history-status">✓ Υποβλήθηκε</span>
+                    </div>
+                    <div className="tp-history-body">
+                      <div className="tp-history-course">{report.courseTitle}</div>
+                      <div className="tp-history-specialty">{report.specialtyTitle || report.sectionName}</div>
+                      <div className="tp-history-details">
+                        <span className="tp-history-detail">
+                          <Clock size={14} /> 
+                          {report.arrivalTime && report.departureTime 
+                            ? `${report.arrivalTime} - ${report.departureTime}`
+                            : `${report.hours} ώρες`
+                          }
+                        </span>
+                        <span className="tp-history-detail">
+                          <Users size={14} /> 
+                          {report.absentStudents && report.absentStudents.length > 0 
+                            ? `${report.absentStudents.length} απουσίες`
+                            : 'Κανείς απών'
+                          }
+                        </span>
+                      </div>
+                      {report.absentStudents && report.absentStudents.length > 0 && (
+                        <div className="tp-history-absent-list">
+                          <strong>Απόντες:</strong> {report.absentStudents.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         )}
 
-        {/* Content: ΒΑΘΜΟΛΟΓΙΑ */}
-        {activeTab === 'grades' && (
-           <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-           <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#0f172a' }}>Καταχώρηση Βαθμολογιών</h2>
-           
-           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-             <div>
-               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#475569' }}>Τμήμα</label>
-               <select 
-                 value={gradesSectionId}
-                 onChange={(e) => { setGradesSectionId(e.target.value); setGradesCourse(''); }}
-                 style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-               >
-                 <option value="">Επιλέξτε Τμήμα...</option>
-                 {sections.map(s => (
-                   <option key={s.id} value={s.id}>{s.name}</option>
-                 ))}
-               </select>
-             </div>
-
-             <div>
-               <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px', color: '#475569' }}>Μάθημα</label>
-               <select 
-                 value={gradesCourse}
-                 onChange={(e) => setGradesCourse(e.target.value)}
-                 style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-                 disabled={!gradesSectionId}
-               >
-                 <option value="">Επιλέξτε Μάθημα...</option>
-                 {gradesCoursesOptions.map((c, i) => (
-                   <option key={i} value={c}>{c}</option>
-                 ))}
-               </select>
-             </div>
-           </div>
-
-           {gradesSectionId && gradesCourse ? (
-             <div style={{ marginTop: '32px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
-               <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#0f172a' }}>Σπουδαστές ({gradesStudents.length})</h3>
-               
-               {gradesStudents.length === 0 ? (
-                  <p style={{ color: '#64748b' }}>Δεν βρέθηκαν σπουδαστές εγγεγραμμένοι σε αυτό το τμήμα.</p>
-                ) : (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
-                      <thead>
-                        <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                          <th style={{ padding: '12px', color: '#475569', fontWeight: '600', fontSize: '14px' }}>Σπουδαστής</th>
-                          <th style={{ padding: '12px', color: '#475569', fontWeight: '600', fontSize: '14px', width: '20%' }}>Βαθμός Προόδου</th>
-                          <th style={{ padding: '12px', color: '#475569', fontWeight: '600', fontSize: '14px', width: '20%' }}>Τελικός Βαθμός</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {gradesStudents.map(student => (
-                          <tr key={student.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                            <td style={{ padding: '12px', fontWeight: '500', color: '#0f172a' }}>{student.fullName}</td>
-                            <td style={{ padding: '12px' }}>
-                              <input 
-                                type="text"
-                                placeholder="π.χ. 8"
-                                value={currentGrades[student.id]?.progressGrade || ''}
-                                onChange={(e) => handleGradeChange(student.id, 'progressGrade', e.target.value)}
-                                style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                              />
-                            </td>
-                            <td style={{ padding: '12px' }}>
-                              <input 
-                                type="text"
-                                placeholder="π.χ. 9"
-                                value={currentGrades[student.id]?.finalGrade || ''}
-                                onChange={(e) => handleGradeChange(student.id, 'finalGrade', e.target.value)}
-                                style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                              />
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-                
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px', marginTop: '24px' }}>
-                  {gradesSubmitted && (
-                    <span style={{ color: '#16a34a', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <CheckCircle size={18} /> Η βαθμολογία αποθηκεύτηκε!
-                    </span>
-                  )}
-                  <button
-                    onClick={handleSubmitGrades}
-                    disabled={gradesSubmitted || gradesStudents.length === 0}
-                    style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: (gradesSubmitted || gradesStudents.length === 0) ? 0.7 : 1 }}
-                  >
-                    <Save size={18} /> Αποθήκευση Βαθμολογίας
-                  </button>
-                </div>
-             </div>
-           ) : (
-             <div style={{ textAlign: 'center', padding: '40px', background: '#f8fafc', borderRadius: '12px', color: '#94a3b8', border: '1px dashed #cbd5e1' }}>
-               Επιλέξτε Τμήμα και Μάθημα για να δείτε τη λίστα σπουδαστών.
-             </div>
-           )}
-         </div>
-        )}
-
-      </div>
+      </main>
     </div>
   );
 }
