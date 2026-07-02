@@ -77,7 +77,7 @@ export default function StudentFormModal({
       setBekDegree(null);
       setPhone('');
       setEmail('');
-      setSpecialtyId(specialties.length > 0 ? specialties[0].id : '');
+      setSpecialtyId('');
       setSectionId('');
       setYear('1ο Έτος');
       setMathitisAr('');
@@ -203,14 +203,10 @@ export default function StudentFormModal({
       newErrors.phone = 'Παρακαλώ εισάγετε ένα έγκυρο τηλέφωνο (τουλάχιστον 10 ψηφία).';
     }
     
-    // Optional email validation
     if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       newErrors.email = 'Παρακαλώ εισάγετε ένα έγκυρο email (π.χ. name@example.com).';
     }
 
-    if (!specialtyId) {
-      newErrors.specialtyId = 'Η επιλογή ειδικότητας είναι υποχρεωτική.';
-    }
     if (totalDebt < 0) {
       newErrors.totalDebt = 'Το ποσό οφειλής δεν μπορεί να είναι αρνητικό.';
     }
@@ -431,7 +427,7 @@ export default function StudentFormModal({
             {/* Specialty / Department */}
             <div className="sys-group">
               <label className="sys-label" htmlFor="specialty">
-                Τομέας & Ειδικότητα <span style={{ color: 'var(--danger)' }}>*</span>
+                Τομέας & Ειδικότητα
               </label>
               <div style={{ position: 'relative' }}>
                 <select
@@ -444,7 +440,7 @@ export default function StudentFormModal({
                   }}
                   style={{ width: '100%', paddingLeft: '26px', cursor: 'pointer', borderColor: errors.specialtyId ? 'var(--danger)' : undefined }}
                 >
-                  <option value="" disabled>Επιλέξτε Ειδικότητα...</option>
+                  <option value="">-- Χωρίς Ειδικότητα --</option>
                   {Object.keys(groupedSpecialties).map((sector) => (
                     <optgroup key={sector} label={sector}>
                       {groupedSpecialties[sector].map((spec) => (
