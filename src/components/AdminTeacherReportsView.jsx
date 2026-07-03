@@ -57,7 +57,7 @@ export default function AdminTeacherReportsView({ reports = [], students = [], s
                       <div style={{ fontSize: '12px', color: '#64748b' }}>{spec ? spec.title : 'Άγνωστη Ειδικότητα'}</div>
                     </td>
                     <td style={{ textAlign: 'center', fontWeight: '600', color: '#0f172a' }}>
-                      {report.taughtHours}
+                      {report.hours || '-'}
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       {absCount > 0 ? (
@@ -87,73 +87,102 @@ export default function AdminTeacherReportsView({ reports = [], students = [], s
 
       {/* Report Details Modal */}
       {selectedReport && (
-        <div className="sys-modal-overlay">
-          <div className="sys-modal" style={{ maxWidth: '600px' }}>
-            <div className="sys-modal-header">
-              <h2 className="sys-modal-title">
-                <FileText size={20} color="#2563eb" /> Λεπτομέρειες Δήλωσης
+        <div className="sys-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
+          <div className="sys-modal" style={{ background: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '560px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
+            
+            <div className="sys-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc' }}>
+              <h2 className="sys-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ background: '#eff6ff', padding: '8px', borderRadius: '8px', display: 'flex' }}>
+                  <FileText size={20} color="#3b82f6" />
+                </div>
+                Λεπτομέρειες Δήλωσης
               </h2>
-              <button className="sys-close-btn" onClick={() => setSelectedReport(null)}>
+              <button 
+                onClick={() => setSelectedReport(null)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', color: '#64748b', transition: 'all 0.2s' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#0f172a'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#64748b'; }}
+              >
                 <X size={20} />
               </button>
             </div>
-            <div className="sys-modal-content">
+            
+            <div className="sys-modal-content" style={{ padding: '24px' }}>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <div>
-                  <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: '600' }}>Εκπαιδευτης</div>
-                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a' }}>{selectedReport.teacherName}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '28px', background: '#ffffff', padding: '20px', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>Εκπαιδευτης</div>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: '#0f172a' }}>{selectedReport.teacherName}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.05em', marginBottom: '4px' }}>Μαθημα</div>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: '#0f172a' }}>{selectedReport.courseTitle}</div>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', fontWeight: '600' }}>Μαθημα</div>
-                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#0f172a' }}>{selectedReport.courseTitle}</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <CalendarIcon size={16} color="#64748b" />
-                  <span style={{ fontWeight: '500', color: '#334155' }}>{new Date(selectedReport.date).toLocaleDateString('el-GR')}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Clock size={16} color="#64748b" />
-                  <span style={{ fontWeight: '500', color: '#334155' }}>{selectedReport.taughtHours} Ώρες Διδασκαλίας</span>
+                
+                <div style={{ height: '1px', background: '#f1f5f9', width: '100%' }}></div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px' }}>
+                      <CalendarIcon size={16} color="#64748b" />
+                    </div>
+                    <span style={{ fontWeight: '500', color: '#334155', fontSize: '14px' }}>{new Date(selectedReport.date).toLocaleDateString('el-GR')}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px' }}>
+                      <Clock size={16} color="#64748b" />
+                    </div>
+                    <span style={{ fontWeight: '500', color: '#334155', fontSize: '14px' }}>{selectedReport.hours} Ώρες Διδασκαλίας</span>
+                  </div>
                 </div>
               </div>
 
-              <h3 style={{ fontSize: '14px', margin: '0 0 12px 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Users size={16} /> Καταγραφή Απουσιών
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <div style={{ background: '#fef2f2', padding: '6px', borderRadius: '6px' }}>
+                  <Users size={16} color="#ef4444" />
+                </div>
+                <h3 style={{ fontSize: '15px', margin: 0, fontWeight: '600', color: '#1e293b' }}>
+                  Καταγραφή Απουσιών
+                </h3>
+              </div>
 
               {(!selectedReport.absences || selectedReport.absences.length === 0) && (!selectedReport.absentStudents || selectedReport.absentStudents.length === 0) ? (
-                <div style={{ background: '#f0fdf4', color: '#166534', padding: '16px', borderRadius: '8px', textAlign: 'center', border: '1px solid #dcfce7' }}>
-                  Κανένας μαθητής δεν απουσίαζε σε αυτή τη δήλωση. Όλοι παρόντες!
+                <div style={{ background: '#f0fdf4', color: '#166534', padding: '20px', borderRadius: '10px', textAlign: 'center', border: '1px solid #dcfce7', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ background: '#dcfce7', padding: '8px', borderRadius: '50%' }}>
+                    <Users size={20} color="#15803d" />
+                  </div>
+                  <span style={{ fontWeight: '500', fontSize: '14px' }}>Κανένας μαθητής δεν απουσίαζε. Όλοι παρόντες!</span>
                 </div>
               ) : (
-                <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
                   <table className="sys-table" style={{ margin: 0, width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                       <tr>
-                        <th style={{ padding: '10px 16px', textAlign: 'left', fontSize: '12px', color: '#64748b' }}>Σπουδαστής</th>
-                        <th style={{ padding: '10px 16px', textAlign: 'right', fontSize: '12px', color: '#64748b' }}>Ώρες Απουσίας</th>
+                        <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Σπουδαστής</th>
+                        <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ώρες Απουσίας</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedReport.absences && selectedReport.absences.length > 0 ? (
                         selectedReport.absences.map((abs, idx) => (
-                          <tr key={`new-${idx}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '12px 16px', fontWeight: '500', color: '#334155' }}>
+                          <tr key={`new-${idx}`} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
+                            <td style={{ padding: '14px 16px', fontWeight: '500', color: '#334155', fontSize: '14px' }}>
                               {getStudentName(abs.studentId)}
                             </td>
-                            <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600', color: '#ef4444' }}>
+                            <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '600', color: '#ef4444', fontSize: '14px' }}>
                               {abs.hours}
                             </td>
                           </tr>
                         ))
                       ) : (
                         selectedReport.absentStudents && selectedReport.absentStudents.map((studentName, idx) => (
-                          <tr key={`old-${idx}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '12px 16px', fontWeight: '500', color: '#334155' }}>
+                          <tr key={`old-${idx}`} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
+                            <td style={{ padding: '14px 16px', fontWeight: '500', color: '#334155', fontSize: '14px' }}>
                               {studentName}
                             </td>
-                            <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600', color: '#ef4444' }}>
+                            <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '600', color: '#ef4444', fontSize: '14px' }}>
                               {selectedReport.hours || '-'}
                             </td>
                           </tr>
@@ -164,8 +193,11 @@ export default function AdminTeacherReportsView({ reports = [], students = [], s
                 </div>
               )}
 
-              <div style={{ marginTop: '24px', fontSize: '11px', color: '#94a3b8', textAlign: 'right' }}>
-                Ημερομηνία Υποβολής: {new Date(selectedReport.submittedAt).toLocaleString('el-GR')}
+              <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
+                <span style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Clock size={12} />
+                  Ημερομηνία Υποβολής: {selectedReport.timestamp ? new Date(selectedReport.timestamp).toLocaleString('el-GR') : 'Άγνωστη'}
+                </span>
               </div>
             </div>
           </div>

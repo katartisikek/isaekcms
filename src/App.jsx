@@ -15,6 +15,7 @@ import ContactFormModal from './components/ContactFormModal';
 import ScheduleCalendar from './components/ScheduleCalendar';
 import EventFormModal from './components/EventFormModal';
 import LoginScreen from './components/LoginScreen';
+import TeacherLoginScreen from './components/TeacherLoginScreen';
 import TeacherPortal from './components/TeacherPortal';
 import AdminGradesView from './components/AdminGradesView';
 import AdminTeacherReportsView from './components/AdminTeacherReportsView';
@@ -600,7 +601,10 @@ export default function App() {
   }
 
   if (!loggedInUser) {
-    return <LoginScreen onLogin={handleLogin} contacts={contacts} />;
+    if (window.location.pathname.includes('/teacher')) {
+      return <TeacherLoginScreen onLogin={handleLogin} contacts={contacts} />;
+    }
+    return <LoginScreen onLogin={handleLogin} />;
   }
 
   if (loggedInUser.role === 'teacher') {
