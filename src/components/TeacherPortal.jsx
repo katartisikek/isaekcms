@@ -24,11 +24,19 @@ export default function TeacherPortal({
   const [activeTab, setActiveTab] = useState('dashboard');
   
   // Report state
-  const [reportSpecialtyId, setReportSpecialtyId] = useState('');
-  const [reportCourse, setReportCourse] = useState('');
-  const [reportDate, setReportDate] = useState(new Date().toISOString().split('T')[0]);
-  const [reportArrivalTime, setReportArrivalTime] = useState('');
-  const [reportDepartureTime, setReportDepartureTime] = useState('');
+  const [reportSpecialtyId, setReportSpecialtyId] = useState(() => localStorage.getItem('tp_specialtyId') || '');
+  const [reportCourse, setReportCourse] = useState(() => localStorage.getItem('tp_course') || '');
+  const [reportDate, setReportDate] = useState(() => localStorage.getItem('tp_date') || new Date().toISOString().split('T')[0]);
+  const [reportArrivalTime, setReportArrivalTime] = useState(() => localStorage.getItem('tp_arrivalTime') || '');
+  const [reportDepartureTime, setReportDepartureTime] = useState(() => localStorage.getItem('tp_departureTime') || '');
+
+  useEffect(() => {
+    localStorage.setItem('tp_specialtyId', reportSpecialtyId);
+    localStorage.setItem('tp_course', reportCourse);
+    localStorage.setItem('tp_date', reportDate);
+    localStorage.setItem('tp_arrivalTime', reportArrivalTime);
+    localStorage.setItem('tp_departureTime', reportDepartureTime);
+  }, [reportSpecialtyId, reportCourse, reportDate, reportArrivalTime, reportDepartureTime]);
   const [currentReportAbsences, setCurrentReportAbsences] = useState({});
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [reportSaving, setReportSaving] = useState(false);
@@ -164,6 +172,12 @@ export default function TeacherPortal({
       const savedReport = await api.upsertTeacherReport(newReport);
       setTeacherReports(prev => [...prev, savedReport]);
       
+      localStorage.removeItem('tp_specialtyId');
+      localStorage.removeItem('tp_course');
+      localStorage.removeItem('tp_date');
+      localStorage.removeItem('tp_arrivalTime');
+      localStorage.removeItem('tp_departureTime');
+
       setReportSubmitted(true);
       setTimeout(() => {
         setReportSubmitted(false);
@@ -485,25 +499,53 @@ export default function TeacherPortal({
                 {/* Arrival Time */}
                 <div className="tp-form-group">
                   <label className="tp-label"><Clock size={14} /> Ώρα Άφιξης</label>
-                  <input
-                    type="time"
-                    className="tp-input"
-                    value={reportArrivalTime}
-                    onChange={e => setReportArrivalTime(e.target.value)}
-                    placeholder="π.χ. 09:00"
-                  />
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="time"
+                      className="tp-input"
+                      value={reportArrivalTime}
+                      readOnly
+                      style={{ backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'not-allowed', flex: 1 }}
+                    />
+                    {!reportArrivalTime && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                           const now = new Date();
+                           setReportArrivalTime(now.toTimeString().slice(0, 5));
+                        }}
+                        style={{ padding: '0 12px', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                      >
+                        Χτύπημα Κάρτας
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Departure Time */}
                 <div className="tp-form-group">
                   <label className="tp-label"><Clock size={14} /> Ώρα Αναχώρησης</label>
-                  <input
-                    type="time"
-                    className="tp-input"
-                    value={reportDepartureTime}
-                    onChange={e => setReportDepartureTime(e.target.value)}
-                    placeholder="π.χ. 13:00"
-                  />
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="time"
+                      className="tp-input"
+                      value={reportDepartureTime}
+                      readOnly
+                      style={{ backgroundColor: '#f1f5f9', color: '#64748b', cursor: 'not-allowed', flex: 1 }}
+                    />
+                    {!reportDepartureTime && reportArrivalTime && (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                           const now = new Date();
+                           setReportDepartureTime(now.toTimeString().slice(0, 5));
+                        }}
+                        style={{ padding: '0 12px', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                      >
+                        Χτύπημα Κάρτας
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Calculated Duration */}
@@ -561,20 +603,40 @@ export default function TeacherPortal({
                     </div>
                   )}
 
-                  {/* Submit */}
                   <div className="tp-form-actions">
                     {reportSubmitted && (
                       <span className="tp-success-msg">
                         <CheckCircle size={18} /> Η αναφορά υποβλήθηκε επιτυχώς!
                       </span>
                     )}
-                    <button
-                      className="tp-submit-btn"
-                      onClick={handleSubmitReport}
-                      disabled={reportSubmitted || reportSaving}
-                    >
-                      {reportSaving ? 'Αποθήκευση...' : <><Save size={18} /> Υποβολή Αναφοράς</>}
-                    </button>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      <button
+                        className="tp-submit-btn"
+                        style={{ background: '#ef4444', border: 'none' }}
+                        onClick={() => {
+                          if (window.confirm('Είστε σίγουροι ότι θέλετε να καθαρίσετε τη φόρμα (συμπεριλαμβανομένης της ώρας);')) {
+                            setReportArrivalTime('');
+                            setReportDepartureTime('');
+                            setCurrentReportAbsences({});
+                            localStorage.removeItem('tp_specialtyId');
+                            localStorage.removeItem('tp_course');
+                            localStorage.removeItem('tp_date');
+                            localStorage.removeItem('tp_arrivalTime');
+                            localStorage.removeItem('tp_departureTime');
+                          }
+                        }}
+                        disabled={reportSaving}
+                      >
+                        Καθαρισμός
+                      </button>
+                      <button
+                        className="tp-submit-btn"
+                        onClick={handleSubmitReport}
+                        disabled={reportSubmitted || reportSaving}
+                      >
+                        {reportSaving ? 'Αποθήκευση...' : <><Save size={18} /> Υποβολή Αναφοράς</>}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
