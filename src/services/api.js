@@ -177,9 +177,11 @@ export const api = {
     return data || [];
   },
   async upsertTeacherReport(report) {
-    const { data, error } = await supabase.from('teacher_reports').upsert([report]).select();
+    const reportData = { ...report };
+    delete reportData.absences;
+    const { data, error } = await supabase.from('teacher_reports').upsert([reportData]).select();
     if (error) throw error;
-    return data[0];
+    return { ...data[0], absences: report.absences };
   },
 
   // Events

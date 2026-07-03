@@ -42,7 +42,7 @@ export default function AdminTeacherReportsView({ reports = [], students = [], s
             <tbody>
               {sortedReports.map(report => {
                 const spec = specialties.find(s => s.id === report.specialtyId);
-                const absCount = report.absences ? report.absences.length : 0;
+                const absCount = report.absences ? report.absences.length : (report.absentStudents ? report.absentStudents.length : 0);
                 
                 return (
                   <tr key={report.id}>
