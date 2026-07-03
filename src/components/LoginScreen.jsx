@@ -7,7 +7,9 @@ export default function LoginScreen({ onLogin, contacts }) {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
 
-  const teachers = contacts.filter(c => c.category === 'Καθηγητής' || c.category === 'Εκπαιδευτής' || c.role === 'Καθηγητής');
+  const teachers = contacts
+    .filter(c => c.category === 'Καθηγητής' || c.category === 'Εκπαιδευτής' || c.role === 'Καθηγητής')
+    .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'el'));
 
   const handleLogin = (e) => {
     e.preventDefault();

@@ -83,7 +83,7 @@ export default function TeacherDirectory({
       }
 
       return true;
-    });
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'el'));
   }, [contacts, selectedCategory, searchQuery]);
 
   const handleDelete = (contactId) => {
