@@ -265,6 +265,22 @@ export default function App() {
     }));
   };
 
+  const handleUpdateDebt = async (studentId, newDebt) => {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+    
+    try {
+      const updatedStudent = { ...student, totalDebt: newDebt };
+      const saved = await api.upsertStudent(updatedStudent);
+      setStudents(prev => prev.map(s => (s.id === saved.id ? saved : s)));
+      if (viewingStudent && viewingStudent.id === saved.id) {
+        setViewingStudent(saved);
+      }
+    } catch (e) {
+      window.alert('Σφάλμα κατά την ενημέρωση οφειλής: ' + e.message);
+    }
+  };
+
   const handleAddClick = () => {
     setEditingStudent(null);
     setIsModalOpen(true);
@@ -1360,6 +1376,7 @@ export default function App() {
         grades={grades}
         absences={absences}
         onSaveGrades={handleSaveGrades}
+        onUpdateDebt={handleUpdateDebt}
       />
 
       {/* Task Form Dialog Box Modal */}

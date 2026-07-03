@@ -20,7 +20,8 @@ export default function StudentProfileModal({
   student,
   specialties = [],
   grades = [],
-  absences = []
+  absences = [],
+  onUpdateDebt
 }) {
   const specialty = useMemo(
     () => specialties.find((s) => s.id === student?.specialtyId),
@@ -28,6 +29,8 @@ export default function StudentProfileModal({
   );
   
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [showPaymentInput, setShowPaymentInput] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
 
   if (!isOpen || !student) return null;
 
@@ -45,6 +48,31 @@ export default function StudentProfileModal({
     ...studentAbsences.map(a => a.courseTitle)
   ]);
   const coursesList = Array.from(allCoursesSet);
+
+  const currentDebt = parseFloat(student.totalDebt || 0);
+
+  const handleFullPayment = () => {
+    if (window.confirm('Επιβεβαίωση Ολικής Εξόφλησης;')) {
+      onUpdateDebt && onUpdateDebt(student.id, 0);
+    }
+  };
+
+  const handlePartialPayment = () => {
+    const amount = parseFloat(paymentAmount);
+    if (isNaN(amount) || amount <= 0) {
+      window.alert('Παρακαλώ εισάγετε έγκυρο ποσό.');
+      return;
+    }
+    if (amount > currentDebt) {
+      window.alert('Το ποσό δεν μπορεί να υπερβαίνει τη συνολική οφειλή.');
+      return;
+    }
+    if (window.confirm(`Επιβεβαίωση εξόφλησης ποσού ${amount}€;`)) {
+      onUpdateDebt && onUpdateDebt(student.id, currentDebt - amount);
+      setPaymentAmount('');
+      setShowPaymentInput(false);
+    }
+  };
 
   return (
     <div className="dialog-overlay" style={{ zIndex: 1100 }}>
@@ -134,12 +162,54 @@ export default function StudentProfileModal({
                 <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Ειδικότητα</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#0f172a', fontWeight: '500', fontSize: '0.9rem' }}><BookOpen size={14} color="#64748b" /> {specialty?.title || '-'}</div>
               </div>
-              <div style={{ background: '#fff7ed', padding: '12px', borderRadius: '8px', border: '1px solid #ffedd5' }}>
-                <div style={{ fontSize: '0.7rem', color: '#c2410c', textTransform: 'uppercase', marginBottom: '4px' }}>Οικονομική Εικόνα</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ color: '#9a3412', fontWeight: '500', fontSize: '0.85rem' }}>Συνολική Οφειλή:</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ea580c' }}>{parseFloat(student.totalDebt || 0).toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</div>
+              <div style={{ background: '#fff7ed', padding: '12px', borderRadius: '8px', border: '1px solid #ffedd5', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: '#c2410c', textTransform: 'uppercase', marginBottom: '4px' }}>Οικονομική Εικόνα</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ color: '#9a3412', fontWeight: '500', fontSize: '0.85rem' }}>Συνολική Οφειλή:</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ea580c' }}>{currentDebt.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</div>
+                  </div>
                 </div>
+
+                {currentDebt > 0 ? (
+                  <div style={{ borderTop: '1px solid #fed7aa', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button 
+                        onClick={handleFullPayment}
+                        style={{ flex: 1, background: '#16a34a', color: '#fff', border: 'none', padding: '8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                      >
+                        <CheckCircle size={14} /> Ολική Εξόφληση
+                      </button>
+                      <button 
+                        onClick={() => setShowPaymentInput(!showPaymentInput)}
+                        style={{ flex: 1, background: '#f97316', color: '#fff', border: 'none', padding: '8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}
+                      >
+                        Μερική Εξόφληση
+                      </button>
+                    </div>
+                    {showPaymentInput && (
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: '#fff', padding: '8px', borderRadius: '6px', border: '1px solid #fed7aa' }}>
+                        <input 
+                          type="number"
+                          placeholder="Ποσό..."
+                          value={paymentAmount}
+                          onChange={e => setPaymentAmount(e.target.value)}
+                          style={{ flex: 1, padding: '6px 8px', borderRadius: '4px', border: '1px solid #fdba74', fontSize: '0.85rem', outline: 'none' }}
+                        />
+                        <button 
+                          onClick={handlePartialPayment}
+                          style={{ background: '#ea580c', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer' }}
+                        >
+                          Πληρωμή
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ borderTop: '1px solid #fed7aa', paddingTop: '10px', display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontWeight: '600', fontSize: '0.85rem' }}>
+                    <CheckCircle size={16} /> Πλήρως Εξοφλημένος
+                  </div>
+                )}
               </div>
 
               {/* BEK Degree Section */}
