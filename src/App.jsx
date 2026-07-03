@@ -889,12 +889,26 @@ export default function App() {
                     <FolderOpen size={20} color="var(--primary)" />
                     Πρόσβαση στο Σύστημα
                   </h2>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
                     <button className="nav-module-card" onClick={() => { setCurrentView('students'); setShowStartScreen(false); }}>
                       <Database size={24} color="#3b82f6" />
                       <div>
                         <h3>Βάση Σπουδαστών</h3>
                         <p>Προβολή & φίλτρα εγγραφών</p>
+                      </div>
+                    </button>
+                    <button className="nav-module-card" onClick={() => { setCurrentView('bek_graduates'); setShowStartScreen(false); }}>
+                      <GraduationCap size={24} color="#6366f1" />
+                      <div>
+                        <h3>Απόφοιτοι ΒΕΚ</h3>
+                        <p>Μητρώο αποφοίτων</p>
+                      </div>
+                    </button>
+                    <button className="nav-module-card" onClick={() => { setCurrentView('teachers'); setShowStartScreen(false); }}>
+                      <User size={24} color="#06b6d4" />
+                      <div>
+                        <h3>Καθηγητές</h3>
+                        <p>Διαχείριση προσωπικού</p>
                       </div>
                     </button>
                     <button className="nav-module-card" onClick={() => { setCurrentView('tasks'); setShowStartScreen(false); }}>
@@ -904,6 +918,13 @@ export default function App() {
                         <p>Διαχείριση εκκρεμοτήτων</p>
                       </div>
                     </button>
+                    <button className="nav-module-card" onClick={() => { setCurrentView('contacts'); setShowStartScreen(false); }}>
+                      <BookOpen size={24} color="#10b981" />
+                      <div>
+                        <h3>Κατάλογος Επαφών</h3>
+                        <p>Τηλέφωνα & Συνεργάτες</p>
+                      </div>
+                    </button>
                     <button className="nav-module-card" onClick={() => { setCurrentView('calendar'); setShowStartScreen(false); }}>
                       <CalendarIcon size={24} color="#8b5cf6" />
                       <div>
@@ -911,11 +932,11 @@ export default function App() {
                         <p>Εβδομαδιαίο ημερολόγιο</p>
                       </div>
                     </button>
-                    <button className="nav-module-card" onClick={() => { setCurrentView('contacts'); setShowStartScreen(false); }}>
-                      <BookOpen size={24} color="#10b981" />
+                    <button className="nav-module-card" onClick={() => { setCurrentView('teacher_reports'); setShowStartScreen(false); }}>
+                      <FileText size={24} color="#475569" />
                       <div>
-                        <h3>Κατάλογος Επαφών</h3>
-                        <p>Τηλέφωνα & Συνεργάτες</p>
+                        <h3>Αναφορές Καθηγητών</h3>
+                        <p>Έλεγχος παρουσιολογίων</p>
                       </div>
                     </button>
                     <button className="nav-module-card" onClick={() => { setCurrentView('grades'); setShowStartScreen(false); }}>
