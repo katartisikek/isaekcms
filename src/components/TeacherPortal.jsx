@@ -642,12 +642,26 @@ export default function TeacherPortal({
                         <thead>
                           <tr>
                             <th>Σπουδαστής</th>
-                            <th style={{ width: '18%' }}>Βαθμός Προόδου</th>
-                            <th style={{ width: '18%' }}>Τελικός Βαθμός</th>
+                            <th style={{ width: '22%' }}>Εργασία 6μήνου (20%)</th>
+                            <th style={{ width: '22%' }}>Τελική Εξέταση (80%)</th>
+                            <th style={{ width: '18%', textAlign: 'center' }}>Τελικός Βαθμός</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {gradesStudents.map(student => (
+                          {gradesStudents.map(student => {
+                            const pGrade = currentGrades[student.id]?.progressGrade || '';
+                            const fGrade = currentGrades[student.id]?.finalGrade || '';
+                            let calcGrade = '—';
+                            const pNum = parseFloat(pGrade);
+                            const fNum = parseFloat(fGrade);
+                            if (!isNaN(pNum) || !isNaN(fNum)) {
+                               const pVal = isNaN(pNum) ? 0 : pNum;
+                               const fVal = isNaN(fNum) ? 0 : fNum;
+                               calcGrade = ((pVal * 0.2) + (fVal * 0.8)).toFixed(1);
+                               if (calcGrade.endsWith('.0')) calcGrade = calcGrade.slice(0, -2);
+                            }
+
+                            return (
                             <tr key={student.id}>
                               <td className="tp-grade-name">{student.fullName}</td>
                               <td>
@@ -655,7 +669,7 @@ export default function TeacherPortal({
                                   type="text"
                                   className="tp-grade-input"
                                   placeholder="—"
-                                  value={currentGrades[student.id]?.progressGrade || ''}
+                                  value={pGrade}
                                   onChange={e => handleGradeChange(student.id, 'progressGrade', e.target.value)}
                                 />
                               </td>
@@ -664,12 +678,16 @@ export default function TeacherPortal({
                                   type="text"
                                   className="tp-grade-input"
                                   placeholder="—"
-                                  value={currentGrades[student.id]?.finalGrade || ''}
+                                  value={fGrade}
                                   onChange={e => handleGradeChange(student.id, 'finalGrade', e.target.value)}
                                 />
                               </td>
+                              <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#1f2937' }}>
+                                {calcGrade}
+                              </td>
                             </tr>
-                          ))}
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>

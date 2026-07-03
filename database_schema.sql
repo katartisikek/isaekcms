@@ -76,7 +76,9 @@ CREATE TABLE IF NOT EXISTS teacher_reports (
   hours integer,
   timestamp timestamp with time zone,
   "absentStudents" jsonb,
-  status text
+  status text,
+  "arrivalTime" text,
+  "departureTime" text
 );
 
 CREATE TABLE IF NOT EXISTS events (

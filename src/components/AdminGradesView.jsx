@@ -139,21 +139,34 @@ export default function AdminGradesView({ students, specialties, grades, courses
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', background: '#fff' }}>
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '600', color: '#475569', width: '40%' }}>Ονοματεπώνυμο Σπουδαστή</th>
-                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '600', color: '#475569', width: '20%' }}>Α.Μ.</th>
-                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '600', color: '#475569', width: '20%' }}>Βαθμός Προόδου</th>
-                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '600', color: '#475569', width: '20%' }}>Τελικός Βαθμός (Εξετάσεις)</th>
+                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '600', color: '#475569', width: '28%' }}>Ονοματεπώνυμο Σπουδαστή</th>
+                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '600', color: '#475569', width: '12%' }}>Α.Μ.</th>
+                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '600', color: '#475569', width: '20%' }}>Εργασία 6μήνου (20%)</th>
+                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '600', color: '#475569', width: '20%' }}>Τελική Εξέταση (80%)</th>
+                <th style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '600', color: '#475569', width: '20%', textAlign: 'center' }}>Τελικός Βαθμός</th>
               </tr>
             </thead>
             <tbody>
               {displayData.length === 0 ? (
                 <tr>
-                  <td colSpan="4" style={{ padding: '40px 20px', textAlign: 'center', color: '#94a3b8' }}>
+                  <td colSpan="5" style={{ padding: '40px 20px', textAlign: 'center', color: '#94a3b8' }}>
                     Δεν βρέθηκαν σπουδαστές που να ταιριάζουν στα κριτήρια.
                   </td>
                 </tr>
               ) : (
-                displayData.map((row, idx) => (
+                displayData.map((row, idx) => {
+                  let calcGrade = '-';
+                  const pNum = parseFloat(row.progressGrade);
+                  const fNum = parseFloat(row.finalGrade);
+                  if (!isNaN(pNum) || !isNaN(fNum)) {
+                     const pVal = isNaN(pNum) ? 0 : pNum;
+                     const fVal = isNaN(fNum) ? 0 : fNum;
+                     calcGrade = ((pVal * 0.2) + (fVal * 0.8)).toFixed(1);
+                     if (calcGrade.endsWith('.0')) calcGrade = calcGrade.slice(0, -2);
+                  }
+                  const calcNum = parseFloat(calcGrade);
+
+                  return (
                   <tr key={row.student.id} style={{ borderBottom: idx === displayData.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -173,8 +186,8 @@ export default function AdminGradesView({ students, specialties, grades, courses
                         borderRadius: '20px', 
                         fontSize: '14px', 
                         fontWeight: '600',
-                        background: row.progressGrade === '-' ? '#f1f5f9' : (row.progressGrade >= 5 ? '#dcfce7' : '#fee2e2'),
-                        color: row.progressGrade === '-' ? '#94a3b8' : (row.progressGrade >= 5 ? '#16a34a' : '#ef4444')
+                        background: row.progressGrade === '-' ? '#f1f5f9' : (pNum >= 5 ? '#dcfce7' : '#fee2e2'),
+                        color: row.progressGrade === '-' ? '#94a3b8' : (pNum >= 5 ? '#16a34a' : '#ef4444')
                       }}>
                         {row.progressGrade}
                       </span>
@@ -186,14 +199,27 @@ export default function AdminGradesView({ students, specialties, grades, courses
                         borderRadius: '20px', 
                         fontSize: '14px', 
                         fontWeight: '600',
-                        background: row.finalGrade === '-' ? '#f1f5f9' : (row.finalGrade >= 5 ? '#dbeafe' : '#fee2e2'),
-                        color: row.finalGrade === '-' ? '#94a3b8' : (row.finalGrade >= 5 ? '#2563eb' : '#ef4444')
+                        background: row.finalGrade === '-' ? '#f1f5f9' : (fNum >= 5 ? '#dbeafe' : '#fee2e2'),
+                        color: row.finalGrade === '-' ? '#94a3b8' : (fNum >= 5 ? '#2563eb' : '#ef4444')
                       }}>
                         {row.finalGrade}
                       </span>
                     </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <span style={{ 
+                        display: 'inline-block', 
+                        padding: '4px 12px', 
+                        borderRadius: '20px', 
+                        fontSize: '15px', 
+                        fontWeight: '700',
+                        background: calcGrade === '-' ? '#f1f5f9' : (calcNum >= 5 ? '#fef3c7' : '#fee2e2'),
+                        color: calcGrade === '-' ? '#94a3b8' : (calcNum >= 5 ? '#d97706' : '#ef4444')
+                      }}>
+                        {calcGrade}
+                      </span>
+                    </td>
                   </tr>
-                ))
+                )})
               )}
             </tbody>
           </table>

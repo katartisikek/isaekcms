@@ -231,9 +231,9 @@ export default function StudentProfileModal({
                   <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
                     <th style={{ padding: '12px', textAlign: 'left', fontSize: '13px', color: '#475569' }}>Μάθημα</th>
                     <th style={{ padding: '12px', textAlign: 'center', fontSize: '13px', color: '#475569' }}>Απουσίες</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontSize: '13px', color: '#475569' }}>Πρόοδος</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontSize: '13px', color: '#475569' }}>Τελικός</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontSize: '13px', color: '#475569' }}>Μ.Ο.</th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontSize: '13px', color: '#475569' }}>Εργ. 6μήνου</th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontSize: '13px', color: '#475569' }}>Εξετάσεις</th>
+                    <th style={{ padding: '12px', textAlign: 'center', fontSize: '13px', color: '#475569' }}>Τελικός Βαθμός</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -243,9 +243,14 @@ export default function StudentProfileModal({
                     const progress = gradeRecord.progressGrade || '';
                     const final = gradeRecord.finalGrade || '';
                     let avg = '-';
-                    if (progress !== '' && final !== '') avg = ((parseFloat(progress) + parseFloat(final)) / 2).toFixed(1);
-                    else if (progress !== '') avg = parseFloat(progress).toFixed(1);
-                    else if (final !== '') avg = parseFloat(final).toFixed(1);
+                    const pNum = parseFloat(progress);
+                    const fNum = parseFloat(final);
+                    if (!isNaN(pNum) || !isNaN(fNum)) {
+                       const pVal = isNaN(pNum) ? 0 : pNum;
+                       const fVal = isNaN(fNum) ? 0 : fNum;
+                       avg = ((pVal * 0.2) + (fVal * 0.8)).toFixed(1);
+                       if (avg.endsWith('.0')) avg = avg.slice(0, -2);
+                    }
                     const gradeCol = gradeColor(avg);
                     return (
                       <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
