@@ -22,7 +22,11 @@ import {
 export default function DashboardStats({ students = [], specialties = [], sections = [], teacherReports = [] }) {
   // 1. Calculate metrics
   const totalStudents = students.length;
-  const totalDebt = students.reduce((sum, s) => sum + parseFloat(s.totalDebt || 0), 0);
+  const totalUnpaid = students.reduce((sum, s) => sum + parseFloat(s.totalDebt || 0), 0);
+  const totalPaid = students.reduce((sum, s) => sum + parseFloat(s.paidAmount || 0), 0);
+  const totalExpected = totalUnpaid + totalPaid;
+  const unpaidPercentage = totalExpected > 0 ? Math.round((totalUnpaid / totalExpected) * 100) : 0;
+
   const totalSections = sections.length;
   const totalReports = teacherReports.length;
 
@@ -69,14 +73,13 @@ export default function DashboardStats({ students = [], specialties = [], sectio
           <div className="metric-card-content">
             <p className="metric-label">Συνολικά Αναμενόμενα Έσοδα</p>
             <h3 className="metric-value">
-              {totalDebt.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
+              {totalExpected.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
             </h3>
-            {/* Future extension indicator: Paid vs. Unpaid */}
             <div className="metric-badge-extension">
-              <span className="extension-paid">Εξοφλήσεις: €0,00</span>
+              <span className="extension-paid">Εξοφλήσεις: {totalPaid.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</span>
               <span className="extension-separator">|</span>
-              <span className="extension-unpaid" title="Εκκρεμεί η σύνδεση με το σύστημα πληρωμών">
-                Οφειλές: 100%
+              <span className="extension-unpaid" title={`Υπόλοιπο: ${totalUnpaid.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}`}>
+                Οφειλές: {unpaidPercentage}%
               </span>
             </div>
           </div>

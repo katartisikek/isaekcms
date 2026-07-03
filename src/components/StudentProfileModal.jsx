@@ -50,10 +50,11 @@ export default function StudentProfileModal({
   const coursesList = Array.from(allCoursesSet);
 
   const currentDebt = parseFloat(student.totalDebt || 0);
+  const currentPaid = parseFloat(student.paidAmount || 0);
 
   const handleFullPayment = () => {
     if (window.confirm('Επιβεβαίωση Ολικής Εξόφλησης;')) {
-      onUpdateDebt && onUpdateDebt(student.id, 0);
+      onUpdateDebt && onUpdateDebt(student.id, 0, currentPaid + currentDebt);
     }
   };
 
@@ -68,7 +69,7 @@ export default function StudentProfileModal({
       return;
     }
     if (window.confirm(`Επιβεβαίωση εξόφλησης ποσού ${amount}€;`)) {
-      onUpdateDebt && onUpdateDebt(student.id, currentDebt - amount);
+      onUpdateDebt && onUpdateDebt(student.id, currentDebt - amount, currentPaid + amount);
       setPaymentAmount('');
       setShowPaymentInput(false);
     }
@@ -166,9 +167,15 @@ export default function StudentProfileModal({
                 <div>
                   <div style={{ fontSize: '0.7rem', color: '#c2410c', textTransform: 'uppercase', marginBottom: '4px' }}>Οικονομική Εικόνα</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ color: '#9a3412', fontWeight: '500', fontSize: '0.85rem' }}>Συνολική Οφειλή:</div>
+                    <div style={{ color: '#9a3412', fontWeight: '500', fontSize: '0.85rem' }}>Υπόλοιπο Οφειλής:</div>
                     <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#ea580c' }}>{currentDebt.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</div>
                   </div>
+                  {currentPaid > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                      <div style={{ color: '#16a34a', fontWeight: '500', fontSize: '0.85rem' }}>Έχει Εξοφληθεί:</div>
+                      <div style={{ fontSize: '1rem', fontWeight: '700', color: '#15803d' }}>{currentPaid.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</div>
+                    </div>
+                  )}
                 </div>
 
                 {currentDebt > 0 ? (

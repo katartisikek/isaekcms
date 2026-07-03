@@ -265,12 +265,12 @@ export default function App() {
     }));
   };
 
-  const handleUpdateDebt = async (studentId, newDebt) => {
+  const handleUpdateDebt = async (studentId, newDebt, newPaid) => {
     const student = students.find(s => s.id === studentId);
     if (!student) return;
     
     try {
-      const updatedStudent = { ...student, totalDebt: newDebt };
+      const updatedStudent = { ...student, totalDebt: newDebt, paidAmount: newPaid };
       const saved = await api.upsertStudent(updatedStudent);
       setStudents(prev => prev.map(s => (s.id === saved.id ? saved : s)));
       if (viewingStudent && viewingStudent.id === saved.id) {
