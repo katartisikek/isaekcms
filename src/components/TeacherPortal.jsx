@@ -126,13 +126,15 @@ export default function TeacherPortal({
       // Save absences
       const newAbsences = [];
       Object.keys(currentReportAbsences).forEach(studentId => {
-        if (currentReportAbsences[studentId]) {
+        const val = currentReportAbsences[studentId];
+        if (val) {
+          const finalHours = typeof val === 'number' ? val : (calculatedHours?.hours || 1);
           newAbsences.push({
             id: `abs_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             studentId,
             courseTitle: reportCourse,
             date: reportDate,
-            hours: calculatedHours.hours || 1,
+            hours: finalHours,
             type: 'absence',
             notes: `Ώρα: ${reportArrivalTime} - ${reportDepartureTime}`
           });
@@ -596,7 +598,28 @@ export default function TeacherPortal({
                           </div>
                           <span className="tp-attendance-name">{student.fullName}</span>
                           {currentReportAbsences[student.id] && (
-                            <span className="tp-absent-badge">Απών/ούσα</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
+                              <input 
+                                type="number" 
+                                min="1" 
+                                max={calculatedHours?.hours || 1} 
+                                value={typeof currentReportAbsences[student.id] === 'number' ? currentReportAbsences[student.id] : (calculatedHours?.hours || 1)}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  const val = parseInt(e.target.value, 10);
+                                  if (!isNaN(val)) {
+                                    setCurrentReportAbsences(prev => ({
+                                      ...prev,
+                                      [student.id]: val
+                                    }));
+                                  }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{ width: '50px', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', textAlign: 'center' }}
+                              />
+                              <span style={{ fontSize: '12px', color: '#64748b' }}>Ώρες</span>
+                              <span className="tp-absent-badge">Απών/ούσα</span>
+                            </div>
                           )}
                         </label>
                       ))}
