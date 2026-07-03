@@ -122,7 +122,7 @@ export default function AdminTeacherReportsView({ reports = [], students = [], s
                 <Users size={16} /> Καταγραφή Απουσιών
               </h3>
 
-              {!selectedReport.absences || selectedReport.absences.length === 0 ? (
+              {(!selectedReport.absences || selectedReport.absences.length === 0) && (!selectedReport.absentStudents || selectedReport.absentStudents.length === 0) ? (
                 <div style={{ background: '#f0fdf4', color: '#166534', padding: '16px', borderRadius: '8px', textAlign: 'center', border: '1px solid #dcfce7' }}>
                   Κανένας μαθητής δεν απουσίαζε σε αυτή τη δήλωση. Όλοι παρόντες!
                 </div>
@@ -136,16 +136,29 @@ export default function AdminTeacherReportsView({ reports = [], students = [], s
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedReport.absences.map((abs, idx) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '12px 16px', fontWeight: '500', color: '#334155' }}>
-                            {getStudentName(abs.studentId)}
-                          </td>
-                          <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600', color: '#ef4444' }}>
-                            {abs.hours}
-                          </td>
-                        </tr>
-                      ))}
+                      {selectedReport.absences && selectedReport.absences.length > 0 ? (
+                        selectedReport.absences.map((abs, idx) => (
+                          <tr key={`new-${idx}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '12px 16px', fontWeight: '500', color: '#334155' }}>
+                              {getStudentName(abs.studentId)}
+                            </td>
+                            <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600', color: '#ef4444' }}>
+                              {abs.hours}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        selectedReport.absentStudents && selectedReport.absentStudents.map((studentName, idx) => (
+                          <tr key={`old-${idx}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '12px 16px', fontWeight: '500', color: '#334155' }}>
+                              {studentName}
+                            </td>
+                            <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600', color: '#ef4444' }}>
+                              {selectedReport.hours || '-'}
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>

@@ -166,6 +166,7 @@ export default function TeacherPortal({
         hours: calculatedHours.hours || 1,
         timestamp: new Date().toISOString(),
         absentStudents: absentStudentNames,
+        absences: newAbsences, // Ensure the detailed absences are saved with the report
         status: 'submitted',
         arrivalTime: reportArrivalTime,
         departureTime: reportDepartureTime
