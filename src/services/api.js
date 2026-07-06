@@ -236,5 +236,29 @@ export const api = {
     if (error) {
       console.error('logAction error:', error);
     }
-  }
+  },
+
+  // Payment Records
+  async fetchPaymentRecords(studentId = null) {
+    let query = supabase.from('payment_records').select('*').order('paymentDate', { ascending: false });
+    if (studentId) {
+      query = query.eq('studentId', studentId);
+    }
+    const { data, error } = await query;
+    if (error) {
+      console.error('fetchPaymentRecords error:', error);
+      return [];
+    }
+    return data || [];
+  },
+  async upsertPaymentRecord(record) {
+    const { data, error } = await supabase.from('payment_records').upsert([record]).select();
+    if (error) throw error;
+    return data[0];
+  },
+  async deletePaymentRecord(id) {
+    const { error } = await supabase.from('payment_records').delete().eq('id', id);
+    if (error) throw error;
+  },
 };
+

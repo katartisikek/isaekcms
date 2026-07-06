@@ -42,6 +42,7 @@ export default function App() {
   const [teacherReports, setTeacherReports] = useState([]);
   const [sections, setSections] = useState([]);
   const [interests, setInterests] = useState([]);
+  const [paymentRecords, setPaymentRecords] = useState([]);
 
   // UI State
   const [currentView, setCurrentView] = useState('students');
@@ -145,12 +146,12 @@ export default function App() {
     const loadData = async () => {
       try {
         const [
-          s, sp, t, c, crs, e, a, g, tr, sec, ints
+          s, sp, t, c, crs, e, a, g, tr, sec, ints, pr
         ] = await Promise.all([
           api.fetchStudents(), api.fetchSpecialties(), api.fetchTasks(),
           api.fetchContacts(), api.fetchCourses(), api.fetchEvents(),
           api.fetchAbsences(), api.fetchGrades(), api.fetchTeacherReports(),
-          api.fetchSections(), api.fetchInterests()
+          api.fetchSections(), api.fetchInterests(), api.fetchPaymentRecords()
         ]);
         
         setStudents(s);
@@ -168,6 +169,7 @@ export default function App() {
         setTeacherReports(tr);
         setSections(sec);
         setInterests(ints);
+        setPaymentRecords(pr);
       } catch (err) {
         console.error("Failed to load from Supabase:", err);
       } finally {
@@ -282,6 +284,75 @@ export default function App() {
       }
     } catch (e) {
       window.alert('Σφάλμα κατά την ενημέρωση οφειλής: ' + e.message);
+    }
+  };
+
+  // Add a payment record and update student debt
+  const handleAddPayment = async (studentId, amount, paymentDate, notes, currentDebt, currentPaid) => {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+    try {
+      const record = {
+        id: `pay_${Date.now()}_${Math.random().toString(36).substr(2,6)}`,
+        studentId,
+        amount,
+        paymentDate,
+        notes: notes || '',
+        createdBy: loggedInUser?.username || 'Unknown',
+        createdAt: new Date().toISOString(),
+      };
+      const saved = await api.upsertPaymentRecord(record);
+      setPaymentRecords(prev => [saved, ...prev]);
+      // Update student debt
+      const newDebt = Math.max(0, currentDebt - amount);
+      const newPaid = currentPaid + amount;
+      const updatedStudent = { ...student, totalDebt: newDebt, paidAmount: newPaid };
+      const savedStudent = await api.upsertStudent(updatedStudent);
+      setStudents(prev => prev.map(s => s.id === savedStudent.id ? savedStudent : s));
+      if (viewingStudent?.id === savedStudent.id) setViewingStudent(savedStudent);
+      await api.logAction('PAYMENT', 'student', student.fullName, loggedInUser?.username || 'Unknown', `Πληρωμή ποσού: ${amount}€ (${new Date(paymentDate).toLocaleDateString('el-GR')})`);
+    } catch (e) {
+      window.alert('Σφάλμα κατά την καταχώρηση πληρωμής: ' + e.message);
+    }
+  };
+
+  // Edit a payment record and adjust student debt
+  const handleEditPayment = async (recordId, updatedRecord, amountDiff, studentId, currentDebt, currentPaid) => {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+    try {
+      const saved = await api.upsertPaymentRecord(updatedRecord);
+      setPaymentRecords(prev => prev.map(p => p.id === saved.id ? saved : p));
+      // Adjust debt by the difference
+      const newDebt = Math.max(0, currentDebt - amountDiff);
+      const newPaid = currentPaid + amountDiff;
+      const updatedStudent = { ...student, totalDebt: newDebt, paidAmount: newPaid };
+      const savedStudent = await api.upsertStudent(updatedStudent);
+      setStudents(prev => prev.map(s => s.id === savedStudent.id ? savedStudent : s));
+      if (viewingStudent?.id === savedStudent.id) setViewingStudent(savedStudent);
+      await api.logAction('PAYMENT', 'student', student.fullName, loggedInUser?.username || 'Unknown', `Επεξεργασία πληρωμής: ${updatedRecord.amount}€`);
+    } catch (e) {
+      window.alert('Σφάλμα κατά την επεξεργασία πληρωμής: ' + e.message);
+    }
+  };
+
+  // Delete a payment record and restore student debt
+  const handleDeletePayment = async (recordId, amount, studentId, currentDebt, currentPaid) => {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+    try {
+      await api.deletePaymentRecord(recordId);
+      setPaymentRecords(prev => prev.filter(p => p.id !== recordId));
+      // Restore debt
+      const newDebt = currentDebt + amount;
+      const newPaid = Math.max(0, currentPaid - amount);
+      const updatedStudent = { ...student, totalDebt: newDebt, paidAmount: newPaid };
+      const savedStudent = await api.upsertStudent(updatedStudent);
+      setStudents(prev => prev.map(s => s.id === savedStudent.id ? savedStudent : s));
+      if (viewingStudent?.id === savedStudent.id) setViewingStudent(savedStudent);
+      await api.logAction('PAYMENT', 'student', student.fullName, loggedInUser?.username || 'Unknown', `Διαγραφή πληρωμής: ${amount}€`);
+    } catch (e) {
+      window.alert('Σφάλμα κατά τη διαγραφή πληρωμής: ' + e.message);
     }
   };
 
@@ -1370,7 +1441,7 @@ export default function App() {
         sections={sections}
       />
 
-      {/* Student Profile (Grades & Absences) Modal */}
+      {/* Student Profile Modal */}
       <StudentProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
@@ -1381,6 +1452,11 @@ export default function App() {
         absences={absences}
         onSaveGrades={handleSaveGrades}
         onUpdateDebt={handleUpdateDebt}
+        paymentRecords={paymentRecords}
+        onAddPayment={handleAddPayment}
+        onEditPayment={handleEditPayment}
+        onDeletePayment={handleDeletePayment}
+        currentUser={loggedInUser}
       />
 
       {/* Task Form Dialog Box Modal */}

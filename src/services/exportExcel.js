@@ -110,3 +110,50 @@ export function exportAuditLog(logs) {
   }));
   downloadWorkbook([{ name: 'Ιστορικό', data }], 'Ιστορικο_Αλλαγων_ISAEK');
 }
+
+/**
+ * Export detailed payment report for a student.
+ * @param {Object} student
+ * @param {Array} paymentRecords - All payment records for this student
+ * @param {Object} specialty - student's specialty object
+ */
+export function exportStudentPaymentReport(student, paymentRecords, specialty) {
+  const totalDebt = parseFloat(student.totalDebt || 0);
+  const totalPaid = parseFloat(student.paidAmount || 0);
+  const totalExpected = totalDebt + totalPaid;
+
+  // Sheet 1: Summary
+  const summaryData = [{
+    'Ονοματεπώνυμο': student.fullName || '',
+    'Αρ. Μητρώου': student.mathitisAr || '',
+    'ΑΜΚΑ': student.amka || '',
+    'ΑΦΜ': student.afm || '',
+    'Ειδικότητα': specialty ? specialty.title : '',
+    'Τομέας': specialty ? specialty.sector : '',
+    'Συνολικό Ποσό': totalExpected.toFixed(2),
+    'Εξοφλήθηκε (€)': totalPaid.toFixed(2),
+    'Υπόλοιπο Οφειλής (€)': totalDebt.toFixed(2),
+    'Κατάσταση': totalDebt === 0 ? 'ΠΛΗΡΩΣ ΕΞΟΦΛΗΜΕΝΟ' : 'ΕΚΚΡΕΜΕΙ',
+  }];
+
+  // Sheet 2: Payment history
+  const historyData = paymentRecords.map((r, idx) => ({
+    'Α/Α': idx + 1,
+    'Ημερομηνία Πληρωμής': r.paymentDate ? new Date(r.paymentDate).toLocaleDateString('el-GR') : '',
+    'Ποσό (€)': parseFloat(r.amount || 0).toFixed(2),
+    'Σημειώσεις': r.notes || '',
+    'Καταχωρήθηκε από': r.createdBy || '',
+    'Καταχωρήθηκε': r.createdAt ? new Date(r.createdAt).toLocaleString('el-GR') : '',
+  }));
+
+  if (historyData.length === 0) {
+    historyData.push({ 'Α/Α': '-', 'Ημερομηνία Πληρωμής': 'Δεν υπάρχουν καταχωρημένες πληρωμές', 'Ποσό (€)': '', 'Σημειώσεις': '', 'Καταχωρήθηκε από': '', 'Καταχωρήθηκε': '' });
+  }
+
+  const safeName = (student.fullName || 'Σπουδαστης').replace(/[^a-zA-Zα-ωΑ-Ω\s]/g, '').trim().replace(/\s+/g, '_');
+  downloadWorkbook([
+    { name: 'Σύνοψη', data: summaryData },
+    { name: 'Ιστορικό Πληρωμών', data: historyData },
+  ], `Αναφορα_Πληρωμων_${safeName}`);
+}
+
