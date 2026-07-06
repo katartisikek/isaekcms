@@ -45,6 +45,7 @@ export default function AuditLogView() {
       case 'UPDATE': return { bg: '#dbeafe', text: '#1e40af' };
       case 'DELETE': return { bg: '#fee2e2', text: '#991b1b' };
       case 'CONVERT': return { bg: '#f3e8ff', text: '#6b21a8' };
+      case 'PAYMENT': return { bg: '#ffedd5', text: '#9a3412' };
       default: return { bg: '#f1f5f9', text: '#334155' };
     }
   };
@@ -55,6 +56,7 @@ export default function AuditLogView() {
       case 'UPDATE': return 'Επεξεργασία';
       case 'DELETE': return 'Διαγραφή';
       case 'CONVERT': return 'Μετατροπή';
+      case 'PAYMENT': return 'Πληρωμή';
       default: return action;
     }
   };

@@ -54,7 +54,7 @@ export default function StudentProfileModal({
 
   const handleFullPayment = () => {
     if (window.confirm('Επιβεβαίωση Ολικής Εξόφλησης;')) {
-      onUpdateDebt && onUpdateDebt(student.id, 0, currentPaid + currentDebt);
+      onUpdateDebt && onUpdateDebt(student.id, 0, currentPaid + currentDebt, currentDebt);
     }
   };
 
@@ -69,7 +69,7 @@ export default function StudentProfileModal({
       return;
     }
     if (window.confirm(`Επιβεβαίωση εξόφλησης ποσού ${amount}€;`)) {
-      onUpdateDebt && onUpdateDebt(student.id, currentDebt - amount, currentPaid + amount);
+      onUpdateDebt && onUpdateDebt(student.id, currentDebt - amount, currentPaid + amount, amount);
       setPaymentAmount('');
       setShowPaymentInput(false);
     }

@@ -265,7 +265,7 @@ export default function App() {
     }));
   };
 
-  const handleUpdateDebt = async (studentId, newDebt, newPaid) => {
+  const handleUpdateDebt = async (studentId, newDebt, newPaid, paymentAmount) => {
     const student = students.find(s => s.id === studentId);
     if (!student) return;
     
@@ -275,6 +275,10 @@ export default function App() {
       setStudents(prev => prev.map(s => (s.id === saved.id ? saved : s)));
       if (viewingStudent && viewingStudent.id === saved.id) {
         setViewingStudent(saved);
+      }
+      
+      if (paymentAmount > 0) {
+        await api.logAction('PAYMENT', 'student', saved.fullName, loggedInUser?.username || 'Unknown', `Πληρωμή ποσού: ${paymentAmount}€`);
       }
     } catch (e) {
       window.alert('Σφάλμα κατά την ενημέρωση οφειλής: ' + e.message);

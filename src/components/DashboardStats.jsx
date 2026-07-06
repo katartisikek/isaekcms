@@ -49,6 +49,23 @@ export default function DashboardStats({ students = [], specialties = [], sectio
     };
   }).sort((a, b) => b['Σπουδαστές'] - a['Σπουδαστές']); // Sort from highest to lowest
 
+  // 3. Aggregate student distribution by current Section
+  const sectionCounts = {};
+  students.forEach(student => {
+    const section = sections.find(s => s.id === student.sectionId);
+    const sectionName = section ? section.name : 'Χωρίς Τμήμα';
+    sectionCounts[sectionName] = (sectionCounts[sectionName] || 0) + 1;
+  });
+
+  const sectionChartData = Object.entries(sectionCounts).map(([name, count]) => {
+    const shortName = name.length > 20 ? name.substring(0, 17) + '...' : name;
+    return {
+      name: shortName,
+      fullName: name,
+      'Σπουδαστές': count,
+    };
+  }).sort((a, b) => b['Σπουδαστές'] - a['Σπουδαστές']);
+
   // Modern soft gradient colors for the cards and charts
   const barColors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4'];
 
@@ -113,63 +130,126 @@ export default function DashboardStats({ students = [], specialties = [], sectio
         </div>
       </div>
 
-      {/* Chart container */}
-      <div className="analytics-chart-container">
-        <h4 className="chart-title">
-          <Activity size={14} className="chart-title-icon" />
-          <span>Κατανομή Σπουδαστών ανά Τομέα Σπουδών</span>
-        </h4>
+      {/* Charts Wrapper */}
+      <div style={{ flex: 1.2, display: 'flex', flexDirection: 'column', gap: '16px', minWidth: '380px' }}>
         
-        {chartData.length === 0 ? (
-          <div className="chart-empty-state">
-            <span>Δεν υπάρχουν δεδομένα σπουδαστών για εμφάνιση γραφήματος.</span>
-          </div>
-        ) : (
-          <div style={{ width: '100%', height: '140px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 10, fill: '#6b7280' }} 
-                  axisLine={{ stroke: '#d1d5db' }}
-                  tickLine={false}
-                />
-                <YAxis 
-                  tick={{ fontSize: 10, fill: '#6b7280' }} 
-                  axisLine={{ stroke: '#d1d5db' }}
-                  tickLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip 
-                  cursor={{ fill: 'rgba(229, 231, 235, 0.4)' }}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="chart-custom-tooltip">
-                          <p className="tooltip-title">{data.fullName}</p>
-                          <p className="tooltip-value">
-                            Σπουδαστές: <strong>{data['Σπουδαστές']}</strong>
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar dataKey="Σπουδαστές" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={barColors[index % barColors.length]} 
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+        {/* Chart 1: Sector Distribution */}
+        <div className="analytics-chart-container" style={{ flex: 'none', minWidth: 'auto' }}>
+          <h4 className="chart-title">
+            <Activity size={14} className="chart-title-icon" />
+            <span>Κατανομή Σπουδαστών ανά Τομέα Σπουδών</span>
+          </h4>
+          
+          {chartData.length === 0 ? (
+            <div className="chart-empty-state">
+              <span>Δεν υπάρχουν δεδομένα σπουδαστών για εμφάνιση γραφήματος.</span>
+            </div>
+          ) : (
+            <div style={{ width: '100%', height: '140px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fontSize: 10, fill: '#6b7280' }} 
+                    axisLine={{ stroke: '#d1d5db' }}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 10, fill: '#6b7280' }} 
+                    axisLine={{ stroke: '#d1d5db' }}
+                    tickLine={false}
+                    allowDecimals={false}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(229, 231, 235, 0.4)' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="chart-custom-tooltip">
+                            <p className="tooltip-title">{data.fullName}</p>
+                            <p className="tooltip-value">
+                              Σπουδαστές: <strong>{data['Σπουδαστές']}</strong>
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="Σπουδαστές" radius={[4, 4, 0, 0]}>
+                    {chartData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={barColors[index % barColors.length]} 
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+
+        {/* Chart 2: Section Distribution */}
+        <div className="analytics-chart-container" style={{ flex: 'none', minWidth: 'auto' }}>
+          <h4 className="chart-title">
+            <Users size={14} className="chart-title-icon" style={{ color: '#8b5cf6' }} />
+            <span>Κατανομή Σπουδαστών ανά Τρέχον Τμήμα</span>
+          </h4>
+          
+          {sectionChartData.length === 0 ? (
+            <div className="chart-empty-state">
+              <span>Δεν υπάρχουν δεδομένα σπουδαστών για εμφάνιση γραφήματος.</span>
+            </div>
+          ) : (
+            <div style={{ width: '100%', height: '140px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={sectionChartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fontSize: 10, fill: '#6b7280' }} 
+                    axisLine={{ stroke: '#d1d5db' }}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 10, fill: '#6b7280' }} 
+                    axisLine={{ stroke: '#d1d5db' }}
+                    tickLine={false}
+                    allowDecimals={false}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(229, 231, 235, 0.4)' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="chart-custom-tooltip">
+                            <p className="tooltip-title">{data.fullName}</p>
+                            <p className="tooltip-value">
+                              Σπουδαστές: <strong>{data['Σπουδαστές']}</strong>
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="Σπουδαστές" radius={[4, 4, 0, 0]}>
+                    {sectionChartData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={barColors[(index + 2) % barColors.length]} 
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
