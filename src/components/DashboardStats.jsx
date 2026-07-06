@@ -52,8 +52,11 @@ export default function DashboardStats({ students = [], specialties = [], sectio
   // 3. Aggregate student distribution by current Section
   const sectionCounts = {};
   students.forEach(student => {
+    if (!student.sectionId) return; // Skip students without a section
     const section = sections.find(s => s.id === student.sectionId);
-    const sectionName = section ? section.name : 'Χωρίς Τμήμα';
+    if (!section) return; // Skip if section is not found
+    
+    const sectionName = section.name;
     sectionCounts[sectionName] = (sectionCounts[sectionName] || 0) + 1;
   });
 
