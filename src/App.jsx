@@ -146,12 +146,12 @@ export default function App() {
     const loadData = async () => {
       try {
         const [
-          s, sp, t, c, crs, e, a, g, tr, sec, ints, pr
+          s, sp, t, c, crs, e, a, g, tr, sec, ints
         ] = await Promise.all([
           api.fetchStudents(), api.fetchSpecialties(), api.fetchTasks(),
           api.fetchContacts(), api.fetchCourses(), api.fetchEvents(),
           api.fetchAbsences(), api.fetchGrades(), api.fetchTeacherReports(),
-          api.fetchSections(), api.fetchInterests(), api.fetchPaymentRecords()
+          api.fetchSections(), api.fetchInterests()
         ]);
         
         setStudents(s);
@@ -169,11 +169,18 @@ export default function App() {
         setTeacherReports(tr);
         setSections(sec);
         setInterests(ints);
-        setPaymentRecords(pr);
       } catch (err) {
         console.error("Failed to load from Supabase:", err);
       } finally {
         setIsInitializing(false);
+      }
+
+      // Load payment records separately — table may not exist yet
+      try {
+        const pr = await api.fetchPaymentRecords();
+        setPaymentRecords(pr);
+      } catch (err) {
+        console.warn("payment_records table not available yet:", err.message);
       }
     };
     loadData();
