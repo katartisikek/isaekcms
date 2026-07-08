@@ -72,12 +72,32 @@ export const api = {
   async fetchTasks() {
     const { data, error } = await supabase.from('tasks').select('*');
     if (error) throw error;
-    return data || [];
+    // Map DB's assignedTo to UI's assignee
+    return (data || []).map(task => ({
+      ...task,
+      assignee: task.assignedTo || task.assignee
+    }));
   },
   async upsertTask(task) {
-    const { data, error } = await supabase.from('tasks').upsert([task]).select();
+    const dbTask = { ...task };
+    // Map UI's assignee to DB's assignedTo
+    if (dbTask.assignee !== undefined) {
+      dbTask.assignedTo = dbTask.assignee;
+      delete dbTask.assignee;
+    }
+    // Remove priority if it's not in DB schema to prevent crashes
+    // If you added priority to DB, you can safely remove this delete statement
+    delete dbTask.priority;
+
+    const { data, error } = await supabase.from('tasks').upsert([dbTask]).select();
     if (error) throw error;
-    return data[0];
+    
+    const savedTask = data[0];
+    return {
+      ...savedTask,
+      assignee: savedTask.assignedTo || savedTask.assignee,
+      priority: task.priority // Preserve it in UI state
+    };
   },
   async deleteTask(id) {
     const { error } = await supabase.from('tasks').delete().eq('id', id);
