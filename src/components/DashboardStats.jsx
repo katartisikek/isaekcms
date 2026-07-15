@@ -22,6 +22,16 @@ import {
 export default function DashboardStats({ students = [], specialties = [], sections = [], teacherReports = [] }) {
   // 1. Calculate metrics
   const totalStudents = students.length;
+  const currentYear = new Date().getFullYear();
+  
+  const currentYearEnrollments = students.filter(s => {
+    const dateStr = s.created_at || s.createdAt;
+    if (dateStr) {
+      return new Date(dateStr).getFullYear() === currentYear;
+    }
+    return s.year === '1ο Έτος';
+  }).length;
+
   const totalUnpaid = students.reduce((sum, s) => sum + parseFloat(s.totalDebt || 0), 0);
   const totalPaid = students.reduce((sum, s) => sum + parseFloat(s.paidAmount || 0), 0);
   const totalExpected = totalUnpaid + totalPaid;
@@ -51,13 +61,22 @@ export default function DashboardStats({ students = [], specialties = [], sectio
 
   // 3. Aggregate student distribution by current Section
   const sectionCounts = {};
+  
+  // Ensure all sections are represented even if empty
+  sections.forEach(section => {
+    sectionCounts[section.name] = 0;
+  });
+
   students.forEach(student => {
-    if (!student.sectionId) return; // Skip students without a section
-    const section = sections.find(s => s.id === student.sectionId);
-    if (!section) return; // Skip if section is not found
-    
-    const sectionName = section.name;
-    sectionCounts[sectionName] = (sectionCounts[sectionName] || 0) + 1;
+    if (student.sectionId) {
+      const section = sections.find(s => s.id === student.sectionId);
+      if (section) {
+        sectionCounts[section.name] += 1;
+      }
+    } else {
+      const unassignedLabel = "Νέοι / Χωρίς Τμήμα";
+      sectionCounts[unassignedLabel] = (sectionCounts[unassignedLabel] || 0) + 1;
+    }
   });
 
   const sectionChartData = Object.entries(sectionCounts).map(([name, count]) => {
@@ -81,7 +100,7 @@ export default function DashboardStats({ students = [], specialties = [], sectio
           <div className="metric-card-content">
             <p className="metric-label">Συνολικές Εγγραφές</p>
             <h3 className="metric-value">{totalStudents}</h3>
-            <span className="metric-subtext">Εγγεγραμμένοι σπουδαστές φέτος</span>
+            <span className="metric-subtext">Εγγεγραμμένοι το {currentYear}: {currentYearEnrollments}</span>
           </div>
           <div className="metric-icon-box">
             <Users size={28} />
