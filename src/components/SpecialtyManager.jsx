@@ -22,6 +22,7 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
   const [isSectionFormOpen, setIsSectionFormOpen] = useState(false);
   const [editingSection, setEditingSection] = useState(null);
   const [sectionName, setSectionName] = useState('');
+  const [sectionSector, setSectionSector] = useState('');
   const [sectionSpecialtyId, setSectionSpecialtyId] = useState('');
   const [sectionSemester, setSectionSemester] = useState('semester1');
 
@@ -147,10 +148,13 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
       setEditingSection(section);
       setSectionName(section.name);
       setSectionSpecialtyId(section.specialtyId);
+      const spec = specialties.find(s => s.id === section.specialtyId);
+      setSectionSector(spec ? spec.sector : '');
       setSectionSemester(section.semester || 'semester1');
     } else {
       setEditingSection(null);
       setSectionName('');
+      setSectionSector('');
       setSectionSpecialtyId(specialties.length > 0 ? specialties[0].id : '');
       setSectionSemester('semester1');
     }
@@ -407,11 +411,14 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
                     </div>
                   </div>
                   <div style={{ fontSize: '13px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500', color: '#334155' }}>
+                      <Layers size={14} color="#94a3b8" /> {spec ? spec.sector : 'Άγνωστος Τομέας'}
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <BookOpen size={14} color="#94a3b8" /> {spec ? spec.title : 'Άγνωστη Ειδικότητα'}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Layers size={14} color="#94a3b8" /> {semLabel}
+                      <Users size={14} color="#94a3b8" /> {semLabel}
                     </div>
                   </div>
                 </div>
@@ -522,14 +529,31 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
                 />
               </div>
               <div className="sys-group">
+                <label className="sys-label">Τομέας</label>
+                <select 
+                  className="sys-input"
+                  value={sectionSector} onChange={e => {
+                    setSectionSector(e.target.value);
+                    setSectionSpecialtyId(''); // Reset specialty when sector changes
+                  }}
+                >
+                  <option value="">-- Επιλέξτε Τομέα --</option>
+                  {sectors.map(sector => (
+                    <option key={sector} value={sector}>{sector}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sys-group">
                 <label className="sys-label">Ειδικότητα</label>
                 <select 
                   className="sys-input" required
                   value={sectionSpecialtyId} onChange={e => setSectionSpecialtyId(e.target.value)}
                 >
                   <option value="" disabled>Επιλέξτε Ειδικότητα...</option>
-                  {specialties.map(spec => (
-                    <option key={spec.id} value={spec.id}>{spec.title}</option>
+                  {specialties
+                    .filter(spec => !sectionSector || spec.sector === sectionSector)
+                    .map(spec => (
+                      <option key={spec.id} value={spec.id}>{spec.title}</option>
                   ))}
                 </select>
               </div>

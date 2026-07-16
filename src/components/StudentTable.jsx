@@ -80,6 +80,12 @@ export default function StudentTable({ students = [], specialties = [], onViewPr
                             ΒΕΚ
                           </span>
                         )}
+                        {student.status === 'dropped_out' && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', background: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '12px' }} title="Διέκοψε">
+                            <AlertCircle size={10} />
+                            Διέκοψε
+                          </span>
+                        )}
                         {student.notes && (
                           <FileText size={12} color="#3b82f6" title={student.notes} />
                         )}

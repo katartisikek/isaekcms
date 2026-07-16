@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Search, User, UserPlus, Folder, FolderOpen, Database, Home, BarChart4, CheckSquare, Plus, Phone, BookOpen, Settings, LogOut, Calendar as CalendarIcon, Clock, MapPin, FileText, GraduationCap, MessageSquare, Bell, AlertTriangle
+  Search, User, UserPlus, Users, Folder, FolderOpen, Database, Home, BarChart4, CheckSquare, Plus, Phone, BookOpen, Settings, LogOut, Calendar as CalendarIcon, Clock, MapPin, FileText, GraduationCap, MessageSquare, Bell, AlertTriangle
 } from 'lucide-react';
 import StudentTable from './components/StudentTable';
 import StudentFormModal from './components/StudentFormModal';
@@ -244,7 +244,8 @@ export default function App() {
       }
 
       if (currentView === 'bek_graduates' && student.status !== 'bek_graduate') return false;
-      if (currentView === 'students' && student.status === 'bek_graduate') return false;
+      if (currentView === 'dropped_out_students' && student.status !== 'dropped_out') return false;
+      if (currentView === 'students' && (student.status === 'bek_graduate' || student.status === 'dropped_out')) return false;
 
       return true;
     });
@@ -959,6 +960,14 @@ export default function App() {
               </button>
               
               <button className="premium-quick-btn" onClick={() => { setCurrentView('settings'); setShowStartScreen(false); }}>
+                <div className="btn-icon" style={{ background: '#e0e7ff', color: '#4f46e5' }}><Users size={20} /></div>
+                <div className="btn-text">
+                  <span>Τμήματα</span>
+                  <small>Διαχείριση</small>
+                </div>
+              </button>
+              
+              <button className="premium-quick-btn" onClick={() => { setCurrentView('settings'); setShowStartScreen(false); }}>
                 <div className="btn-icon" style={{ background: '#f1f5f9', color: '#475569' }}><Settings size={20} /></div>
                 <div className="btn-text">
                   <span>Ρυθμίσεις</span>
@@ -1004,6 +1013,13 @@ export default function App() {
                       <div>
                         <h3>Απόφοιτοι ΒΕΚ</h3>
                         <p>Μητρώο αποφοίτων</p>
+                      </div>
+                    </button>
+                    <button className="nav-module-card" onClick={() => { setCurrentView('dropped_out_students'); setShowStartScreen(false); }}>
+                      <AlertTriangle size={24} color="#ef4444" />
+                      <div>
+                        <h3>Διακόψαντες</h3>
+                        <p>Σπουδαστές που διέκοψαν</p>
                       </div>
                     </button>
                     <button className="nav-module-card" onClick={() => { setCurrentView('teachers'); setShowStartScreen(false); }}>
@@ -1172,6 +1188,18 @@ export default function App() {
                 <span>Απόφοιτοι ΒΕΚ</span>
               </li>
               <li 
+                className={`sector-item ${currentView === 'dropped_out_students' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentView('dropped_out_students');
+                  setSelectedSector('');
+                  setSelectedSpecialty('');
+                  setShowStartScreen(false);
+                }}
+              >
+                <AlertTriangle size={14} />
+                <span>Διακόψαντες Σπουδαστές</span>
+              </li>
+              <li 
                 className={`sector-item ${currentView === 'teachers' ? 'active' : ''}`}
                 onClick={() => {
                   setCurrentView('teachers');
@@ -1313,6 +1341,28 @@ export default function App() {
                   onEdit={handleEditClick}
                   onDelete={handleDeleteClick}
                   isBekView={true}
+                />
+              </div>
+            </div>
+          )}
+
+          {currentView === 'dropped_out_students' && (
+            <div className="desktop-content">
+              <div className="grid-header">
+                <span className="grid-title">
+                  Διακόψαντες Σπουδαστές {selectedSector ? `» ${selectedSector}` : '» Όλοι οι Τομείς'}
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                  Εμφανίζονται {filteredStudents.length} διακόψαντες
+                </span>
+              </div>
+              <div className="desktop-grid-container">
+                <StudentTable
+                  students={filteredStudents}
+                  specialties={specialties}
+                  onViewProfile={handleViewProfile}
+                  onEdit={handleEditClick}
+                  onDelete={handleDeleteClick}
                 />
               </div>
             </div>

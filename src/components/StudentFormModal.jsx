@@ -523,11 +523,21 @@ export default function StudentFormModal({
                 <select
                   className="sys-input"
                   value={status}
-                  onChange={(e) => setStatus(e.target.value)}
+                  onChange={(e) => {
+                    const newStatus = e.target.value;
+                    setStatus(newStatus);
+                    if (newStatus === 'dropped_out') {
+                      if (window.confirm('Ο σπουδαστής σημειώθηκε ως "Διέκοψε". Θέλετε να μηδενιστεί η εναπομένουσα συνολική οφειλή του;')) {
+                        setTotalDebt(0);
+                        setHasInstallments(false);
+                      }
+                    }
+                  }}
                   style={{ width: '100%', paddingLeft: '12px' }}
                 >
                   <option value="active">Ενεργός</option>
                   <option value="bek_graduate">Απόφοιτος ΒΕΚ</option>
+                  <option value="dropped_out">Διέκοψε</option>
                 </select>
               </div>
 

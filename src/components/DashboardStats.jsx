@@ -32,6 +32,8 @@ export default function DashboardStats({ students = [], specialties = [], sectio
     return s.year === '1ο Έτος';
   }).length;
 
+  const droppedOutStudents = students.filter(s => s.status === 'dropped_out').length;
+
   const totalUnpaid = students.reduce((sum, s) => sum + parseFloat(s.totalDebt || 0), 0);
   const totalPaid = students.reduce((sum, s) => sum + parseFloat(s.paidAmount || 0), 0);
   const totalExpected = totalUnpaid + totalPaid;
@@ -100,7 +102,10 @@ export default function DashboardStats({ students = [], specialties = [], sectio
           <div className="metric-card-content">
             <p className="metric-label">Συνολικές Εγγραφές</p>
             <h3 className="metric-value">{totalStudents}</h3>
-            <span className="metric-subtext">Εγγεγραμμένοι το {currentYear}: {currentYearEnrollments}</span>
+            <span className="metric-subtext" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span>Εγγεγραμμένοι το {currentYear}: {currentYearEnrollments}</span>
+              {droppedOutStudents > 0 && <span style={{ color: '#ef4444' }}>Διέκοψαν: {droppedOutStudents}</span>}
+            </span>
           </div>
           <div className="metric-icon-box">
             <Users size={28} />
