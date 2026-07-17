@@ -169,8 +169,9 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
         setSections(prev => prev.map(s => s.id === saved.id ? saved : s));
       } else {
         const newId = 'sec_' + Date.now();
-        const saved = await api.upsertSection({ id: newId, name: sectionName, specialtyId: sectionSpecialtyId, semester: sectionSemester });
-        setSections(prev => [...prev, saved]);
+        const newSection = { id: newId, name: sectionName, specialtyId: sectionSpecialtyId, semester: sectionSemester };
+        const saved = await api.upsertSection(newSection);
+        setSections(prev => [...prev, saved || newSection]);
       }
       setIsSectionFormOpen(false);
     } catch (err) { alert(err.message); }
@@ -379,7 +380,7 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-            {sections.map(section => {
+            {[...sections].sort((a, b) => a.name.localeCompare(b.name)).map(section => {
               const spec = specialties.find(s => s.id === section.specialtyId);
               const semLabel = section.semester === 'semester1' ? 'Εξάμηνο Α' : 
                                section.semester === 'semester2' ? 'Εξάμηνο Β' : 
