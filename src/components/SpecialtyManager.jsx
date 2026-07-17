@@ -187,8 +187,8 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
-      
+    <div style={{ height: '100%', overflowY: 'auto', width: '100%' }}>
+      <div style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
       {/* Tabs Header */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0', paddingBottom: '16px' }}>
         <button 
@@ -579,6 +579,7 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
         </div>
       )}
 
+    </div>
     </div>
   );
 }
