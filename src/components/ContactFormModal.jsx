@@ -167,8 +167,20 @@ export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = 
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {formData.assignments.map((assignment, idx) => {
-                    // Filter courses based on specialty
-                    const specialtyCourses = courses[assignment.specialtyId] || [];
+                    // Filter courses based on specialty and transform from object to array of course objects
+                    const specData = courses[assignment.specialtyId] || {};
+                    const specialtyCourses = [];
+                    ['semester1', 'semester2', 'semester3', 'semester4'].forEach(sem => {
+                      if (Array.isArray(specData[sem])) {
+                        specData[sem].forEach(courseName => {
+                          specialtyCourses.push({
+                            id: courseName,
+                            title: courseName,
+                            semester: sem === 'semester1' ? 'Α' : sem === 'semester2' ? 'Β' : sem === 'semester3' ? 'Γ' : 'Δ'
+                          });
+                        });
+                      }
+                    });
                     
                     return (
                       <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: '#fff', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>

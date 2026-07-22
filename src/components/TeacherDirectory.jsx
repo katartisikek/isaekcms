@@ -187,11 +187,7 @@ export default function TeacherDirectory({
                       <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {contact.assignments.map((assignment, idx) => {
                           const spec = specialties.find(s => s.id === assignment.specialtyId);
-                          let courseTitle = '';
-                          if (assignment.courseId && courses[assignment.specialtyId]) {
-                            const course = courses[assignment.specialtyId].find(c => c.id === assignment.courseId);
-                            if (course) courseTitle = course.title;
-                          }
+                          const courseTitle = assignment.courseId || '';
                           
                           if (!spec) return null;
                           return (
