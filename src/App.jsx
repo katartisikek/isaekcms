@@ -141,23 +141,41 @@ export default function App() {
     localStorage.removeItem('isaek_user');
   };
 
-  // Fetch from Supabase on mount
+  // Fetch from Supabase on mount — δύο φάσεις για γρήγορο άνοιγμα
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [
-          s, sp, t, c, crs, e, a, g, tr, sec, ints
-        ] = await Promise.all([
-          api.fetchStudents(), api.fetchSpecialties(), api.fetchTasks(),
-          api.fetchContacts(), api.fetchCourses(), api.fetchEvents(),
-          api.fetchAbsences(), api.fetchGrades(), api.fetchTeacherReports(),
-          api.fetchSections(), api.fetchInterests()
+        // ── Φάση 1: Κρίσιμα δεδομένα — ξεκλειδώνει το UI αμέσως ──
+        const [s, sp, sec, c, t] = await Promise.all([
+          api.fetchStudents(),
+          api.fetchSpecialties(),
+          api.fetchSections(),
+          api.fetchContacts(),
+          api.fetchTasks(),
         ]);
-        
+
         setStudents(s);
         setSpecialties(sp);
-        setTasks(t);
+        setSections(sec);
         setContacts(c);
+        setTasks(t);
+        setIsInitializing(false); // ← UI εμφανίζεται ΕΔΩ, χωρίς να περιμένει τα υπόλοιπα
+      } catch (err) {
+        console.error("Failed to load critical data from Supabase:", err);
+        setIsInitializing(false);
+      }
+
+      // ── Φάση 2: Δευτερεύοντα δεδομένα — φορτώνουν στο background ──
+      try {
+        const [crs, e, a, g, tr, ints] = await Promise.all([
+          api.fetchCourses(),
+          api.fetchEvents(),
+          api.fetchAbsences(),
+          api.fetchGrades(),
+          api.fetchTeacherReports(),
+          api.fetchInterests(),
+        ]);
+
         setCourses(crs);
         setEvents(e.map(ev => ({
           ...ev,
@@ -167,15 +185,12 @@ export default function App() {
         setAbsences(a);
         setGrades(g);
         setTeacherReports(tr);
-        setSections(sec);
         setInterests(ints);
       } catch (err) {
-        console.error("Failed to load from Supabase:", err);
-      } finally {
-        setIsInitializing(false);
+        console.error("Failed to load secondary data from Supabase:", err);
       }
 
-      // Load payment records separately — table may not exist yet
+      // ── Φάση 3: Πληρωμές (ο πίνακας μπορεί να μην υπάρχει ακόμα) ──
       try {
         const pr = await api.fetchPaymentRecords();
         setPaymentRecords(pr);
