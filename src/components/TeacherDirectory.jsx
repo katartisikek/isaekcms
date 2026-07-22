@@ -20,11 +20,13 @@ import { exportContacts } from '../services/exportExcel';
 export default function TeacherDirectory({ 
   contacts = [], 
   specialties = [],
+  courses = {},
   onAddContactClick, 
   onEditContactClick, 
   onDeleteContact 
 }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Όλοι');
   
 
   // Categories list for tabs
@@ -34,15 +36,15 @@ export default function TeacherDirectory({
   const getCategoryIcon = (category) => {
     switch (category) {
       case 'Υπουργείο / Πήγασος':
-        return <Building size={20} />;
+        return <Building size={14} />;
       case 'Προμηθευτής':
-        return <Package size={20} />;
+        return <Package size={14} />;
       case 'Συνεργάτης':
-        return <Briefcase size={20} />;
+        return <Briefcase size={14} />;
       case 'Εκπαιδευτής':
-        return <GraduationCap size={20} />;
+        return <GraduationCap size={14} />;
       default:
-        return <User size={20} />;
+        return <User size={14} />;
     }
   };
 
@@ -118,9 +120,9 @@ export default function TeacherDirectory({
       </div>
 
       {/* 2. Search & Categories Panel */}
-      <div className="directory-filter-panel">
+      <div className="directory-filter-panel" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
         {/* Quick Search Input */}
-        <div className="directory-search-wrapper">
+        <div className="directory-search-wrapper" style={{ width: '100%' }}>
           <input
             type="text"
             className="sys-input search-large"
@@ -131,7 +133,35 @@ export default function TeacherDirectory({
           <Search size={16} color="#9ca3af" className="search-icon-large" />
         </div>
 
+        {/* Category Tabs */}
+        <div className="directory-tabs" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: '1px solid',
+                borderColor: selectedCategory === cat ? '#2563eb' : '#e2e8f0',
+                background: selectedCategory === cat ? '#eff6ff' : '#ffffff',
+                color: selectedCategory === cat ? '#2563eb' : '#64748b',
+                fontSize: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {getCategoryIcon(cat)}
+              {cat}
+            </button>
+          ))}
         </div>
+      </div>
+
 
       {/* 3. Cards Grid Layout */}
       <div className="directory-grid-container">
