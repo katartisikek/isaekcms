@@ -19,9 +19,16 @@ export const api = {
 
   // Students
   async fetchStudents() {
-    const { data, error } = await supabase.from('students').select('*');
+    const { data, error } = await supabase.from('students').select(`
+      id, "fullName", phone, email, "specialtyId", "sectionId", "mathitisAr", year, "totalDebt", "paidAmount", "hasInstallments", "numberOfInstallments", notes, status, amka, afm, "idNumber"
+    `);
     if (error) throw error;
     return data || [];
+  },
+  async fetchStudentWithFiles(id) {
+    const { data, error } = await supabase.from('students').select('*').eq('id', id).single();
+    if (error) throw error;
+    return data;
   },
   async upsertStudent(student) {
     const { data, error } = await supabase.from('students').upsert([student]).select();

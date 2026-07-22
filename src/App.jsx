@@ -276,9 +276,15 @@ export default function App() {
   }, [filteredStudents]);
 
   // CRUD Operation Handlers
-  const handleViewProfile = (student) => {
+  const handleViewProfile = async (student) => {
     setViewingStudent(student);
     setIsProfileModalOpen(true);
+    try {
+      const fullStudent = await api.fetchStudentWithFiles(student.id);
+      setViewingStudent(fullStudent);
+    } catch (e) {
+      console.error("Failed to load student documents:", e.message);
+    }
   };
 
   const handleSaveGrades = (studentId, newGrades) => {
@@ -384,9 +390,15 @@ export default function App() {
     setIsModalOpen(true);
   };
 
-  const handleEditClick = (student) => {
+  const handleEditClick = async (student) => {
     setEditingStudent(student);
     setIsModalOpen(true);
+    try {
+      const fullStudent = await api.fetchStudentWithFiles(student.id);
+      setEditingStudent(fullStudent);
+    } catch (e) {
+      console.error("Failed to load student documents for editing:", e.message);
+    }
   };
 
   const handleDeleteClick = async (studentId) => {
