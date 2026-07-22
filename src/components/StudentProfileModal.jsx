@@ -64,6 +64,7 @@ export default function StudentProfileModal({
   // Full payment state
   const [showFullPaymentDate, setShowFullPaymentDate] = useState(false);
   const [fullPaymentDate, setFullPaymentDate] = useState(toInputDate(new Date().toISOString()));
+  const [fullPaymentNotes, setFullPaymentNotes] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -74,6 +75,7 @@ export default function StudentProfileModal({
       setEditingPaymentId(null);
       setShowFullPaymentDate(false);
       setFullPaymentDate(toInputDate(new Date().toISOString()));
+      setFullPaymentNotes('');
     }
   }, [isOpen, student?.id]);
 
@@ -136,9 +138,10 @@ export default function StudentProfileModal({
     if (window.confirm(`Επιβεβαίωση Ολικής Εξόφλησης ποσού ${currentDebt.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })} για ${student.fullName};`)) {
       setPaymentSaving(true);
       try {
-        await onAddPayment(student.id, currentDebt, fullPaymentDate, 'Ολική εξόφληση', currentDebt, currentPaid);
+        await onAddPayment(student.id, currentDebt, fullPaymentDate, fullPaymentNotes || 'Ολική εξόφληση', currentDebt, currentPaid);
         setShowFullPaymentDate(false);
         setFullPaymentDate(toInputDate(new Date().toISOString()));
+        setFullPaymentNotes('');
       } finally {
         setPaymentSaving(false);
       }
@@ -166,6 +169,12 @@ export default function StudentProfileModal({
     }
     const oldAmount = parseFloat(payment.amount);
     const diff = amount - oldAmount;
+    // Validation: new amount cannot exceed remaining debt + old amount
+    const maxAllowed = currentDebt + oldAmount;
+    if (amount > maxAllowed) {
+      window.alert(`Το νέο ποσό (${amount}€) υπερβαίνει την ανώτατη επιτρεπτή αξία (${maxAllowed.toFixed(2)}€).`);
+      return;
+    }
     await onEditPayment(payment.id, {
       ...payment,
       amount,
@@ -433,8 +442,9 @@ export default function StudentProfileModal({
                           <input
                             type="text"
                             placeholder="Σημείωση (προαιρετικό)..."
+                            value={fullPaymentNotes}
+                            onChange={e => setFullPaymentNotes(e.target.value)}
                             style={{ flex: 2, padding: '6px 10px', borderRadius: '6px', border: '1px solid #86efac', fontSize: '0.85rem', outline: 'none' }}
-                            id="full-payment-notes"
                           />
                           <button
                             onClick={handleFullPayment}

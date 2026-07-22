@@ -400,7 +400,8 @@ export default function App() {
       } else {
         const newStudent = {
           ...studentData,
-          id: `stud_${Date.now()}`
+          id: `stud_${Date.now()}`,
+          paidAmount: 0
         };
         const saved = await api.upsertStudent(newStudent);
         setStudents((prev) => [saved, ...prev]);
@@ -1270,6 +1271,16 @@ export default function App() {
               >
                 <MessageSquare size={14} />
                 <span>Εκδηλώσεις Ενδιαφέροντος</span>
+              </li>
+              <li 
+                className={`sector-item ${currentView === 'audit_log' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentView('audit_log');
+                  setShowStartScreen(false);
+                }}
+              >
+                <FileText size={14} />
+                <span>Ιστορικό Αλλαγών</span>
               </li>
             </ul>
 
