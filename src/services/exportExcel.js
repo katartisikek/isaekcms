@@ -45,7 +45,7 @@ export function exportStudents(students, specialties) {
       'ΑΜΚΑ': s.amka || '',
       'ΑΦΜ': s.afm || '',
       'Α.Τ.': s.idNumber || '',
-      'Κατάσταση': s.status === 'bek_graduate' ? 'Απόφοιτος ΒΕΚ' : s.status === 'dropped_out' ? 'Διέκοψε' : 'Ενεργός',
+      'Κατάσταση': s.status === 'bek_graduate' ? 'Απόφοιτος ΒΕΚ' : s.status === 'graduate' ? 'Απόφοιτος' : s.status === 'dropped_out' ? 'Διέκοψε' : 'Ενεργός',
       'Οφειλή (€)': parseFloat(s.totalDebt || 0).toFixed(2),
       'Δόσεις': s.hasInstallments ? (s.numberOfInstallments || 1) : 'Εφάπαξ',
       'Σημειώσεις': s.notes || '',

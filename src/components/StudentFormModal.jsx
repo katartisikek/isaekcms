@@ -497,6 +497,7 @@ export default function StudentFormModal({
                 >
                   <option value="1ο Έτος">1ο Έτος</option>
                   <option value="2ο Έτος">2ο Έτος</option>
+                  <option value="Απόφοιτος 2025Β">Απόφοιτος 2025Β</option>
                   <option value="Απόφοιτος 2024Β">Απόφοιτος 2024Β</option>
                   <option value="Απόφοιτος 2023Β">Απόφοιτος 2023Β</option>
                   <option value="Απόφοιτος">Απόφοιτος</option>
@@ -536,6 +537,7 @@ export default function StudentFormModal({
                   style={{ width: '100%', paddingLeft: '12px' }}
                 >
                   <option value="active">Ενεργός</option>
+                  <option value="graduate">Απόφοιτος</option>
                   <option value="bek_graduate">Απόφοιτος ΒΕΚ</option>
                   <option value="dropped_out">Διέκοψε</option>
                 </select>

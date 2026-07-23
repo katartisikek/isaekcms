@@ -1,8 +1,8 @@
 import React from 'react';
-import { Edit2, Trash2, Mail, Phone, BookOpen, Clock, UserPlus, Download, MessageSquare } from 'lucide-react';
+import { Edit2, Trash2, Mail, Phone, BookOpen, Clock, UserPlus, Download, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { exportInterests } from '../services/exportExcel';
 
-export default function InterestList({ interests, specialties, onEdit, onDelete, onConvert }) {
+export default function InterestList({ interests, specialties, students = [], onEdit, onDelete, onConvert }) {
   if (!interests || interests.length === 0) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9ca3af', gap: '12px', background: '#fff', borderRadius: '12px', padding: '40px' }}>
@@ -34,9 +34,9 @@ export default function InterestList({ interests, specialties, onEdit, onDelete,
       <table className="desktop-table">
         <thead>
           <tr>
-            <th style={{ width: '22%' }}>Ονοματεπώνυμο</th>
+            <th style={{ width: '24%' }}>Ονοματεπώνυμο</th>
             <th style={{ width: '18%' }}>Επικοινωνία</th>
-            <th style={{ width: '25%' }}>Ειδικότητα Ενδιαφέροντος</th>
+            <th style={{ width: '23%' }}>Ειδικότητα Ενδιαφέροντος</th>
             <th style={{ width: '20%' }}>Σχόλια / Σημειώσεις</th>
             <th style={{ width: '10%' }}>Ημερομηνία</th>
             <th style={{ width: '5%', textAlign: 'center' }}>Ενέργειες</th>
@@ -46,11 +46,43 @@ export default function InterestList({ interests, specialties, onEdit, onDelete,
           {sortedInterests.map((interest) => {
             const specialty = specialties.find(s => s.id === interest.specialtyId);
             
+            const isRegistered = interest.status === 'registered' || 
+              interest.isRegistered === true || 
+              interest.converted === true ||
+              (students && students.some(s => {
+                if (!s) return false;
+                const phoneMatch = interest.phone && s.phone && interest.phone.replace(/\s+/g, '') === s.phone.replace(/\s+/g, '');
+                const emailMatch = interest.email && s.email && interest.email.toLowerCase() === s.email.toLowerCase();
+                const fullNameInterest = `${interest.lastName || ''} ${interest.firstName || ''}`.trim().toLowerCase();
+                const fullNameStudent = (s.fullName || '').trim().toLowerCase();
+                const nameMatch = fullNameInterest && fullNameStudent && (fullNameInterest === fullNameStudent);
+                return (phoneMatch && phoneMatch.length > 5) || (emailMatch && emailMatch.length > 5) || (nameMatch && fullNameInterest.length > 5);
+              }));
+            
             return (
-              <tr key={interest.id}>
+              <tr key={interest.id} style={{ background: isRegistered ? '#f0fdf4' : undefined }}>
                 <td>
-                  <div style={{ fontWeight: '600', color: '#1e293b', fontSize: '14px' }}>
-                    {interest.lastName} {interest.firstName}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ fontWeight: '600', color: isRegistered ? '#14532d' : '#1e293b', fontSize: '14px' }}>
+                      {interest.lastName} {interest.firstName}
+                    </div>
+                    {isRegistered && (
+                      <span style={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        gap: '4px', 
+                        fontSize: '11px', 
+                        fontWeight: '600', 
+                        background: '#dcfce7', 
+                        color: '#15803d', 
+                        border: '1px solid #86efac', 
+                        padding: '2px 8px', 
+                        borderRadius: '12px' 
+                      }} title="Ο σπουδαστής έχει ολοκληρώσει την εγγραφή του">
+                        <CheckCircle2 size={12} />
+                        Εγγράφηκε
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td>

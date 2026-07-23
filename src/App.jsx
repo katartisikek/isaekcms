@@ -421,8 +421,9 @@ export default function App() {
 
   const handleFormSubmit = async (studentData) => {
     try {
+      let saved;
       if (studentData.id) {
-        const saved = await api.upsertStudent(studentData);
+        saved = await api.upsertStudent(studentData);
         setStudents((prev) => prev.map((s) => (s.id === saved.id ? saved : s)));
       } else {
         const newStudent = {
@@ -430,8 +431,22 @@ export default function App() {
           id: `stud_${Date.now()}`,
           paidAmount: 0
         };
-        const saved = await api.upsertStudent(newStudent);
+        saved = await api.upsertStudent(newStudent);
         setStudents((prev) => [saved, ...prev]);
+
+        // If converted from an interest lead, mark interest as registered
+        if (studentData.convertedFromInterestId) {
+          const targetInterest = interests.find(i => i.id === studentData.convertedFromInterestId);
+          if (targetInterest) {
+            const updatedInterest = { ...targetInterest, status: 'registered', isRegistered: true, registeredStudentId: saved.id };
+            try {
+              const savedInt = await api.upsertInterest(updatedInterest);
+              setInterests(prev => prev.map(i => i.id === savedInt.id ? savedInt : i));
+            } catch (err) {
+              console.error("Could not update interest status:", err);
+            }
+          }
+        }
       }
       setIsModalOpen(false);
     } catch (e) {
@@ -650,6 +665,7 @@ export default function App() {
       totalDebt: 0,
       hasInstallments: false,
       numberOfInstallments: 1,
+      convertedFromInterestId: interest.id,
       notes: `Μετατράπηκε από Εκδήλωση Ενδιαφέροντος. ${interest.comments ? 'Σχόλια: ' + interest.comments : ''}`.trim(),
     };
     setEditingStudent(prefilled);
@@ -1419,7 +1435,7 @@ export default function App() {
           )}
 
           {currentView === 'contacts' && (
-            <div className="desktop-content">
+            <div className="desktop-content" style={{ overflow: 'hidden', height: '100%' }}>
               <ContactDirectory
                 contacts={contacts.filter(c => c.role !== 'Καθηγητής' && c.category !== 'Εκπαιδευτής')}
                 specialties={specialties}
@@ -1432,7 +1448,7 @@ export default function App() {
           )}
 
           {currentView === 'teachers' && (
-            <div className="desktop-content">
+            <div className="desktop-content" style={{ overflow: 'hidden', height: '100%' }}>
               <TeacherDirectory
                 contacts={contacts.filter(c => c.role === 'Καθηγητής' || c.category === 'Εκπαιδευτής')}
                 specialties={specialties}
@@ -1456,6 +1472,7 @@ export default function App() {
               <InterestList
                 interests={interests}
                 specialties={specialties}
+                students={students}
                 onEdit={handleEditInterestClick}
                 onDelete={handleDeleteInterest}
                 onConvert={handleConvertInterest}

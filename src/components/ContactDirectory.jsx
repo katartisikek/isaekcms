@@ -83,7 +83,7 @@ export default function ContactDirectory({
       }
 
       return true;
-    });
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'el'));
   }, [contacts, selectedCategory, searchQuery]);
 
   const handleDelete = (contactId) => {
@@ -96,7 +96,7 @@ export default function ContactDirectory({
   };
 
   return (
-    <div className="directory-workspace">
+    <div className="directory-workspace" style={{ height: '100%', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto' }}>
       {/* 1. Directory ribbon toolbar */}
       <div className="desktop-toolbar" style={{ borderBottom: '1px solid #cbd5e1' }}>
         <div className="toolbar-group">

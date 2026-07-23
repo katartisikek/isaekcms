@@ -129,7 +129,7 @@ export default function TeacherDirectory({
   };
 
   return (
-    <div className="directory-workspace" style={{ background: '#f8fafc', minHeight: '100%' }}>
+    <div className="directory-workspace" style={{ background: '#f8fafc', height: '100%', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto' }}>
       {/* 1. Header Toolbar */}
       <div style={{
         background: '#ffffff',
