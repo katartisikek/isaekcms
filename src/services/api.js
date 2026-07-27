@@ -131,6 +131,7 @@ export const api = {
       return {
         ...c,
         category: c.role || 'Προμηθευτής',
+        description: c.description || c.notes || '',
         assignments
       };
     });
@@ -138,13 +139,14 @@ export const api = {
   async upsertContact(contact) {
     const dbContact = {
       ...contact,
-      role: contact.category,
+      role: contact.category || contact.role || 'Προμηθευτής',
       department: contact.assignments ? JSON.stringify(contact.assignments) : (contact.specialtyId || '')
     };
     // Don't send custom UI fields to DB if they don't exist in schema (prevent errors)
     delete dbContact.category;
     delete dbContact.assignments;
     delete dbContact.specialtyId;
+    delete dbContact.description;
 
     const { data, error } = await supabase.from('contacts').upsert([dbContact]).select();
     if (error) throw error;
@@ -163,6 +165,7 @@ export const api = {
     return {
       ...data[0],
       category: data[0].role || 'Προμηθευτής',
+      description: contact.description || '',
       assignments
     };
   },
