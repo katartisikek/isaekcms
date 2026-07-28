@@ -952,6 +952,24 @@ body {
   color: #64748b;
 }
 
+.task-meta.duedate.due-today {
+  color: #d97706;
+  font-weight: 700;
+  background-color: #fffbeb;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid #fef3c7;
+}
+
+.task-meta.duedate.overdue {
+  color: #dc2626;
+  font-weight: 700;
+  background-color: #fef2f2;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid #fee2e2;
+}
+
 .avatar-mini {
   width: 18px;
   height: 18px;

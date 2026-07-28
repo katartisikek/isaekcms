@@ -101,6 +101,16 @@ export default function TaskBoard({ tasks = [], onAddTaskClick, onEditTaskClick,
                 ) : (
                   colTasks.map((task) => {
                     const isUrgent = task.priority === 'Επείγον';
+                    
+                    const today = new Date();
+                    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    let taskDateStr = '';
+                    if (task.dueDate && typeof task.dueDate === 'string' && task.dueDate.length >= 10 && task.dueDate.includes('-')) {
+                      taskDateStr = task.dueDate.slice(0, 10);
+                    }
+                    const isDueToday = task.status !== 'Ολοκληρώθηκε' && taskDateStr && taskDateStr === todayStr;
+                    const isOverdue = task.status !== 'Ολοκληρώθηκε' && taskDateStr && taskDateStr < todayStr;
+
                     return (
                       <div 
                         key={task.id} 
@@ -131,9 +141,11 @@ export default function TaskBoard({ tasks = [], onAddTaskClick, onEditTaskClick,
 
                           {/* Due Date element */}
                           {task.dueDate && (
-                            <div className="task-meta duedate" title="Προθεσμία">
+                            <div className={`task-meta duedate ${isOverdue ? 'overdue' : isDueToday ? 'due-today' : ''}`} title="Προθεσμία">
                               <Clock size={12} className="meta-icon" />
-                              <span className="meta-text">{task.dueDate}</span>
+                              <span className="meta-text">
+                                {taskDateStr || task.dueDate} {isDueToday ? '(Σήμερα)' : isOverdue ? '(Εκπρόθεσμο)' : ''}
+                              </span>
                             </div>
                           )}
                         </div>

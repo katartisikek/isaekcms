@@ -57,19 +57,58 @@ export default function App() {
   const notifications = useMemo(() => {
     const alerts = [];
     
-    // 1. Pending Tasks
+    // Helper to get local YYYY-MM-DD string
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    // 1. Task Due Dates & Overdue Tasks
+    tasks.forEach((t) => {
+      if (t.status === 'Ολοκληρώθηκε' || !t.dueDate) return;
+
+      let taskDateStr = '';
+      if (typeof t.dueDate === 'string') {
+        if (t.dueDate.length >= 10 && t.dueDate.includes('-')) {
+          taskDateStr = t.dueDate.slice(0, 10);
+        }
+      }
+
+      if (!taskDateStr) return;
+
+      if (taskDateStr === todayStr) {
+        alerts.push({ 
+          id: `task-due-${t.id}`, 
+          type: 'warning', 
+          title: 'Προθεσμία Εργασίας (Σήμερα)',
+          message: `Η εργασία "${t.title}" ${t.assignee ? `(${t.assignee})` : ''} έχει προθεσμία για σήμερα!`, 
+          icon: <Clock size={16} />,
+          targetView: 'tasks'
+        });
+      } else if (taskDateStr < todayStr) {
+        alerts.push({ 
+          id: `task-overdue-${t.id}`, 
+          type: 'error', 
+          title: 'Εκπρόθεσμη Εργασία',
+          message: `Η εργασία "${t.title}" είχε προθεσμία (${taskDateStr}) και εκκρεμεί!`, 
+          icon: <AlertTriangle size={16} />,
+          targetView: 'tasks'
+        });
+      }
+    });
+
+    // 2. Pending Tasks summary (if no specific due date alert was generated)
     const pendingTasks = tasks.filter(t => t.status === 'Εκκρεμεί');
-    if (pendingTasks.length > 0) {
+    if (pendingTasks.length > 0 && alerts.filter(a => a.targetView === 'tasks').length === 0) {
       alerts.push({ 
         id: 'tasks', 
         type: 'warning', 
         title: 'Εκκρεμείς Εργασίες',
         message: `Έχετε ${pendingTasks.length} εκκρεμείς εργασίες (Kanban) που χρειάζονται προσοχή.`, 
-        icon: <CheckSquare size={16} /> 
+        icon: <CheckSquare size={16} />,
+        targetView: 'tasks'
       });
     }
 
-    // 2. New Interests
+    // 3. New Interests
     const recentInterests = interests.filter(i => {
       if (!i.createdAt) return false;
       const days = (new Date() - new Date(i.createdAt)) / (1000 * 60 * 60 * 24);
@@ -81,11 +120,12 @@ export default function App() {
         type: 'info', 
         title: 'Νέες Εκδηλώσεις Ενδιαφέροντος',
         message: `Καταχωρήθηκαν ${recentInterests.length} εκδηλώσεις ενδιαφέροντος τις τελευταίες 7 ημέρες.`, 
-        icon: <MessageSquare size={16} /> 
+        icon: <MessageSquare size={16} />,
+        targetView: 'interests'
       });
     }
 
-    // 3. Students with Debt
+    // 4. Students with Debt
     const debtors = students.filter(s => parseFloat(s.totalDebt || 0) > 0);
     if (debtors.length > 0) {
       alerts.push({ 
@@ -93,7 +133,8 @@ export default function App() {
         type: 'error', 
         title: 'Οφειλές Σπουδαστών',
         message: `Υπάρχουν ${debtors.length} σπουδαστές με ανεξόφλητα υπόλοιπα.`, 
-        icon: <AlertTriangle size={16} /> 
+        icon: <AlertTriangle size={16} />,
+        targetView: 'students'
       });
     }
 
@@ -827,7 +868,18 @@ export default function App() {
                     </div>
                   ) : (
                     notifications.map(notif => (
-                      <div key={notif.id} className="notification-item">
+                      <div 
+                        key={notif.id} 
+                        className="notification-item"
+                        onClick={() => {
+                          if (notif.targetView) {
+                            setCurrentView(notif.targetView);
+                            setShowStartScreen(false);
+                            setShowNotifications(false);
+                          }
+                        }}
+                        style={{ cursor: notif.targetView ? 'pointer' : 'default' }}
+                      >
                         <div className={`notification-icon ${notif.type}`}>
                           {notif.icon}
                         </div>
