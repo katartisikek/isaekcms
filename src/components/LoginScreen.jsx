@@ -6,7 +6,7 @@ export default function LoginScreen({ onLogin }) {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
 
-  const admins = [
+  const admins = import.meta.env.VITE_ADMIN_USERS ? JSON.parse(import.meta.env.VITE_ADMIN_USERS) : [
     { id: 'admin1', name: 'Melpo' },
     { id: 'admin2', name: 'Nikolopoulou' }
   ];
@@ -20,7 +20,9 @@ export default function LoginScreen({ onLogin }) {
       return;
     }
 
-    if (pin === 'kat123!!') {
+    const correctPin = import.meta.env.VITE_ADMIN_PIN || 'kat123!!';
+
+    if (pin === correctPin) {
       const admin = admins.find(a => a.id === selectedAdmin);
       onLogin({ role: 'admin', id: admin.id, name: admin.name });
     } else {

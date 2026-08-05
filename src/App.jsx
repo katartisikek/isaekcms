@@ -243,7 +243,11 @@ export default function App() {
   }, []);
 
   const handleSyncData = async () => {
-    if (!window.confirm("Προσοχή: Αυτό θα μεταφέρει τα δεδομένα της τοπικής μνήμης στη βάση δεδομένων. Θέλετε να συνεχίσετε;")) return;
+    if (students.length > 0) {
+      if (!window.confirm("ΠΡΟΣΟΧΗ: Η βάση δεδομένων στο Cloud περιέχει ήδη εγγραφές! Ο συγχρονισμός από την τοπική μνήμη (Local Storage) ενδέχεται να δημιουργήσει διπλοεγγραφές ή να αντικαταστήσει νεότερα δεδομένα. Είστε ΑΠΟΛΥΤΑ ΣΙΓΟΥΡΟΙ ότι θέλετε να συνεχίσετε;")) return;
+    } else {
+      if (!window.confirm("Προσοχή: Αυτό θα μεταφέρει τα δεδομένα της τοπικής μνήμης στη βάση δεδομένων. Θέλετε να συνεχίσετε;")) return;
+    }
     setIsSyncing(true);
     try {
       await syncLocalDataToCloud();
@@ -350,7 +354,7 @@ export default function App() {
       }
       
       if (paymentAmount > 0) {
-        await api.logAction('PAYMENT', 'student', saved.fullName, loggedInUser?.username || 'Unknown', `Πληρωμή ποσού: ${paymentAmount}€`);
+        await api.logAction('PAYMENT', 'student', saved.fullName, loggedInUser?.name || 'Unknown', `Πληρωμή ποσού: ${paymentAmount}€`);
       }
     } catch (e) {
       window.alert('Σφάλμα κατά την ενημέρωση οφειλής: ' + e.message);
@@ -368,7 +372,7 @@ export default function App() {
         amount,
         paymentDate,
         notes: notes || '',
-        createdBy: loggedInUser?.username || 'Unknown',
+        createdBy: loggedInUser?.name || 'Unknown',
         createdAt: new Date().toISOString(),
       };
       const saved = await api.upsertPaymentRecord(record);
@@ -380,7 +384,7 @@ export default function App() {
       const savedStudent = await api.upsertStudent(updatedStudent);
       setStudents(prev => prev.map(s => s.id === savedStudent.id ? savedStudent : s));
       if (viewingStudent?.id === savedStudent.id) setViewingStudent(savedStudent);
-      await api.logAction('PAYMENT', 'student', student.fullName, loggedInUser?.username || 'Unknown', `Πληρωμή ποσού: ${amount}€ (${new Date(paymentDate).toLocaleDateString('el-GR')})`);
+      await api.logAction('PAYMENT', 'student', student.fullName, loggedInUser?.name || 'Unknown', `Πληρωμή ποσού: ${amount}€ (${new Date(paymentDate).toLocaleDateString('el-GR')})`);
     } catch (e) {
       window.alert('Σφάλμα κατά την καταχώρηση πληρωμής: ' + e.message);
     }
@@ -391,16 +395,19 @@ export default function App() {
     const student = students.find(s => s.id === studentId);
     if (!student) return;
     try {
+      const oldRecord = paymentRecords.find(p => p.id === recordId);
+      const safeAmountDiff = oldRecord ? parseFloat(updatedRecord.amount) - parseFloat(oldRecord.amount) : amountDiff;
+
       const saved = await api.upsertPaymentRecord(updatedRecord);
       setPaymentRecords(prev => prev.map(p => p.id === saved.id ? saved : p));
       // Adjust debt by the difference
-      const newDebt = Math.max(0, currentDebt - amountDiff);
-      const newPaid = currentPaid + amountDiff;
+      const newDebt = Math.max(0, currentDebt - safeAmountDiff);
+      const newPaid = currentPaid + safeAmountDiff;
       const updatedStudent = { ...student, totalDebt: newDebt, paidAmount: newPaid };
       const savedStudent = await api.upsertStudent(updatedStudent);
       setStudents(prev => prev.map(s => s.id === savedStudent.id ? savedStudent : s));
       if (viewingStudent?.id === savedStudent.id) setViewingStudent(savedStudent);
-      await api.logAction('PAYMENT', 'student', student.fullName, loggedInUser?.username || 'Unknown', `Επεξεργασία πληρωμής: ${updatedRecord.amount}€`);
+      await api.logAction('PAYMENT', 'student', student.fullName, loggedInUser?.name || 'Unknown', `Επεξεργασία πληρωμής: ${updatedRecord.amount}€`);
     } catch (e) {
       window.alert('Σφάλμα κατά την επεξεργασία πληρωμής: ' + e.message);
     }
@@ -420,7 +427,7 @@ export default function App() {
       const savedStudent = await api.upsertStudent(updatedStudent);
       setStudents(prev => prev.map(s => s.id === savedStudent.id ? savedStudent : s));
       if (viewingStudent?.id === savedStudent.id) setViewingStudent(savedStudent);
-      await api.logAction('PAYMENT', 'student', student.fullName, loggedInUser?.username || 'Unknown', `Διαγραφή πληρωμής: ${amount}€`);
+      await api.logAction('PAYMENT', 'student', student.fullName, loggedInUser?.name || 'Unknown', `Διαγραφή πληρωμής: ${amount}€`);
     } catch (e) {
       window.alert('Σφάλμα κατά τη διαγραφή πληρωμής: ' + e.message);
     }
@@ -701,7 +708,7 @@ export default function App() {
       amka: '',
       afm: '',
       idNumber: '',
-      year: '1ο Έτος',
+      year: '',
       status: 'active',
       totalDebt: 0,
       hasInstallments: false,
@@ -718,6 +725,7 @@ export default function App() {
 
 
   const handleEventDrop = async ({ event, start, end }) => {
+    if (!window.confirm('Επιβεβαίωση αλλαγής ώρας/ημέρας του μαθήματος;')) return;
     try {
       const updatedEvent = {
         ...event,
@@ -733,13 +741,14 @@ export default function App() {
         start: saved.start_time ? new Date(saved.start_time) : new Date(),
         end: saved.end_time ? new Date(saved.end_time) : new Date()
       } : e)));
-      await api.logAction('UPDATE', 'event', saved.title, loggedInUser?.username || 'Unknown', 'Drag and drop μετακίνηση');
+      await api.logAction('UPDATE', 'event', saved.title, loggedInUser?.name || 'Unknown', 'Drag and drop μετακίνηση');
     } catch (e) {
       window.alert('Σφάλμα: ' + e.message);
     }
   };
 
   const handleEventResize = async ({ event, start, end }) => {
+    if (!window.confirm('Επιβεβαίωση αλλαγής διάρκειας του μαθήματος;')) return;
     try {
       const updatedEvent = {
         ...event,
@@ -754,7 +763,7 @@ export default function App() {
         start: saved.start_time ? new Date(saved.start_time) : new Date(),
         end: saved.end_time ? new Date(saved.end_time) : new Date()
       } : e)));
-      await api.logAction('UPDATE', 'event', saved.title, loggedInUser?.username || 'Unknown', 'Αλλαγή διάρκειας');
+      await api.logAction('UPDATE', 'event', saved.title, loggedInUser?.name || 'Unknown', 'Αλλαγή διάρκειας');
     } catch (e) {
       window.alert('Σφάλμα: ' + e.message);
     }
@@ -911,7 +920,7 @@ export default function App() {
               <input
                 type="text"
                 className="sys-input"
-                placeholder="Όνομα ή τηλέφωνο..."
+                placeholder="Αναζήτηση (Όνομα, Τηλέφωνο, ΑΜΚΑ, ΑΦΜ)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ width: '220px', paddingLeft: '24px' }}
@@ -976,7 +985,7 @@ export default function App() {
                   <input
                     type="text"
                     className="sys-input"
-                    placeholder="Αναζήτηση Σπουδαστή (Όνομα / Τηλ)..."
+                    placeholder="Αναζήτηση (Όνομα, Τηλ, ΑΜΚΑ, ΑΦΜ)..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {

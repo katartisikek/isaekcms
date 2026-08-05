@@ -224,7 +224,7 @@ export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = 
           {/* Phone and Email side-by-side */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div className="sys-group">
-              <label className="sys-label required-field">Τλέφωνο</label>
+              <label className="sys-label required-field">Τηλέφωνο</label>
               <input
                 type="text"
                 name="phone"
