@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, BookOpen, Layers, X, Save, Filter, Users } from 'lucide-react';
+import { Plus, Edit2, Trash2, BookOpen, Layers, X, Save, Filter, Users, FolderOpen } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function SpecialtyManager({ specialties, setSpecialties, courses, setCourses, sections = [], setSections = () => {} }) {
-  const [activeTab, setActiveTab] = useState('specialties'); // 'specialties', 'courses', 'sections'
+  const [activeTab, setActiveTab] = useState('specialties'); // 'specialties', 'courses', 'sections', 'sectors'
   const [selectedSpecIdForCourses, setSelectedSpecIdForCourses] = useState('');
   
   // Specialty Form State
@@ -26,7 +26,13 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
   const [sectionSpecialtyId, setSectionSpecialtyId] = useState('');
   const [sectionSemester, setSectionSemester] = useState('semester1');
 
-  const sectors = Array.from(new Set(specialties.map(s => s.sector))).filter(Boolean);
+  // Sector Form State
+  const [isSectorFormOpen, setIsSectorFormOpen] = useState(false);
+  const [editingSector, setEditingSector] = useState(null); // holds the original sector name when editing
+  const [sectorName, setSectorName] = useState('');
+  const [sectorSaving, setSectorSaving] = useState(false);
+
+  const sectors = Array.from(new Set(specialties.map(s => s.sector))).filter(Boolean).sort((a, b) => a.localeCompare(b, 'el'));
 
   // --- Specialty Actions ---
   const openSpecForm = (spec = null) => {
@@ -186,6 +192,112 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
     }
   };
 
+  // --- Sector Actions ---
+  const openSectorForm = (existingSector = null) => {
+    if (existingSector) {
+      setEditingSector(existingSector);
+      setSectorName(existingSector);
+    } else {
+      setEditingSector(null);
+      setSectorName('');
+    }
+    setIsSectorFormOpen(true);
+  };
+
+  const handleSaveSector = async (e) => {
+    e.preventDefault();
+    const trimmedName = sectorName.trim();
+    if (!trimmedName) return;
+
+    setSectorSaving(true);
+    try {
+      if (editingSector) {
+        // Renaming: update all specialties that have the old sector name
+        if (trimmedName === editingSector) {
+          setIsSectorFormOpen(false);
+          setSectorSaving(false);
+          return;
+        }
+        // Check if new name already exists
+        if (sectors.includes(trimmedName)) {
+          alert(`Ο τομέας "${trimmedName}" υπάρχει ήδη!`);
+          setSectorSaving(false);
+          return;
+        }
+        const specsToUpdate = specialties.filter(s => s.sector === editingSector);
+        const updatedSpecs = [];
+        for (const spec of specsToUpdate) {
+          const updated = await api.upsertSpecialty({ ...spec, sector: trimmedName });
+          updatedSpecs.push(updated);
+        }
+        setSpecialties(prev =>
+          prev.map(s => {
+            const updated = updatedSpecs.find(u => u.id === s.id);
+            return updated || s;
+          })
+        );
+      } else {
+        // Adding a new sector: check for duplicates
+        if (sectors.includes(trimmedName)) {
+          alert(`Ο τομέας "${trimmedName}" υπάρχει ήδη!`);
+          setSectorSaving(false);
+          return;
+        }
+        // Create a placeholder specialty to register the sector
+        // Since sectors are derived from specialties, we create a hidden placeholder
+        // Actually, we'll just add an empty specialty with this sector so it shows up
+        // Better approach: just add it as a "known sector" — but since DB doesn't have a sectors table,
+        // we'll inform the user that the sector will appear once they add a specialty to it.
+        // For now, let's create a temporary empty specialty that acts as a sector placeholder.
+        const placeholderId = 'sector_placeholder_' + Date.now();
+        const placeholderSpec = {
+          id: placeholderId,
+          title: `[Κενή Ειδικότητα - ${trimmedName}]`,
+          sector: trimmedName
+        };
+        const saved = await api.upsertSpecialty(placeholderSpec);
+        setSpecialties(prev => [...prev, saved]);
+        // Init empty courses for placeholder
+        const initCourses = { title: placeholderSpec.title, semester1: [], semester2: [], semester3: [], semester4: [] };
+        await api.upsertCoursesForSpecialty(placeholderId, initCourses);
+        setCourses(prev => ({ ...prev, [placeholderId]: initCourses }));
+      }
+      setIsSectorFormOpen(false);
+    } catch (err) { alert(err.message); }
+    setSectorSaving(false);
+  };
+
+  const handleDeleteSector = async (sectorToDelete) => {
+    const specsInSector = specialties.filter(s => s.sector === sectorToDelete);
+    if (specsInSector.length > 0) {
+      const specNames = specsInSector.map(s => s.title).join(', ');
+      if (!window.confirm(
+        `Ο τομέας "${sectorToDelete}" περιέχει ${specsInSector.length} ειδικότητα/ες:\n${specNames}\n\nΘέλετε να διαγράψετε τον τομέα ΚΑΙ όλες τις ειδικότητές του;`
+      )) {
+        return;
+      }
+      try {
+        for (const spec of specsInSector) {
+          await api.deleteSpecialty(spec.id);
+          await api.deleteCoursesForSpecialty(spec.id);
+        }
+        const deletedIds = new Set(specsInSector.map(s => s.id));
+        setSpecialties(prev => prev.filter(s => !deletedIds.has(s.id)));
+        setCourses(prev => {
+          const next = { ...prev };
+          deletedIds.forEach(id => delete next[id]);
+          return next;
+        });
+        if (deletedIds.has(selectedSpecIdForCourses)) {
+          setSelectedSpecIdForCourses('');
+        }
+      } catch (err) { alert(err.message); }
+    } else {
+      // No specialties — should not happen normally but handle gracefully
+      alert('Ο τομέας είναι ήδη κενός.');
+    }
+  };
+
   return (
     <div style={{ height: '100%', overflowY: 'auto', width: '100%' }}>
       <div style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
@@ -244,6 +356,24 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
         >
           <Users size={18} />
           Διαχείριση Τμημάτων
+        </button>
+        <button 
+          onClick={() => setActiveTab('sectors')}
+          style={{
+            padding: '10px 20px',
+            background: activeTab === 'sectors' ? '#eff6ff' : 'transparent',
+            color: activeTab === 'sectors' ? '#2563eb' : '#64748b',
+            border: activeTab === 'sectors' ? '1px solid #bfdbfe' : '1px solid transparent',
+            borderRadius: '6px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <FolderOpen size={18} />
+          Διαχείριση Τομέων
         </button>
       </div>
 
@@ -430,6 +560,116 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
         </div>
       )}
 
+      {/* Tab Content: Sectors */}
+      {activeTab === 'sectors' && (
+        <div className="sys-card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '18px', color: '#1e293b' }}>Όλοι οι Τομείς</h2>
+            <button className="btn-sys primary" onClick={() => openSectorForm()}>
+              <Plus size={16} style={{ marginRight: '6px' }} /> Νέος Τομέας
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {sectors.map(sector => {
+              const specsInSector = specialties.filter(s => s.sector === sector);
+              // Count real specialties (not placeholders)
+              const realSpecs = specsInSector.filter(s => !s.id.startsWith('sector_placeholder_'));
+              return (
+                <div 
+                  key={sector} 
+                  style={{ 
+                    padding: '20px', 
+                    border: '1px solid #e2e8f0', 
+                    borderRadius: '10px',
+                    backgroundColor: '#fff',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    transition: 'box-shadow 0.2s ease',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+                >
+                  <div>
+                    <div style={{ fontWeight: '600', color: '#0f172a', marginBottom: '8px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <FolderOpen size={16} color="#2563eb" />
+                      {sector}
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Layers size={12} color="#94a3b8" />
+                        {realSpecs.length} Ειδικότητ{realSpecs.length === 1 ? 'α' : 'ες'}
+                      </div>
+                      {realSpecs.length > 0 && (
+                        <div style={{ marginTop: '4px', paddingLeft: '18px', borderLeft: '2px solid #e2e8f0' }}>
+                          {realSpecs.map(sp => (
+                            <div key={sp.id} style={{ fontSize: '12px', color: '#475569', padding: '2px 0' }}>
+                              • {sp.title}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button className="btn-sys" style={{ padding: '6px' }} onClick={() => openSectorForm(sector)} title="Μετονομασία Τομέα">
+                      <Edit2 size={14} color="#64748b" />
+                    </button>
+                    <button className="btn-sys" style={{ padding: '6px' }} onClick={() => handleDeleteSector(sector)} title="Διαγραφή Τομέα">
+                      <Trash2 size={14} color="#ef4444" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            {sectors.length === 0 && (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', padding: '40px' }}>
+                <FolderOpen size={48} color="#e2e8f0" style={{ margin: '0 auto 16px' }} />
+                <p>Δεν υπάρχουν καταχωρημένοι τομείς. Προσθέστε έναν νέο τομέα.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal Τομέα */}
+      {isSectorFormOpen && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-container" style={{ maxWidth: '420px', width: '100%', background: '#fff', borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+            <div className="modal-header" style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600', color: '#0f172a' }}>
+                <FolderOpen size={18} color="var(--primary)" />
+                <span>{editingSector ? 'Μετονομασία Τομέα' : 'Νέος Τομέας'}</span>
+              </div>
+              <button type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }} onClick={() => setIsSectorFormOpen(false)}><X size={18} /></button>
+            </div>
+            <form style={{ padding: '20px' }} onSubmit={handleSaveSector}>
+              {editingSector && (
+                <div style={{ marginBottom: '16px', padding: '10px 14px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '13px', color: '#475569' }}>
+                  Τρέχουσα ονομασία: <strong>{editingSector}</strong>
+                  <br />
+                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>Η αλλαγή θα ενημερώσει αυτόματα όλες τις ειδικότητες αυτού του τομέα.</span>
+                </div>
+              )}
+              <div className="sys-group">
+                <label className="sys-label">{editingSector ? 'Νέα Ονομασία Τομέα' : 'Ονομασία Τομέα'}</label>
+                <input 
+                  type="text" className="sys-input" required 
+                  placeholder="π.χ. Τομέας Πληροφορικής"
+                  value={sectorName} onChange={e => setSectorName(e.target.value)} 
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '24px' }}>
+                <button type="button" className="btn-sys" onClick={() => setIsSectorFormOpen(false)}>Ακύρωση</button>
+                <button type="submit" className="btn-sys primary" disabled={sectorSaving}>
+                  <Save size={16} style={{ marginRight: '6px' }}/> {sectorSaving ? 'Αποθήκευση...' : 'Αποθήκευση'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal Ειδικότητας */}
       {isSpecFormOpen && (
