@@ -140,7 +140,8 @@ export const api = {
     const dbContact = {
       ...contact,
       role: contact.category || contact.role || 'Προμηθευτής',
-      department: contact.assignments ? JSON.stringify(contact.assignments) : (contact.specialtyId || '')
+      department: contact.assignments ? JSON.stringify(contact.assignments) : (contact.specialtyId || ''),
+      notes: contact.description || contact.notes || ''
     };
     // Don't send custom UI fields to DB if they don't exist in schema (prevent errors)
     delete dbContact.category;
