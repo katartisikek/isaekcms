@@ -9,7 +9,7 @@
 
   @page {
     size: A4 portrait;
-    margin: 12mm 14mm 14mm 14mm;
+    margin: 10mm 12mm 12mm 12mm;
   }
 
   * {
@@ -22,8 +22,8 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: #1e293b;
     background: #f8fafc;
-    line-height: 1.55;
-    font-size: 13.5px;
+    line-height: 1.5;
+    font-size: 13px;
     margin: 0;
     padding: 0;
   }
@@ -68,24 +68,24 @@
   }
 
   .doc-container {
-    max-width: 860px;
+    max-width: 880px;
     margin: 20px auto;
     background: #ffffff;
     border: 1px solid #e2e8f0;
     box-shadow: 0 4px 20px rgba(0,0,0,0.06);
     border-radius: 12px;
     overflow: hidden;
-    padding: 40px;
+    padding: 36px 40px;
   }
 
   /* Page Break Utilities */
   .page-section {
     position: relative;
-    margin-bottom: 35px;
+    margin-bottom: 30px;
   }
   .page-break {
     page-break-before: always;
-    padding-top: 20px;
+    padding-top: 14px;
   }
   .avoid-break {
     page-break-inside: avoid;
@@ -94,7 +94,7 @@
   /* Cover Area */
   .cover-header {
     border-bottom: 2px solid #e2e8f0;
-    padding-bottom: 14px;
+    padding-bottom: 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -117,21 +117,21 @@
     font-weight: 600;
   }
   .cover-title-area {
-    margin: 25px 0 15px 0;
+    margin: 20px 0 15px 0;
   }
   .cover-title {
-    font-size: 28px;
+    font-size: 27px;
     font-weight: 800;
     color: #0f172a;
     line-height: 1.25;
-    margin: 0 0 10px 0;
+    margin: 0 0 8px 0;
     letter-spacing: -0.02em;
   }
   .cover-title span {
     color: #2563eb;
   }
   .cover-subtitle {
-    font-size: 14.5px;
+    font-size: 14px;
     color: #475569;
     margin: 0;
     font-weight: 400;
@@ -143,7 +143,7 @@
     overflow: hidden;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     border: 1px solid #cbd5e1;
-    margin: 20px 0;
+    margin: 18px 0;
   }
   .cover-img {
     width: 100%;
@@ -154,7 +154,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-top: 15px;
+    margin-top: 14px;
   }
   .cover-card {
     background: #f8fafc;
@@ -163,21 +163,21 @@
     padding: 12px 14px;
   }
   .cover-card-title {
-    font-size: 11px;
+    font-size: 10.5px;
     text-transform: uppercase;
     color: #64748b;
     font-weight: 700;
     margin-bottom: 4px;
   }
   .cover-card-desc {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 600;
     color: #0f172a;
   }
   .cover-footer {
     border-top: 1px solid #e2e8f0;
-    margin-top: 25px;
-    padding-top: 12px;
+    margin-top: 20px;
+    padding-top: 10px;
     display: flex;
     justify-content: space-between;
     font-size: 11.5px;
@@ -189,34 +189,34 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin: 24px 0 14px 0;
-    padding-bottom: 8px;
+    margin: 22px 0 12px 0;
+    padding-bottom: 6px;
     border-bottom: 2px solid #e2e8f0;
   }
   .section-num {
     background: #2563eb;
     color: #ffffff;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 13.5px;
+    font-size: 13px;
     flex-shrink: 0;
   }
   .section-title {
-    font-size: 17px;
+    font-size: 16.5px;
     font-weight: 700;
     color: #0f172a;
     margin: 0;
   }
   h3 {
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: 700;
     color: #1e293b;
-    margin: 16px 0 8px 0;
+    margin: 14px 0 6px 0;
   }
   p {
     margin: 0 0 10px 0;
@@ -235,7 +235,7 @@
   .step-title {
     font-weight: 700;
     color: #0f172a;
-    font-size: 13.5px;
+    font-size: 13px;
     margin-bottom: 4px;
     display: flex;
     align-items: center;
@@ -243,42 +243,51 @@
   }
   .step-desc {
     color: #475569;
-    font-size: 12.5px;
+    font-size: 12px;
     margin: 0;
     line-height: 1.5;
   }
 
-  /* Image Figure Box */
-  .figure-box {
-    margin: 16px 0;
+  /* Real Screenshot Figure Box */
+  .screenshot-box {
+    margin: 14px 0;
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 12px;
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   }
-  .figure-img {
+  .screenshot-img {
     width: 100%;
     height: auto;
     display: block;
+    border-bottom: 1px solid #e2e8f0;
   }
-  .figure-caption {
+  .screenshot-caption {
     background: #f8fafc;
-    border-top: 1px solid #e2e8f0;
     padding: 8px 14px;
     font-size: 11.5px;
-    color: #475569;
-    font-weight: 500;
+    color: #334155;
+    font-weight: 600;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+  }
+  .screenshot-badge {
+    background: #e0e7ff;
+    color: #3730a3;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10.5px;
+    font-weight: 700;
   }
 
   /* Callout / Alert Boxes */
   .callout {
-    padding: 12px 14px;
+    padding: 10px 14px;
     border-radius: 8px;
     margin: 12px 0;
-    font-size: 12.5px;
+    font-size: 12px;
     display: flex;
     gap: 10px;
     align-items: flex-start;
@@ -299,47 +308,10 @@
     color: #166534;
   }
   .callout-icon {
-    font-size: 16px;
+    font-size: 15px;
     flex-shrink: 0;
     line-height: 1;
   }
-
-  /* UI Mockup Widget */
-  .ui-mockup {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 14px 0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-  }
-  .ui-mockup-header {
-    background: #0f172a;
-    color: #ffffff;
-    padding: 8px 14px;
-    font-size: 12px;
-    font-weight: 600;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .ui-mockup-body {
-    padding: 14px;
-    background: #f8fafc;
-  }
-
-  /* Buttons demo */
-  .btn-demo {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 5px;
-    font-weight: 700;
-    font-size: 11.5px;
-    text-align: center;
-    border: none;
-  }
-  .btn-demo-blue { background: #3b82f6; color: #ffffff; }
-  .btn-demo-red { background: #ef4444; color: #ffffff; }
 
   /* Tables */
   .doc-table {
@@ -353,11 +325,11 @@
     color: #334155;
     font-weight: 700;
     text-align: left;
-    padding: 8px 10px;
+    padding: 7px 10px;
     border: 1px solid #cbd5e1;
   }
   .doc-table td {
-    padding: 7px 10px;
+    padding: 6px 10px;
     border: 1px solid #e2e8f0;
     color: #334155;
   }
@@ -370,7 +342,7 @@
     display: inline-block;
     padding: 2px 7px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 700;
   }
   .badge-green { background: #dcfce7; color: #15803d; }
@@ -380,14 +352,14 @@
   .toc-list {
     list-style: none;
     padding: 0;
-    margin: 14px 0;
+    margin: 12px 0;
   }
   .toc-item {
     display: flex;
     justify-content: space-between;
-    padding: 8px 4px;
+    padding: 7px 4px;
     border-bottom: 1px dashed #cbd5e1;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 500;
   }
   .toc-item strong {
@@ -403,13 +375,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 10.5px;
+    font-size: 10px;
     color: #94a3b8;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 6px;
-    margin-bottom: 14px;
+    padding-bottom: 5px;
+    margin-bottom: 12px;
   }
 
   @media print {
@@ -438,7 +410,7 @@
   <div class="screen-bar">
     <div class="screen-bar-title">
       <span>📄</span>
-      <span>Οδηγός Χρήσης Πύλης Καθηγητών — ISAEK CMS</span>
+      <span>Οδηγός Χρήσης Πύλης Καθηγητών — ISAEK CMS (Ενημερωμένη Έκδοση με Screenshots)</span>
     </div>
     <button class="print-btn" onclick="window.print()">
       <span>🖨️</span>
@@ -452,16 +424,16 @@
     <div class="page-section">
       <div class="cover-header">
         <span class="cover-inst-badge">ΙΣΑΕΚ • ΠΥΛΗ ΕΚΠΑΙΔΕΥΤΩΝ</span>
-        <span class="cover-version">ΕΠΙΣΗΜΟ ΕΓΧΕΙΡΙΔΙΟ v2.0</span>
+        <span class="cover-version">ΕΠΙΣΗΜΟ ΕΓΧΕΙΡΙΔΙΟ v2.1 • 2026</span>
       </div>
 
       <div class="cover-title-area">
         <h1 class="cover-title">Οδηγός Χρήσης <span>Πύλης Καθηγητών</span></h1>
-        <p class="cover-subtitle">Ολοκληρωμένος πρακτικός οδηγός για την ηλεκτρονική υποβολή παρουσιολογίων, το ψηφιακό χτύπημα κάρτας και την καταχώρηση εξαμηνιαίων βαθμολογιών.</p>
+        <p class="cover-subtitle">Ολοκληρωμένος πρακτικός οδηγός με πραγματικά στιγμιότυπα οθόνης για την είσοδο, το ψηφιακό χτύπημα κάρτας, την ηλεκτρονική υποβολή παρουσιολογίων και την καταχώρηση εξαμηνιαίων βαθμολογιών.</p>
       </div>
 
       <div class="cover-img-container">
-        <img src="file:///C:/Users/MASTER/.gemini/antigravity-ide/brain/96f87492-37e5-47ff-82bb-3c0dbfa266dc/teacher_portal_cover_1791971832334.jpg" class="cover-img" alt="Teacher Portal Cover Graphic">
+        <img src="./public/guide-screenshots/teacher_portal_cover_1791971832334.jpg" class="cover-img" alt="Teacher Portal Cover Graphic">
       </div>
 
       <div class="cover-cards-summary">
@@ -481,7 +453,7 @@
 
       <div class="cover-footer">
         <span>Επιμελητήριο Ηρακλείου — Σύστημα ISAEK CMS</span>
-        <span>Έκδοση: 2026 • Τμήμα Εκπαίδευσης & Γραμματείας</span>
+        <span>Τμήμα Πληροφορικής & Εκπαίδευσης</span>
       </div>
     </div>
 
@@ -499,59 +471,73 @@
 
       <ul class="toc-list">
         <li class="toc-item">
-          <span><strong>1. Εισαγωγή & Σύνδεση στην Πύλη (Login)</strong> — Πρόσβαση και επιλογή προφίλ</span>
+          <span><strong>1. Εισαγωγή & Τρόποι Πρόσβασης στην Πύλη</strong> — 3 τρόποι εισόδου & επιλογή ονόματος</span>
           <span class="toc-page">Κεφ. 1</span>
         </li>
         <li class="toc-item">
-          <span><strong>2. Περιβάλλον Εργασίας (Dashboard)</strong> — Μετρητές και τα μαθήματά μου</span>
+          <span><strong>2. Περιβάλλον Εργασίας (Dashboard)</strong> — Μετρητές και «Τα Μαθήματά Μου»</span>
           <span class="toc-page">Κεφ. 2</span>
         </li>
         <li class="toc-item">
-          <span><strong>3. Δήλωση Μαθήματος & «Χτύπημα Κάρτας»</strong> — Ώρες Άφιξης/Αναχώρησης</span>
+          <span><strong>3. Δήλωση Μαθήματος & «Χτύπημα Κάρτας»</strong> — Ψηφιακό ωράριο άφιξης/αναχώρησης</span>
           <span class="toc-page">Κεφ. 3</span>
         </li>
         <li class="toc-item">
-          <span><strong>4. Καταχώρηση Απουσιολογίου</strong> — Διαχείριση παρουσιών σπουδαστών</span>
+          <span><strong>4. Καταγραφή Απουσιολογίου Σπουδαστών</strong> — Επιλογή απόντων & ώρες απουσίας</span>
           <span class="toc-page">Κεφ. 4</span>
         </li>
         <li class="toc-item">
-          <span><strong>5. Καταχώρηση Βαθμολογιών</strong> — Εργασία 20%, Τελική 80% & Τελικός Βαθμός</span>
+          <span><strong>5. Καταχώρηση & Υπολογισμός Βαθμολογιών</strong> — Εργασία 20% & Εξέταση 80%</span>
           <span class="toc-page">Κεφ. 5</span>
         </li>
         <li class="toc-item">
-          <span><strong>6. Ιστορικό Δηλώσεων & Συχνές Ερωτήσεις (FAQ)</strong> — Επαλήθευση & Υποστήριξη</span>
+          <span><strong>6. Ιστορικό Δηλώσεων & Συχνές Ερωτήσεις (FAQ)</strong> — Επαλήθευση & Τεχνική Υποστήριξη</span>
           <span class="toc-page">Κεφ. 6</span>
         </li>
       </ul>
 
-      <div class="section-header" style="margin-top: 28px;">
+      <div class="section-header" style="margin-top: 24px;">
         <div class="section-num">1</div>
-        <h2 class="section-title">Εισαγωγή & Σύνδεση στην Πύλη</h2>
+        <h2 class="section-title">Εισαγωγή & Τρόποι Πρόσβασης στην Πύλη</h2>
       </div>
 
-      <p>Η <strong>Πύλη Καθηγητών</strong> αποτελεί το σύγχρονο ψηφιακό εργαλείο του ΙΣΑΕΚ για την άμεση και αξιόπιστη καταγραφή των διδακτικών ωρών, των απουσιών και των βαθμολογιών. Λειτουργεί απρόσκοπτα τόσο σε <strong>υπολογιστή</strong> όσο και σε <strong>tablet ή smartphone</strong>.</p>
+      <p>Η <strong>Πύλη Καθηγητών</strong> αποτελεί την αυτόνομη πλατφόρμα των εκπαιδευτών του ΙΣΑΕΚ. Διαθέτει πλέον <strong>ξεχωριστή συνεδρία</strong> από τη Γραμματεία, ώστε να μπορεί να λειτουργεί απρόσκοπτα από οποιαδήποτε συσκευή χωρίς εμπλοκή με άλλους λογαριασμούς.</p>
+
+      <h3>3 Τρόποι για να Ανοίξετε την Πύλη:</h3>
 
       <div class="step-box">
-        <div class="step-title">Βήμα 1: Πρόσβαση στην Πύλη (2 Τρόποι)</div>
+        <div class="step-title">Τρόπος 1: Από το Μενού της Γραμματείας (Νέο Κουμπί!)</div>
         <div class="step-desc">
-          <strong>Τρόπος Α (Απευθείας Σύνδεσμος):</strong> Πληκτρολογήστε τη διεύθυνση της εφαρμογής προσθέτοντας στο τέλος <code>/teacher</code> (π.χ. <code>http://localhost:5173/teacher</code> ή <code>https://το-site-σας/teacher</code>).
-          <br><strong>Τρόπος Β (Μέσω της Αρχικής):</strong> Αν ανοίξετε την κανονική οθόνη εισόδου, θα βρείτε στο κάτω μέρος το πράσινο κουμπί <strong>«🎓 Μετάβαση στην Πύλη Καθηγητών»</strong>. Κάνοντας κλικ μεταφέρεστε απευθείας!
+          Μέσα στην κεντρική εφαρμογή, στο αριστερό μενού κάτω από τους «Καθηγητές», υπάρχει η επιλογή <strong>«🎓 Πύλη Καθηγητών ↗»</strong>. Κάνοντας κλικ εκεί, ανοίγει αυτόματα η Πύλη σε νέα καρτέλα!
         </div>
       </div>
 
       <div class="step-box">
-        <div class="step-title">Βήμα 2: Επιλογή Εκπαιδευτικού</div>
-        <div class="step-desc">Στην οθόνη εισόδου, κάντε κλικ στο πτυσσόμενο μενού <strong>«Επιλογή Εκπαιδευτικού»</strong> και εντοπίστε το ονοματεπώνυμό σας (ταξινομημένα αλφαβητικά).</div>
+        <div class="step-title">Τρόπος 2: Από την Οθόνη Σύνδεσης Γραμματείας</div>
+        <div class="step-desc">
+          Στο κάτω μέρος της κεντρικής οθόνης εισόδου υπάρχει το πράσινο κουμπί <strong>«🎓 Μετάβαση στην Πύλη Καθηγητών»</strong>, που σας μεταφέρει κατευθείαν στην οθόνη εκπαιδευτικών.
+        </div>
       </div>
 
       <div class="step-box">
-        <div class="step-title">Βήμα 3: Είσοδος στο Σύστημα</div>
-        <div class="step-desc">Πατήστε το πράσινο κουμπί <strong>«Είσοδος ➔»</strong>. Το σύστημα σας συνδέει αυτόματα στο προσωπικό σας περιβάλλον και εμφανίζει μόνο τα τμήματα και τα μαθήματα που σας έχουν ανατεθεί.</div>
+        <div class="step-title">Τρόπος 3: Απευθείας Σύνδεσμος (URL)</div>
+        <div class="step-desc">
+          Πληκτρολογήστε τη διεύθυνση προσθέτοντας στο τέλος <code>/teacher</code> (π.χ. <code>http://localhost:5173/teacher</code> ή <code>https://το-site-σας/teacher</code>).
+        </div>
+      </div>
+
+      <!-- Real Screenshot: Login Screen -->
+      <div class="screenshot-box">
+        <img src="./public/guide-screenshots/tp_02_login_selected_1791975888972.png" class="screenshot-img" alt="Οθόνη Επιλογής Καθηγητή">
+        <div class="screenshot-caption">
+          <span>Στιγμιότυπο 1: Επιλογή Ονοματεπώνυμου Εκπαιδευτικού & Είσοδος</span>
+          <span class="screenshot-badge">Οθόνη Σύνδεσης</span>
+        </div>
       </div>
 
       <div class="callout callout-info">
         <span class="callout-icon">ℹ️</span>
-        <div><strong>Προστασία Δεδομένων:</strong> Μέσω της Πύλης Εκπαιδευτή έχετε πρόσβαση αποκλειστικά στα εκπαιδευτικά δεδομένα (ονόματα σπουδαστών, απουσιολόγιο, βαθμούς). Τα οικονομικά δεδομένα των σπουδαστών παραμένουν κρυπτογραφημένα και προσβάσιμα μόνο από τη Γραμματεία.</div>
+        <div><strong>Διαδικασία Εισόδου:</strong> Επιλέγετε το ονοματεπώνυμό σας από την αλφαβητική λίστα και πατάτε <strong>«Είσοδος ➔»</strong>. Δεν απαιτείται κωδικός PIN. Εμφανίζονται αποκλειστικά τα μαθήματα που σας έχουν ανατεθεί.</div>
       </div>
     </div>
 
@@ -567,70 +553,32 @@
         <h2 class="section-title">Το Περιβάλλον Εργασίας (Dashboard)</h2>
       </div>
 
-      <p>Μόλις συνδεθείτε, αντικρίζετε την κεντρική οθόνη υποδοχής. Στο πάνω μέρος εμφανίζεται το ονοματεπώνυμό σας και η μπάρα πλοήγησης με τις 4 βασικές ενότητες:</p>
+      <p>Μόλις συνδεθείτε, αντικρίζετε την κεντρική οθόνη υποδοχής. Στο πάνω μέρος εμφανίζεται το ονοματεπώνυμό σας, κουμπί <strong>«Αποσύνδεση»</strong> και οι 4 βασικές καρτέλες πλοήγησης (<strong>Αρχική</strong>, <strong>Αναφορά</strong>, <strong>Βαθμολογία</strong>, <strong>Ιστορικό</strong>).</p>
 
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0;">
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px; text-align: center;">
-          <div style="font-size: 16px;">📊</div>
-          <div style="font-weight: 700; color: #1e40af; font-size: 12px; margin-top: 4px;">Αρχική</div>
-          <div style="font-size: 11px; color: #64748b;">Σύνοψη & Κάρτες</div>
-        </div>
-        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px; text-align: center;">
-          <div style="font-size: 16px;">📋</div>
-          <div style="font-weight: 700; color: #15803d; font-size: 12px; margin-top: 4px;">Αναφορά</div>
-          <div style="font-size: 11px; color: #64748b;">Παρουσιολόγιο</div>
-        </div>
-        <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 10px; text-align: center;">
-          <div style="font-size: 16px;">🎓</div>
-          <div style="font-weight: 700; color: #854d0e; font-size: 12px; margin-top: 4px;">Βαθμολογία</div>
-          <div style="font-size: 11px; color: #64748b;">20% & 80%</div>
-        </div>
-        <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 8px; padding: 10px; text-align: center;">
-          <div style="font-size: 16px;">🕒</div>
-          <div style="font-weight: 700; color: #6d28d9; font-size: 12px; margin-top: 4px;">Ιστορικό</div>
-          <div style="font-size: 11px; color: #64748b;">Παλαιότερες δηλώσεις</div>
+      <!-- Real Screenshot: Dashboard Metrics -->
+      <div class="screenshot-box">
+        <img src="./public/guide-screenshots/tp_03_dashboard_1791975918024.png" class="screenshot-img" alt="Dashboard Πύλης Εκπαιδευτή">
+        <div class="screenshot-caption">
+          <span>Στιγμιότυπο 2: Κεντρικός Πίνακας Ελέγχου με Μετρητές (Μαθήματα, Μαθητές, Αναφορές, Ειδικότητες)</span>
+          <span class="screenshot-badge">Αρχική Οθόνη</span>
         </div>
       </div>
 
-      <h3>Βασικοί Μετρητές & Επισκόπηση</h3>
-      <table class="doc-table">
-        <thead>
-          <tr>
-            <th>Μετρητής</th>
-            <th>Χρώμα</th>
-            <th>Σημασία / Περιεχόμενο</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Μαθήματα</strong></td>
-            <td><span class="badge badge-blue">Μπλε</span></td>
-            <td>Το πλήθος των διαφορετικών μαθημάτων που σας έχουν ανατεθεί.</td>
-          </tr>
-          <tr>
-            <td><strong>Μαθητές</strong></td>
-            <td><span class="badge badge-green">Πράσινο</span></td>
-            <td>Ο συνολικός αριθμός μοναδικών εγγεγραμμένων σπουδαστών στα τμήματά σας.</td>
-          </tr>
-          <tr>
-            <td><strong>Αναφορές</strong></td>
-            <td><span class="badge" style="background:#f3e8ff; color:#7e22ce;">Μωβ</span></td>
-            <td>Το σύνολο των δηλώσεων μαθήματος που έχετε υποβάλει μέχρι σήμερα.</td>
-          </tr>
-          <tr>
-            <td><strong>Ειδικότητες</strong></td>
-            <td><span class="badge" style="background:#ffedd5; color:#c2410c;">Πορτοκαλί</span></td>
-            <td>Ο αριθμός των ειδικοτήτων στις οποίες διδάσκετε ενεργά.</td>
-          </tr>
-        </tbody>
-      </table>
-
       <h3>Κάρτες «Τα Μαθήματά Μου»</h3>
-      <p>Κάθε ειδικότητα εμφανίζεται σε ξεχωριστό πλαίσιο με αναλυτική λίστα των μαθημάτων της. Κάνοντας κλικ στο κουμπί <strong>«Νέα Αναφορά»</strong> μέσα στην κάρτα, μεταφέρεστε απευθείας στη φόρμα παρουσιολογίου με προσυμπληρωμένη την ειδικότητα.</p>
+      <p>Κάθε ειδικότητα στην οποία διδάσκετε εμφανίζεται σε ξεχωριστό πλαίσιο. Περιλαμβάνει το πλήθος μαθητών, τα ανατεθειμένα μαθήματα και το κουμπί <strong>«Νέα Αναφορά»</strong>.</p>
+
+      <!-- Real Screenshot: My Courses Cards -->
+      <div class="screenshot-box">
+        <img src="./public/guide-screenshots/tp_04_my_courses_1791975930320.png" class="screenshot-img" alt="Κάρτες Μαθημάτων">
+        <div class="screenshot-caption">
+          <span>Στιγμιότυπο 3: Λίστα Ειδικοτήτων & Κουμπί «Νέα Αναφορά» για Άμεση Έναρξη Δήλωσης</span>
+          <span class="screenshot-badge">Τα Μαθήματά Μου</span>
+        </div>
+      </div>
 
       <div class="callout callout-success">
         <span class="callout-icon">💡</span>
-        <div><strong>Γρήγορη Πρόσβαση:</strong> Αν διδάσκετε σε περισσότερες από μία ειδικότητες, μπορείτε να εναλλάσσεστε άμεσα χωρίς καμία αποσύνδεση.</div>
+        <div><strong>Συντόμευση:</strong> Πατώντας <strong>«Νέα Αναφορά»</strong> στην κάρτα μιας ειδικότητας, μεταφέρεστε απευθείας στη φόρμα παρουσιολογίου με προσυμπληρωμένη την ειδικότητα!</div>
       </div>
     </div>
 
@@ -646,36 +594,46 @@
         <h2 class="section-title">Δήλωση Μαθήματος & «Χτύπημα Κάρτας»</h2>
       </div>
 
-      <p>Η εφαρμογή διαθέτει ηλεκτρονικό σύστημα <strong>χρονοσήμανσης (Clock-in / Clock-out)</strong> για την αντικειμενική και ακριβή καταγραφή του διδακτικού χρόνου, αποφεύγοντας λάθη χειροκίνητης πληκτρολόγησης.</p>
+      <p>Στην καρτέλα <strong>«Αναφορά»</strong> καταγράφεται η παρουσία σας στην τάξη με το ψηφιακό σύστημα <strong>«Χτύπημα Κάρτας»</strong>. Τα πεδία ώρας είναι κλειδωμένα και συμπληρώνονται αυτόματα με το πάτημα των κουμπιών.</p>
 
-      <div class="figure-box">
-        <img src="file:///C:/Users/MASTER/.gemini/antigravity-ide/brain/96f87492-37e5-47ff-82bb-3c0dbfa266dc/clock_in_attendance_1791971848519.jpg" class="figure-img" alt="Digital Attendance & Time Tracking">
-        <div class="figure-caption">
-          <span>Εικόνα 1: Διαδικασία Ψηφιακού Χτυπήματος Κάρτας & Απουσιολογίου</span>
-          <span>Πύλη Εκπαιδευτών ISAEK</span>
+      <!-- Real Screenshot: Report Form -->
+      <div class="screenshot-box">
+        <img src="./public/guide-screenshots/tp_05_report_form_1791976003527.png" class="screenshot-img" alt="Φόρμα Δήλωσης Μαθήματος">
+        <div class="screenshot-caption">
+          <span>Στιγμιότυπο 4: Επιλογή Ειδικότητας & Μαθήματος — Έτοιμο για Χτύπημα Κάρτας</span>
+          <span class="screenshot-badge">Φόρμα Αναφοράς</span>
         </div>
       </div>
 
       <h3>Βήματα Καταγραφής Ωραρίου</h3>
 
       <div class="step-box">
-        <div class="step-title">Βήμα 3.1: Επιλογή Ειδικότητας & Μαθήματος</div>
-        <div class="step-desc">Από τα αντίστοιχα μενού επιλέξτε την Ειδικότητα και το Μάθημα που θα διδάξετε. Η ημερομηνία είναι αυτόματα ορισμένη στη σημερινή ημέρα.</div>
+        <div class="step-title">Βήμα 1: Επιλογή Ειδικότητας & Μαθήματος</div>
+        <div class="step-desc">Επιλέξτε την Ειδικότητα και το Μάθημα που θα διδάξετε. Η ημερομηνία ορίζεται αυτόματα στη σημερινή ημέρα.</div>
       </div>
 
       <div class="step-box">
-        <div class="step-title">Βήμα 3.2: Άφιξη — «Χτύπημα Κάρτας» (Μπλε Κουμπί)</div>
-        <div class="step-desc">Κατά την είσοδό σας στην αίθουσα ή το εργαστήριο, πατήστε το μπλε κουμπί <span class="btn-demo btn-demo-blue">Χτύπημα Κάρτας</span> δίπλα στο πεδίο <em>Ώρα Άφιξης</em>. Το σύστημα «κλειδώνει» την ακριβή τρέχουσα ώρα.</div>
+        <div class="step-title">Βήμα 2: Άφιξη — «Χτύπημα Κάρτας» (Μπλε Κουμπί)</div>
+        <div class="step-desc">Κατά την είσοδό σας στην αίθουσα, πατήστε το μπλε κουμπί <strong>«Χτύπημα Κάρτας»</strong>. Η τρέχουσα ώρα κλειδώνει αυτόματα στο σύστημα.</div>
+      </div>
+
+      <!-- Real Screenshot: Clock-in action -->
+      <div class="screenshot-box">
+        <img src="./public/guide-screenshots/tp_06_clock_in_1791976019044.png" class="screenshot-img" alt="Χτύπημα Άφιξης">
+        <div class="screenshot-caption">
+          <span>Στιγμιότυπο 5: Ώρα Άφιξης Κλειδωμένη — Το κόκκινο κουμπί ενεργοποιείται για την αναχώρηση</span>
+          <span class="screenshot-badge">Καταγεγραμμένη Άφιξη</span>
+        </div>
       </div>
 
       <div class="step-box">
-        <div class="step-title">Βήμα 3.3: Αναχώρηση — «Χτύπημα Κάρτας» (Κόκκινο Κουμπί)</div>
-        <div class="step-desc">Με την ολοκλήρωση της διδασκαλίας, πατήστε το κόκκινο κουμπί <span class="btn-demo btn-demo-red">Χτύπημα Κάρτας</span> δίπλα στο πεδίο <em>Ώρα Αναχώρησης</em>. Το σύστημα υπολογίζει αυτόματα τις συνολικές διδακτικές ώρες και τα λεπτά!</div>
+        <div class="step-title">Βήμα 3: Αναχώρηση — «Χτύπημα Κάρτας» (Κόκκινο Κουμπί)</div>
+        <div class="step-desc">Με την ολοκλήρωση της διδασκαλίας, πατήστε το κόκκινο κουμπί <strong>«Χτύπημα Κάρτας»</strong> δίπλα στην Ώρα Αναχώρησης. Το σύστημα υπολογίζει αυτόματα τις ώρες και τα λεπτά!</div>
       </div>
 
       <div class="callout callout-warning">
         <span class="callout-icon">🛡️</span>
-        <div><strong>Αυτόματη Προστασία (Auto-Save):</strong> Εάν κατά τη διάρκεια του μαθήματος κλείσετε κατά λάθος την καρτέλα ή κλείσει η οθόνη του κινητού σας, <strong>η ώρα άφιξης δεν χάνεται</strong>! Είναι αποθηκευμένη τοπικά και θα επανέλθει μόλις ανοίξετε ξανά τη σελίδα.</div>
+        <div><strong>Αυτόματη Προστασία (Auto-Save):</strong> Εάν κατά τη διάρκεια του μαθήματος κλείσετε κατά λάθος το κινητό ή την καρτέλα, <strong>η ώρα άφιξης δεν χάνεται</strong>! Είναι αποθηκευμένη τοπικά και θα επανέλθει αυτόματα.</div>
       </div>
     </div>
 
@@ -691,65 +649,46 @@
         <h2 class="section-title">Καταγραφή Απουσιολογίου Σπουδαστών</h2>
       </div>
 
-      <p>Μόλις επιλέξετε Ειδικότητα και Μάθημα, το σύστημα εμφανίζει αυτόματα κάτω από τη φόρμα την <strong>ονομαστική κατάσταση όλων των εγγεγραμμένων σπουδαστών</strong> του τμήματος.</p>
+      <p>Μόλις επιλεγεί το μάθημα, εμφανίζεται αυτόματα κάτω από τη φόρμα η <strong>ονομαστική κατάσταση όλων των εγγεγραμμένων σπουδαστών</strong> του τμήματος.</p>
 
-      <div class="ui-mockup">
-        <div class="ui-mockup-header">
-          <span>👥 ΑΠΟΥΣΙΟΛΟΓΙΟ ΤΜΗΜΑΤΟΣ (ΠΡΟΕΠΙΣΚΟΠΗΣΗ)</span>
-          <span style="background: #334155; padding: 2px 8px; border-radius: 4px; font-size: 11px;">18 Σπουδαστές • 2 Απόντες</span>
-        </div>
-        <div class="ui-mockup-body">
-          <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <input type="checkbox" checked style="accent-color: #ef4444; width: 16px; height: 16px;">
-              <span style="font-weight: 600; color: #b91c1c;">Αλεξανδράκης Γεώργιος</span>
-            </div>
-            <div>
-              <span style="background: #fee2e2; color: #b91c1c; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">2 Ώρες Απουσία</span>
-            </div>
-          </div>
-
-          <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <input type="checkbox" style="width: 16px; height: 16px;">
-              <span style="font-weight: 500; color: #334155;">Βασιλάκη Μαρία</span>
-            </div>
-            <div>
-              <span style="background: #f1f5f9; color: #15803d; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Παρών/ούσα</span>
-            </div>
-          </div>
+      <!-- Real Screenshot: Attendance List -->
+      <div class="screenshot-box">
+        <img src="./public/guide-screenshots/tp_07_attendance_1791976044995.png" class="screenshot-img" alt="Απουσιολόγιο Τμήματος">
+        <div class="screenshot-caption">
+          <span>Στιγμιότυπο 6: Ονομαστικό Απουσιολόγιο — Επισήμανση Απόντα με Κόκκινο & Ρύθμιση Ωρών</span>
+          <span class="screenshot-badge">Απουσιολόγιο</span>
         </div>
       </div>
 
-      <h3>Κανόνες Σημείωσης Απουσιών</h3>
+      <h3>Κανόνες Σημείωσης Απουσιών:</h3>
       <ul>
-        <li><strong>Εξ' ορισμού Παρών:</strong> Όλοι οι σπουδαστές θεωρούνται παρόντες μέχρι να τους επιλέξετε.</li>
-        <li><strong>Σημείωση Απουσίας:</strong> Κάντε κλικ στο τετραγωνίδιο δίπλα στο όνομα του απόντα. Η γραμμή θα επισημανθεί με κόκκινο χρώμα.</li>
-        <li><strong>Ρύθμιση Ωρών Απουσίας:</strong> Αυτόματα αποδίδονται οι ώρες του μαθήματος (π.χ. 2 ή 3 ώρες). Εάν ένας σπουδαστής αποχώρησε νωρίτερα, μπορείτε να αλλάξετε το νούμερο στο ειδικό πεδίο ωρών.</li>
+        <li><strong>Εξ' ορισμού Παρόντες:</strong> Όλοι οι σπουδαστές θεωρούνται παρόντες μέχρι να τους επιλέξετε.</li>
+        <li><strong>Σημείωση Απουσίας:</strong> Κάντε κλικ στο τετραγωνίδιο δίπλα στο όνομα του απόντα. Η γραμμή θα κοκκινίσει με ένδειξη <em>Απών/ούσα</em>.</li>
+        <li><strong>Ρύθμιση Ωρών:</strong> Αυτόματα αποδίδονται οι ώρες του μαθήματος. Εάν κάποιος σπουδαστής αποχώρησε νωρίτερα, αλλάζετε το νούμερο στο πεδίο ωρών.</li>
       </ul>
 
       <h3>Οριστική Υποβολή Αναφοράς</h3>
       <div class="step-box">
-        <div class="step-title">Πατήστε το κουμπί «Υποβολή Αναφοράς»</div>
+        <div class="step-title">Πατήστε το μωβ κουμπί «Υποβολή Αναφοράς»</div>
         <div class="step-desc">
-          Το σύστημα:
-          <br>1. Αποθηκεύει τη δήλωση στο αρχείο του καθηγητή και της γραμματείας.
-          <br>2. Χρεώνει τις απουσίες στην ατομική ηλεκτρονική καρτέλα κάθε μαθητή.
-          <br>3. Καθαρίζει με ασφάλεια τη φόρμα για το επόμενο μάθημά σας.
+          Με το πάτημα του κουμπιού:
+          <br>1. Αποθηκεύεται η δήλωση παρουσίας του καθηγητή στη βάση δεδομένων.
+          <br>2. Χρεώνονται αυτόματα οι απουσίες στην ατομική καρτέλα κάθε μαθητή.
+          <br>3. Η φόρμα καθαρίζει αυτόματα και είναι έτοιμη για το επόμενο μάθημα.
         </div>
       </div>
 
       <div class="callout callout-info">
         <span class="callout-icon">🔄</span>
-        <div><strong>Κουμπί «Καθαρισμός»:</strong> Εάν ξεκινήσατε μια δοκιμαστική δήλωση και επιθυμείτε να μηδενίσετε όλα τα πεδία και τις ώρες, πατήστε το κόκκινο κουμπί «Καθαρισμός» και επιβεβαιώστε το μήνυμα.</div>
+        <div><strong>Κουμπί «Καθαρισμός»:</strong> Εάν ξεκινήσατε μια δοκιμαστική δήλωση και θέλετε να μηδενίσετε όλα τα πεδία και τις ώρες, πατήστε το κόκκινο κουμπί «Καθαρισμός» και επιβεβαιώστε το μήνυμα.</div>
       </div>
     </div>
 
-    <!-- ==================== CHAPTER 5: GRADES ==================== -->
+    <!-- ==================== CHAPTER 5: GRADES & HISTORY ==================== -->
     <div class="page-section page-break">
       <div class="running-header">
         <span>ΙΣΑΕΚ CMS — ΕΓΧΕΙΡΙΔΙΟ ΕΚΠΑΙΔΕΥΤΗ</span>
-        <span>ΚΕΦΑΛΑΙΟ 5: ΚΑΤΑΧΩΡΗΣΗ ΒΑΘΜΟΛΟΓΙΩΝ</span>
+        <span>ΚΕΦΑΛΑΙΑ 5 & 6: ΒΑΘΜΟΛΟΓΙΕΣ & ΙΣΤΟΡΙΚΟ</span>
       </div>
 
       <div class="section-header">
@@ -757,26 +696,16 @@
         <h2 class="section-title">Καταχώρηση & Υπολογισμός Βαθμολογιών</h2>
       </div>
 
-      <p>Στην καρτέλα <strong>«Βαθμολογία»</strong> (Graduation Cap), ο εκπαιδευτής καταχωρεί τις επιδόσεις των σπουδαστών σύμφωνα με τον επίσημο κανονισμό σπουδών των ΙΣΑΕΚ.</p>
+      <p>Στην καρτέλα <strong>«Βαθμολογία»</strong> (Graduation Cap), επιλέγετε Ειδικότητα και Μάθημα. Εμφανίζεται η λίστα των σπουδαστών για την καταχώρηση των βαθμών:</p>
 
-      <div class="figure-box">
-        <img src="file:///C:/Users/MASTER/.gemini/antigravity-ide/brain/96f87492-37e5-47ff-82bb-3c0dbfa266dc/grades_evaluation_1791971866427.jpg" class="figure-img" alt="Student Grades Evaluation and Calculation">
-        <div class="figure-caption">
-          <span>Εικόνα 2: Σύστημα Υπολογισμού Εξαμηνιαίου Βαθμού (20% Πρόοδος + 80% Τελική Εξέταση)</span>
-          <span>Πύλη Εκπαιδευτών ISAEK</span>
-        </div>
-      </div>
-
-      <h3>Μαθηματικός Τύπος Υπολογισμού</h3>
       <div class="callout callout-info" style="font-size: 13px;">
         <span class="callout-icon">📐</span>
         <div>
-          <strong>Τελικός Βαθμός Μαθήματος = (Βαθμός Προόδου / Εργασίας × 0.20) + (Τελική Εξέταση × 0.80)</strong>
-          <br><span style="font-size: 11.5px; color: #475569;">Ο υπολογισμός πραγματοποιείται ακαριαία από την πλατφόρμα καθώς πληκτρολογείτε τους βαθμούς.</span>
+          <strong>Τελικός Βαθμός Μαθήματος = (Εργασία 6μήνου × 20%) + (Τελική Εξέταση × 80%)</strong>
+          <br><span style="font-size: 11.5px; color: #475569;">Ο τελικός βαθμός υπολογίζεται αυτόματα σε πραγματικό χρόνο καθώς πληκτρολογείτε!</span>
         </div>
       </div>
 
-      <h3>Πίνακας Καταχώρησης Βαθμών</h3>
       <table class="doc-table">
         <thead>
           <tr>
@@ -804,59 +733,44 @@
 
       <div class="step-box">
         <div class="step-title">Αποθήκευση Βαθμολογίας</div>
-        <div class="step-desc">Μόλις συμπληρώσετε τους βαθμούς για τους μαθητές σας, πατήστε το πράσινο κουμπί <strong>«Αποθήκευση Βαθμολογίας»</strong>. Οι βαθμοί μεταφέρονται απευθείας στο κεντρικό μητρώο της γραμματείας.</div>
-      </div>
-    </div>
-
-    <!-- ==================== CHAPTER 6: HISTORY & FAQ ==================== -->
-    <div class="page-section page-break">
-      <div class="running-header">
-        <span>ΙΣΑΕΚ CMS — ΕΓΧΕΙΡΙΔΙΟ ΕΚΠΑΙΔΕΥΤΗ</span>
-        <span>ΚΕΦΑΛΑΙΟ 6: ΙΣΤΟΡΙΚΟ & ΣΥΧΝΕΣ ΕΡΩΤΗΣΕΙΣ</span>
+        <div class="step-desc">Μόλις συμπληρώσετε τους βαθμούς, πατήστε το πράσινο κουμπί <strong>«Αποθήκευση Βαθμολογίας»</strong> για άμεσο συγχρονισμό με το μητρώο της Γραμματείας.</div>
       </div>
 
-      <div class="section-header">
+      <div class="section-header" style="margin-top: 24px;">
         <div class="section-num">6</div>
         <h2 class="section-title">Ιστορικό Δηλώσεων & Συχνές Ερωτήσεις</h2>
       </div>
 
-      <h3>Καρτέλα «Ιστορικό» (History)</h3>
-      <p>Στην καρτέλα Ιστορικό έχετε πλήρη αρχειακή πρόσβαση σε όλες τις προηγούμενες δηλώσεις που έχετε υποβάλει. Κάθε εγγραφή περιλαμβάνει:</p>
-      <ul>
-        <li><strong>Ημερομηνία & Ώρες:</strong> Ακριβές διάστημα άφιξης και αναχώρησης (π.χ. 16:30 - 18:45).</li>
-        <li><strong>Μάθημα & Ειδικότητα:</strong> Ποιο μάθημα διδάχθηκε.</li>
-        <li><strong>Απόντες:</strong> Ονομαστική αναφορά όσων σπουδαστών χρεώθηκαν απουσία.</li>
-      </ul>
-
-      <div class="section-header" style="margin-top: 25px;">
-        <div class="section-num">❓</div>
-        <h2 class="section-title">Συχνές Ερωτήσεις & Απαντήσεις (FAQ)</h2>
-      </div>
-
-      <div class="step-box" style="border-left-color: #64748b;">
-        <div class="step-title">1. Ξέχασα να πατήσω «Χτύπημα Κάρτας» κατά την άφιξη. Τι κάνω;</div>
-        <div class="step-desc">Εάν ξεκίνησε το μάθημα και το θυμηθήκατε αργότερα, πατήστε το χτύπημα κάρτας αμέσως και ενημερώστε τη Γραμματεία κατά την έξοδό σας ώστε να επιβεβαιώσει και να διορθώσει τη δηλωθείσα ώρα στο κεντρικό σύστημα διαχειριστή.</div>
-      </div>
-
-      <div class="step-box" style="border-left-color: #64748b;">
-        <div class="step-title">2. Έβαλα λάθος απουσία σε σπουδαστή και πάτησα Υποβολή.</div>
-        <div class="step-desc">Η Γραμματεία έχει άμεση πρόσβαση στην καρτέλα του σπουδαστή και στην προβολή «Αναφορές Καθηγητών» όπου μπορεί να διαγράψει ή να τροποποιήσει την απουσία ανά πάσα στιγμή.</div>
-      </div>
-
-      <div class="step-box" style="border-left-color: #64748b;">
-        <div class="step-title">3. Δεν βλέπω ένα μάθημα που διδάσκω στη λίστα μου.</div>
-        <div class="step-desc">Επικοινωνήστε με τη Γραμματεία. Ο διαχειριστής θα προσθέσει το μάθημα στις αναθέσεις του προφίλ σας στην καρτέλα «Καθηγητές» και αυτό θα εμφανιστεί αμέσως στην Πύλη σας.</div>
-      </div>
-
-      <div class="callout callout-info" style="margin-top: 25px;">
-        <span class="callout-icon">📞</span>
-        <div>
-          <strong>Τεχνική Υποστήριξη & Γραμματεία ΙΣΑΕΚ</strong>
-          <br>Για οποιαδήποτε απορία ή ανάγκη τεχνικής υποστήριξης, μπορείτε να απευθύνεστε στο γραφείο γραμματείας του Επιμελητηρίου Ηρακλείου ή να στείλετε email στο αρμόδιο τμήμα.
+      <!-- Real Screenshot: History Screen -->
+      <div class="screenshot-box">
+        <img src="./public/guide-screenshots/tp_08_submitted_1791976176227.png" class="screenshot-img" alt="Ιστορικό Αναφορών">
+        <div class="screenshot-caption">
+          <span>Στιγμιότυπο 7: Καρτέλα «Ιστορικό» — Έλεγχος Παλαιότερων Υποβολών & Ωραρίων</span>
+          <span class="screenshot-badge">Ιστορικό Αναφορών</span>
         </div>
       </div>
 
-      <div style="text-align: center; margin-top: 30px; padding: 16px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 11.5px;">
+      <h3>Συχνές Ερωτήσεις (FAQ)</h3>
+
+      <div class="step-box" style="border-left-color: #64748b;">
+        <div class="step-title">1. Ξέχασα να πατήσω «Χτύπημα Κάρτας» κατά την άφιξη.</div>
+        <div class="step-desc">Πατήστε το μόλις το θυμηθείτε και ενημερώστε τη Γραμματεία κατά την έξοδό σας ώστε να επιβεβαιώσει και να διορθώσει τη δηλωθείσα ώρα στο κεντρικό σύστημα.</div>
+      </div>
+
+      <div class="step-box" style="border-left-color: #64748b;">
+        <div class="step-title">2. Έβαλα κατά λάθος απουσία σε σπουδαστή και πάτησα Υποβολή.</div>
+        <div class="step-desc">Η Γραμματεία έχει άμεση πρόσβαση στην καρτέλα του σπουδαστή και στην προβολή «Αναφορές Καθηγητών» όπου μπορεί να διαγράψει ή να τροποποιήσει την απουσία ανά πάσα στιγμή.</div>
+      </div>
+
+      <div class="callout callout-info" style="margin-top: 18px;">
+        <span class="callout-icon">📞</span>
+        <div>
+          <strong>Τεχνική Υποστήριξη & Γραμματεία ΙΣΑΕΚ</strong>
+          <br>Για οποιαδήποτε απορία ή ανάγκη τεχνικής υποστήριξης, μπορείτε να απευθύνεστε στο γραφείο γραμματείας του Επιμελητηρίου Ηρακλείου.
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 25px; padding: 12px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 11px;">
         © 2026 ΙΣΑΕΚ Επιμελητηρίου Ηρακλείου — Σύστημα Διαχείρισης Εκπαιδευτικών Αναφορών (ISAEK CMS)
       </div>
     </div>
