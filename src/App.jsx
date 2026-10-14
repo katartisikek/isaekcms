@@ -169,19 +169,28 @@ export default function App() {
   const [editingInterest, setEditingInterest] = useState(null);
   const [showAnalytics, setShowAnalytics] = useState(true);
 
+  // Η Πύλη Καθηγητών έχει ξεχωριστή συνεδρία από τη Γραμματεία
+  const isTeacherRoute = window.location.pathname.includes('/teacher') ||
+                         window.location.hash.includes('teacher') ||
+                         window.location.search.includes('teacher');
+  const sessionKey = isTeacherRoute ? 'isaek_teacher_user' : 'isaek_user';
+
   const [loggedInUser, setLoggedInUser] = useState(() => {
-    const saved = localStorage.getItem('isaek_user');
-    return saved ? JSON.parse(saved) : null;
+    const saved = localStorage.getItem(sessionKey);
+    const user = saved ? JSON.parse(saved) : null;
+    // Στη διαδρομή /teacher δεχόμαστε μόνο συνδέσεις καθηγητών
+    if (isTeacherRoute && user && user.role !== 'teacher') return null;
+    return user;
   });
 
   const handleLogin = (user) => {
     setLoggedInUser(user);
-    localStorage.setItem('isaek_user', JSON.stringify(user));
+    localStorage.setItem(sessionKey, JSON.stringify(user));
   };
 
   const handleLogout = () => {
     setLoggedInUser(null);
-    localStorage.removeItem('isaek_user');
+    localStorage.removeItem(sessionKey);
   };
 
   // Fetch from Supabase on mount — δύο φάσεις για γρήγορο άνοιγμα
@@ -796,10 +805,6 @@ export default function App() {
   }
 
   if (!loggedInUser) {
-    const isTeacherRoute = window.location.pathname.includes('/teacher') || 
-                           window.location.hash.includes('teacher') || 
-                           window.location.search.includes('teacher');
-
     if (isTeacherRoute) {
       return <TeacherLoginScreen onLogin={handleLogin} contacts={contacts} />;
     }
@@ -1321,6 +1326,14 @@ export default function App() {
               >
                 <User size={14} />
                 <span>Καθηγητές</span>
+              </li>
+              <li 
+                className="sector-item"
+                onClick={() => window.open('/teacher', '_blank')}
+                title="Άνοιγμα Πύλης Καθηγητών (χτύπημα κάρτας, απουσίες, βαθμοί) σε νέα καρτέλα"
+              >
+                <GraduationCap size={14} color="#16a34a" />
+                <span>Πύλη Καθηγητών ↗</span>
               </li>
               <li 
                 className={`sector-item ${currentView === 'tasks' ? 'active' : ''}`}
