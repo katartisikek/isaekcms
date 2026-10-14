@@ -157,3 +157,25 @@ export function exportStudentPaymentReport(student, paymentRecords, specialty) {
   ], `Αναφορα_Πληρωμων_${safeName}`);
 }
 
+/**
+ * Export grades list for a specialty and course to Excel.
+ * @param {Array} displayData - Array of { student, progressGrade, finalGrade, calcGrade }
+ * @param {string} specialtyTitle
+ * @param {string} courseTitle
+ */
+export function exportGrades(displayData, specialtyTitle, courseTitle) {
+  const data = displayData.map((row, idx) => ({
+    'Α/Α': idx + 1,
+    'Ονοματεπώνυμο': row.student.fullName || '',
+    'Αρ. Μητρώου': row.student.mathitisAr || row.student.am || '',
+    'Ειδικότητα': specialtyTitle || '',
+    'Μάθημα': courseTitle || '',
+    'Εργασία 6μήνου (20%)': row.progressGrade || '-',
+    'Τελική Εξέταση (80%)': row.finalGrade || '-',
+    'Τελικός Βαθμός': row.calcGrade || '-'
+  }));
+
+  const safeCourse = (courseTitle || 'Μαθημα').replace(/[^a-zA-Zα-ωΑ-Ω0-9\s]/g, '').trim().replace(/\s+/g, '_');
+  downloadWorkbook([{ name: 'Βαθμολογίες', data }], `Βαθμολογιες_${safeCourse}`);
+}
+

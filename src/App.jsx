@@ -42,6 +42,7 @@ export default function App() {
   const [events, setEvents] = useState([]);
   const [absences, setAbsences] = useState([]);
   const [grades, setGrades] = useState([]);
+  const [isRefreshingGrades, setIsRefreshingGrades] = useState(false);
   const [teacherReports, setTeacherReports] = useState([]);
   const [isRefreshingReports, setIsRefreshingReports] = useState(false);
   const [sections, setSections] = useState([]);
@@ -286,6 +287,66 @@ export default function App() {
           setTeacherReports((prev) => prev.filter(r => r.id !== payload.old.id));
         } else if (payload.eventType === 'UPDATE') {
           setTeacherReports((prev) => prev.map(r => r.id === payload.new.id ? payload.new : r));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Handler to refresh grades from Supabase
+  const handleRefreshGrades = async () => {
+    setIsRefreshingGrades(true);
+    try {
+      const g = await api.fetchGrades();
+      setGrades(g);
+    } catch (e) {
+      console.error("Error refreshing grades:", e);
+    } finally {
+      setIsRefreshingGrades(false);
+    }
+  };
+
+  // Handler to save/upsert grades directly from Secretariat
+  const handleBatchSaveGrades = async (gradesToSave) => {
+    try {
+      const saved = await api.upsertGrades(gradesToSave);
+      setGrades(prev => {
+        let updated = [...prev];
+        saved.forEach(ug => {
+          const idx = updated.findIndex(g => g.id === ug.id);
+          if (idx >= 0) updated[idx] = ug;
+          else updated.push(ug);
+        });
+        return updated;
+      });
+      return true;
+    } catch (e) {
+      window.alert('Σφάλμα αποθήκευσης βαθμολογιών: ' + e.message);
+      return false;
+    }
+  };
+
+  // Auto-refresh grades whenever the user navigates to grades view
+  useEffect(() => {
+    if (currentView === 'grades') {
+      handleRefreshGrades();
+    }
+  }, [currentView]);
+
+  // Realtime subscription: sync grades automatically across teachers & secretariat
+  useEffect(() => {
+    const channel = supabase
+      .channel('grades_realtime_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'grades' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setGrades((prev) => [payload.new, ...prev.filter(g => g.id !== payload.new.id)]);
+        } else if (payload.eventType === 'DELETE') {
+          setGrades((prev) => prev.filter(g => g.id !== payload.old.id));
+        } else if (payload.eventType === 'UPDATE') {
+          setGrades((prev) => prev.map(g => g.id === payload.new.id ? payload.new : g));
         }
       })
       .subscribe();
@@ -1677,6 +1738,9 @@ export default function App() {
                 specialties={specialties}
                 grades={grades}
                 courses={courses}
+                onSaveGrades={handleBatchSaveGrades}
+                onRefresh={handleRefreshGrades}
+                isRefreshing={isRefreshingGrades}
               />
             </div>
           )}

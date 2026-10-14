@@ -208,11 +208,13 @@ export default function TeacherPortal({
     return getStudentsForSpecialty(gradesSpecialtyId);
   }, [gradesSpecialtyId, students]);
 
+  const normCourse = (str) => (str || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+
   useEffect(() => {
     if (gradesSpecialtyId && gradesCourse) {
       const existing = {};
       gradesStudents.forEach(st => {
-        const gradeRecord = grades.find(g => g.studentId === st.id && g.courseTitle === gradesCourse);
+        const gradeRecord = grades.find(g => g.studentId === st.id && normCourse(g.courseTitle) === normCourse(gradesCourse));
         if (gradeRecord) {
           existing[st.id] = {
             progressGrade: gradeRecord.progressGrade || '',
@@ -247,7 +249,7 @@ export default function TeacherPortal({
       Object.keys(currentGrades).forEach(studentId => {
         const { progressGrade, finalGrade } = currentGrades[studentId];
         if (progressGrade || finalGrade) {
-          const existing = grades.find(g => g.studentId === studentId && g.courseTitle === gradesCourse);
+          const existing = grades.find(g => g.studentId === studentId && normCourse(g.courseTitle) === normCourse(gradesCourse));
           toSave.push({
             id: existing?.id || `grd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             studentId,
