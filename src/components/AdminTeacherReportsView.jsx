@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
-import { FileText, Eye, X, Calendar as CalendarIcon, Clock, Users } from 'lucide-react';
+import { FileText, Eye, X, Calendar as CalendarIcon, Clock, Users, Trash2 } from 'lucide-react';
 
-export default function AdminTeacherReportsView({ reports = [], students = [], specialties = [] }) {
+export default function AdminTeacherReportsView({ reports = [], students = [], specialties = [], onDeleteReport }) {
   const [selectedReport, setSelectedReport] = useState(null);
 
   // Sort reports by date descending
-  const sortedReports = [...reports].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+  const sortedReports = [...reports].sort((a, b) => new Date(b.submittedAt || b.timestamp || b.date) - new Date(a.submittedAt || a.timestamp || a.date));
+
+  const handleDeleteReport = (report) => {
+    const reportInfo = `${report.teacherName || 'Εκπαιδευτικός'} — ${report.courseTitle || 'Μάθημα'} (${new Date(report.date).toLocaleDateString('el-GR')})`;
+    const confirmed = window.confirm(
+      `Επιβεβαίωση Διαγραφής:\n\nΕίστε βέβαιοι ότι θέλετε να διαγράψετε τη δήλωση μαθήματος:\n"${reportInfo}";\n\nΗ ενέργεια αυτή θα διαγράψει οριστικά τη δήλωση από το σύστημα.`
+    );
+    if (!confirmed) return;
+
+    if (onDeleteReport) {
+      onDeleteReport(report.id);
+    }
+    if (selectedReport && selectedReport.id === report.id) {
+      setSelectedReport(null);
+    }
+  };
 
   const getStudentName = (id) => {
     const student = students.find(s => s.id === id);
@@ -69,13 +84,24 @@ export default function AdminTeacherReportsView({ reports = [], students = [], s
                       )}
                     </td>
                     <td style={{ textAlign: 'center' }}>
-                      <button 
-                        onClick={() => setSelectedReport(report)}
-                        style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '4px' }}
-                        title="Προβολή Αναφοράς"
-                      >
-                        <Eye size={18} />
-                      </button>
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
+                        <button 
+                          onClick={() => setSelectedReport(report)}
+                          style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}
+                          title="Προβολή Αναφοράς"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        {onDeleteReport && (
+                          <button 
+                            onClick={() => handleDeleteReport(report)}
+                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}
+                            title="Διαγραφή Αναφοράς"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -193,11 +219,34 @@ export default function AdminTeacherReportsView({ reports = [], students = [], s
                 </div>
               )}
 
-              <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '12px', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Clock size={12} />
                   Ημερομηνία Υποβολής: {selectedReport.timestamp ? new Date(selectedReport.timestamp).toLocaleString('el-GR') : 'Άγνωστη'}
                 </span>
+                {onDeleteReport && (
+                  <button
+                    onClick={() => handleDeleteReport(selectedReport)}
+                    style={{
+                      background: '#fee2e2',
+                      color: '#dc2626',
+                      border: '1px solid #fecaca',
+                      padding: '7px 14px',
+                      borderRadius: '8px',
+                      fontWeight: '600',
+                      fontSize: '12.5px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s ease'
+                    }}
+                    title="Οριστική διαγραφή αυτής της δήλωσης"
+                  >
+                    <Trash2 size={14} />
+                    <span>Διαγραφή Δήλωσης</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

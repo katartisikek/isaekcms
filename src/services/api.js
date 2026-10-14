@@ -214,6 +214,10 @@ export const api = {
     if (error) throw error;
     return { ...data[0], absences: report.absences };
   },
+  async deleteTeacherReport(id) {
+    const { error } = await supabase.from('teacher_reports').delete().eq('id', id);
+    if (error) throw error;
+  },
 
   // Events
   async fetchEvents() {

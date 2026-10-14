@@ -734,6 +734,25 @@ export default function App() {
     setShowStartScreen(false);
   };
 
+  // Teacher Report Delete Handler
+  const handleDeleteTeacherReport = async (reportId) => {
+    const reportToDelete = teacherReports.find(r => r.id === reportId);
+    try {
+      await api.deleteTeacherReport(reportId);
+      setTeacherReports((prev) => prev.filter((r) => r.id !== reportId));
+      if (reportToDelete) {
+        await api.logAction(
+          'DELETE',
+          'teacher_report',
+          `${reportToDelete.teacherName} — ${reportToDelete.courseTitle}`,
+          loggedInUser?.name || 'Γραμματεία',
+          `Διαγραφή δήλωσης μαθήματος (${reportToDelete.date})`
+        );
+      }
+    } catch (e) {
+      window.alert('Σφάλμα κατά τη διαγραφή αναφοράς: ' + e.message);
+    }
+  };
 
   const handleEventDrop = async ({ event, start, end }) => {
     if (!window.confirm('Επιβεβαίωση αλλαγής ώρας/ημέρας του μαθήματος;')) return;
@@ -1602,6 +1621,7 @@ export default function App() {
                 reports={teacherReports}
                 students={students}
                 specialties={specialties}
+                onDeleteReport={handleDeleteTeacherReport}
               />
             </div>
           )}
