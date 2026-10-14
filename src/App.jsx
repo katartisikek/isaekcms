@@ -25,6 +25,7 @@ import AuditLogView from './components/AuditLogView';
 import CallerIdPopup from './components/CallerIdPopup';
 import CallLog from './components/CallLog';
 import { api } from './services/api';
+import { supabase } from './supabaseClient';
 import { syncLocalDataToCloud } from './services/syncData';
 import { Loader2, RefreshCw, PhoneCall } from 'lucide-react';
 
@@ -42,6 +43,7 @@ export default function App() {
   const [absences, setAbsences] = useState([]);
   const [grades, setGrades] = useState([]);
   const [teacherReports, setTeacherReports] = useState([]);
+  const [isRefreshingReports, setIsRefreshingReports] = useState(false);
   const [sections, setSections] = useState([]);
   const [interests, setInterests] = useState([]);
   const [paymentRecords, setPaymentRecords] = useState([]);
@@ -251,6 +253,46 @@ export default function App() {
       }
     };
     loadData();
+  }, []);
+
+  // Handler to refresh teacher reports from Supabase
+  const handleRefreshTeacherReports = async () => {
+    setIsRefreshingReports(true);
+    try {
+      const tr = await api.fetchTeacherReports();
+      setTeacherReports(tr);
+    } catch (e) {
+      console.error("Error refreshing teacher reports:", e);
+    } finally {
+      setIsRefreshingReports(false);
+    }
+  };
+
+  // Auto-refresh teacher reports whenever the user navigates to teacher_reports view
+  useEffect(() => {
+    if (currentView === 'teacher_reports') {
+      handleRefreshTeacherReports();
+    }
+  }, [currentView]);
+
+  // Realtime subscription: sync teacher reports automatically across all devices & sessions
+  useEffect(() => {
+    const channel = supabase
+      .channel('teacher_reports_realtime_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teacher_reports' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setTeacherReports((prev) => [payload.new, ...prev.filter(r => r.id !== payload.new.id)]);
+        } else if (payload.eventType === 'DELETE') {
+          setTeacherReports((prev) => prev.filter(r => r.id !== payload.old.id));
+        } else if (payload.eventType === 'UPDATE') {
+          setTeacherReports((prev) => prev.map(r => r.id === payload.new.id ? payload.new : r));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleSyncData = async () => {
@@ -1622,6 +1664,8 @@ export default function App() {
                 students={students}
                 specialties={specialties}
                 onDeleteReport={handleDeleteTeacherReport}
+                onRefresh={handleRefreshTeacherReports}
+                isRefreshing={isRefreshingReports}
               />
             </div>
           )}
