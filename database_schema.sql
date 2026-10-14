@@ -168,3 +168,54 @@ ALTER TABLE students ADD COLUMN IF NOT EXISTS "bekDegree" jsonb;
 ALTER TABLE teacher_reports ADD COLUMN IF NOT EXISTS "arrivalTime" text;
 ALTER TABLE teacher_reports ADD COLUMN IF NOT EXISTS "departureTime" text;
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS notes text;
+
+-- ============================================================
+-- Telephony / CTI (iPECS SME Integration)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS call_log (
+  id text PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  call_ref_id integer,
+  direction text,
+  caller_number text,
+  caller_name text,
+  called_number text,
+  station_number text,
+  station_name text,
+  start_time timestamptz,
+  duration text,
+  duration_seconds integer,
+  status text,
+  disconnect_cause text,
+  contact_id text,
+  co_number text,
+  notes text,
+  raw_data jsonb,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS live_calls (
+  id text PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  call_ref_id integer UNIQUE,
+  event_type text,
+  caller_number text,
+  caller_name text,
+  called_number text,
+  station_number text,
+  station_name text,
+  contact_id text,
+  started_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_call_log_start_time ON call_log(start_time DESC);
+CREATE INDEX IF NOT EXISTS idx_call_log_caller ON call_log(caller_number);
+CREATE INDEX IF NOT EXISTS idx_call_log_direction ON call_log(direction);
+CREATE INDEX IF NOT EXISTS idx_call_log_station ON call_log(station_number);
+CREATE INDEX IF NOT EXISTS idx_live_calls_event ON live_calls(event_type);
+
+ALTER TABLE call_log DISABLE ROW LEVEL SECURITY;
+ALTER TABLE live_calls DISABLE ROW LEVEL SECURITY;
+
+-- Enable Realtime for live_calls (popup notifications)
+ALTER PUBLICATION supabase_realtime ADD TABLE live_calls;

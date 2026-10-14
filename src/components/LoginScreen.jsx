@@ -108,6 +108,29 @@ export default function LoginScreen({ onLogin }) {
           </button>
         </form>
 
+        <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
+          <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 10px 0' }}>Είστε Εκπαιδευτικός / Καθηγητής;</p>
+          <a 
+            href="/teacher"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13.5px',
+              fontWeight: '600',
+              color: '#16a34a',
+              textDecoration: 'none',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              transition: 'all 0.2s'
+            }}
+          >
+            🎓 Μετάβαση στην Πύλη Καθηγητών
+          </a>
+        </div>
+
       </div>
     </div>
   );

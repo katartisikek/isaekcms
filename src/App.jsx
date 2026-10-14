@@ -22,9 +22,11 @@ import AdminTeacherReportsView from './components/AdminTeacherReportsView';
 import InterestList from './components/InterestList';
 import InterestFormModal from './components/InterestFormModal';
 import AuditLogView from './components/AuditLogView';
+import CallerIdPopup from './components/CallerIdPopup';
+import CallLog from './components/CallLog';
 import { api } from './services/api';
 import { syncLocalDataToCloud } from './services/syncData';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw, PhoneCall } from 'lucide-react';
 
 export default function App() {
   const [isInitializing, setIsInitializing] = useState(true);
@@ -794,7 +796,11 @@ export default function App() {
   }
 
   if (!loggedInUser) {
-    if (window.location.pathname.includes('/teacher')) {
+    const isTeacherRoute = window.location.pathname.includes('/teacher') || 
+                           window.location.hash.includes('teacher') || 
+                           window.location.search.includes('teacher');
+
+    if (isTeacherRoute) {
       return <TeacherLoginScreen onLogin={handleLogin} contacts={contacts} />;
     }
     return <LoginScreen onLogin={handleLogin} />;
@@ -1388,6 +1394,20 @@ export default function App() {
               </li>
             </ul>
 
+            <h4 className="sidebar-title">📞 Τηλεφωνικό Κέντρο</h4>
+            <ul className="sector-list">
+              <li 
+                className={`sector-item ${currentView === 'call_log' ? 'active' : ''}`}
+                onClick={() => {
+                  setCurrentView('call_log');
+                  setShowStartScreen(false);
+                }}
+              >
+                <PhoneCall size={14} />
+                <span>Ιστορικό Κλήσεων</span>
+              </li>
+            </ul>
+
             <h4 className="sidebar-title">Διαχείριση Συστήματος</h4>
             <ul className="sector-list">
               <li 
@@ -1545,6 +1565,12 @@ export default function App() {
             <AuditLogView />
           )}
 
+          {currentView === 'call_log' && (
+            <div className="desktop-content" style={{ padding: '12px', background: '#f8fafc' }}>
+              <CallLog contacts={contacts} />
+            </div>
+          )}
+
           {currentView === 'calendar' && (
             <div className="desktop-content" style={{ padding: '12px' }}>
               <ScheduleCalendar
@@ -1669,6 +1695,15 @@ export default function App() {
         onSubmit={handleInterestFormSubmit}
         interest={editingInterest}
         specialties={specialties}
+      />
+
+      {/* Real-time Caller ID Popup — always visible */}
+      <CallerIdPopup
+        contacts={contacts}
+        onAddContactClick={(prefill) => {
+          handleAddContactClick();
+          // The ContactFormModal will open — prefill is passed for UX
+        }}
       />
     </div>
   );

@@ -86,6 +86,23 @@ export default function TeacherLoginScreen({ onLogin, contacts }) {
           </button>
         </form>
 
+        <div style={{ marginTop: '24px', paddingTop: '18px', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
+          <a 
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '12.5px',
+              fontWeight: '500',
+              color: '#64748b',
+              textDecoration: 'none'
+            }}
+          >
+            ← Επιστροφή στην Είσοδο Γραμματείας
+          </a>
+        </div>
+
       </div>
     </div>
   );
