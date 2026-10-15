@@ -82,7 +82,7 @@ export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = 
     if (!formData.name.trim()) {
       newErrors.name = 'Το όνομα ή η επωνυμία είναι υποχρεωτικό πεδίο.';
     }
-    if (!formData.phone.trim() && formData.category !== 'Εκπαιδευτής') {
+    if (!formData.phone.trim() && formData.category !== 'Εκπαιδευτής' && formData.category !== 'Καθηγητής') {
       newErrors.phone = 'Το τηλέφωνο επικοινωνίας είναι υποχρεωτικό πεδίο.';
     }
     // Simple email regex validation if provided
@@ -139,6 +139,7 @@ export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = 
               value={formData.category}
               onChange={handleChange}
             >
+              <option value="Καθηγητής">Καθηγητής</option>
               <option value="Εκπαιδευτής">Εκπαιδευτής</option>
               <option value="Υπουργείο / Πήγασος">Υπουργείο / Πήγασος</option>
               <option value="Προμηθευτής">Προμηθευτής</option>
@@ -148,7 +149,7 @@ export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = 
           </div>
 
           {/* Specialty Selector for Instructors */}
-          {formData.category === 'Εκπαιδευτής' && (
+          {(formData.category === 'Εκπαιδευτής' || formData.category === 'Καθηγητής') && (
             <div className="sys-group" style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <label className="sys-label" style={{ margin: 0, color: '#0f172a' }}>
@@ -205,6 +206,9 @@ export default function ContactFormModal({ isOpen, onClose, onSubmit, contact = 
                             disabled={!assignment.specialtyId}
                           >
                             <option value="">-- Επιλογή Μαθήματος --</option>
+                            {assignment.courseId && !specialtyCourses.some(c => c.id === assignment.courseId) && (
+                              <option value={assignment.courseId}>{assignment.courseId} (Υφιστάμενο)</option>
+                            )}
                             {specialtyCourses.map((c) => (
                               <option key={c.id} value={c.id}>{c.title} (Εξ. {c.semester})</option>
                             ))}

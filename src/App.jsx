@@ -356,6 +356,46 @@ export default function App() {
     };
   }, []);
 
+  // Realtime subscription: sync contacts & teacher assignments automatically across sessions
+  useEffect(() => {
+    const channel = supabase
+      .channel('contacts_realtime_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, (payload) => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          let assignments = [];
+          try {
+            if (payload.new.department && payload.new.department.startsWith('[')) {
+              assignments = JSON.parse(payload.new.department);
+            } else if (payload.new.department) {
+              assignments = [{ specialtyId: payload.new.department, courseId: '' }];
+            }
+          } catch (e) {
+            assignments = [];
+          }
+          const formatted = {
+            ...payload.new,
+            category: payload.new.role || 'Προμηθευτής',
+            description: payload.new.description || payload.new.notes || '',
+            assignments
+          };
+          setContacts((prev) => {
+            const exists = prev.some(c => c.id === formatted.id);
+            if (exists) {
+              return prev.map(c => c.id === formatted.id ? formatted : c);
+            }
+            return [formatted, ...prev];
+          });
+        } else if (payload.eventType === 'DELETE') {
+          setContacts((prev) => prev.filter(c => c.id !== payload.old.id));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const handleSyncData = async () => {
     if (students.length > 0) {
       if (!window.confirm("ΠΡΟΣΟΧΗ: Η βάση δεδομένων στο Cloud περιέχει ήδη εγγραφές! Ο συγχρονισμός από την τοπική μνήμη (Local Storage) ενδέχεται να δημιουργήσει διπλοεγγραφές ή να αντικαταστήσει νεότερα δεδομένα. Είστε ΑΠΟΛΥΤΑ ΣΙΓΟΥΡΟΙ ότι θέλετε να συνεχίσετε;")) return;
@@ -712,6 +752,32 @@ export default function App() {
     }
   };
 
+  const handleUpdateTeacherAssignments = async (teacherId, newAssignments) => {
+    try {
+      await api.updateTeacherAssignments(teacherId, newAssignments);
+      const teacher = contacts.find(c => c.id === teacherId);
+      setContacts((prev) => prev.map(c => {
+        if (c.id === teacherId) {
+          return { ...c, assignments: newAssignments };
+        }
+        return c;
+      }));
+      if (teacher) {
+        await api.logAction(
+          'UPDATE',
+          'teacher',
+          teacher.name,
+          loggedInUser?.name || 'Γραμματεία',
+          `Ενημέρωση διδασκόμενων μαθημάτων (${newAssignments.length} αναθέσεις)`
+        );
+      }
+    } catch (err) {
+      console.error('Error updating teacher assignments:', err);
+      window.alert('Σφάλμα κατά την ενημέρωση των μαθημάτων: ' + err.message);
+      throw err;
+    }
+  };
+
   // Event CRUD Handlers
   const handleAddEventClick = (initialData = null) => {
     setEditingEvent(initialData);
@@ -934,9 +1000,15 @@ export default function App() {
   }
 
   if (loggedInUser.role === 'teacher') {
+    const currentTeacherContact = contacts.find(c => c.id === loggedInUser.id);
+    const activeTeacher = currentTeacherContact ? {
+      ...loggedInUser,
+      assignments: currentTeacherContact.assignments || loggedInUser.assignments || []
+    } : loggedInUser;
+
     return (
       <TeacherPortal 
-        teacher={loggedInUser}
+        teacher={activeTeacher}
         events={events}
         students={students}
         specialties={specialties}
@@ -1653,7 +1725,7 @@ export default function App() {
           {currentView === 'contacts' && (
             <div className="desktop-content" style={{ overflow: 'hidden', height: '100%' }}>
               <ContactDirectory
-                contacts={contacts.filter(c => c.role !== 'Καθηγητής' && c.category !== 'Εκπαιδευτής')}
+                contacts={contacts.filter(c => c.role !== 'Καθηγητής' && c.role !== 'Εκπαιδευτής' && c.category !== 'Καθηγητής' && c.category !== 'Εκπαιδευτής')}
                 specialties={specialties}
                 courses={courses}
                 onAddContactClick={handleAddContactClick}
@@ -1666,12 +1738,13 @@ export default function App() {
           {currentView === 'teachers' && (
             <div className="desktop-content" style={{ overflow: 'hidden', height: '100%' }}>
               <TeacherDirectory
-                contacts={contacts.filter(c => c.role === 'Καθηγητής' || c.category === 'Εκπαιδευτής')}
+                contacts={contacts.filter(c => c.role === 'Καθηγητής' || c.role === 'Εκπαιδευτής' || c.category === 'Καθηγητής' || c.category === 'Εκπαιδευτής')}
                 specialties={specialties}
                 courses={courses}
                 onAddContactClick={handleAddContactClick}
                 onEditContactClick={handleEditContactClick}
                 onDeleteContact={handleDeleteContact}
+                onUpdateTeacherAssignments={handleUpdateTeacherAssignments}
               />
             </div>
           )}

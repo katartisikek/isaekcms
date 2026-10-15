@@ -166,9 +166,19 @@ export const api = {
     return {
       ...data[0],
       category: data[0].role || 'Προμηθευτής',
-      description: contact.description || '',
+      description: contact.description || data[0].notes || '',
       assignments
     };
+  },
+  async updateTeacherAssignments(teacherId, assignments) {
+    const jsonDept = JSON.stringify(assignments || []);
+    const { data, error } = await supabase
+      .from('contacts')
+      .update({ department: jsonDept })
+      .eq('id', teacherId)
+      .select();
+    if (error) throw error;
+    return data[0];
   },
   async deleteContact(id) {
     const { error } = await supabase.from('contacts').delete().eq('id', id);
