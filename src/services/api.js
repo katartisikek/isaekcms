@@ -197,6 +197,10 @@ export const api = {
     if (error) throw error;
     return data;
   },
+  async deleteGradesForStudentCourse(studentId, courseTitle) {
+    const { error } = await supabase.from('grades').delete().eq('studentId', studentId).eq('courseTitle', courseTitle);
+    if (error) throw error;
+  },
 
   // Absences
   async fetchAbsences() {
@@ -209,6 +213,10 @@ export const api = {
     const { data, error } = await supabase.from('absences').upsert(absencesArray).select();
     if (error) throw error;
     return data;
+  },
+  async deleteAbsencesForStudentCourse(studentId, courseTitle) {
+    const { error } = await supabase.from('absences').delete().eq('studentId', studentId).eq('courseTitle', courseTitle);
+    if (error) throw error;
   },
 
   // Teacher Reports

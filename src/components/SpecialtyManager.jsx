@@ -1,10 +1,30 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, BookOpen, Layers, X, Save, Filter, Users, FolderOpen } from 'lucide-react';
 import { api } from '../services/api';
+import SectionStudentsModal from './SectionStudentsModal';
+import CourseStudentsModal from './CourseStudentsModal';
 
-export default function SpecialtyManager({ specialties, setSpecialties, courses, setCourses, sections = [], setSections = () => {} }) {
+export default function SpecialtyManager({ 
+  specialties, 
+  setSpecialties, 
+  courses, 
+  setCourses, 
+  sections = [], 
+  setSections = () => {},
+  students = [],
+  setStudents = () => {},
+  grades = [],
+  setGrades = () => {},
+  absences = [],
+  setAbsences = () => {},
+  loggedInUser
+}) {
   const [activeTab, setActiveTab] = useState('specialties'); // 'specialties', 'courses', 'sections', 'sectors'
   const [selectedSpecIdForCourses, setSelectedSpecIdForCourses] = useState('');
+  
+  // Student inspection modals state
+  const [selectedSectionForStudents, setSelectedSectionForStudents] = useState(null);
+  const [selectedCourseForStudents, setSelectedCourseForStudents] = useState(null);
   
   // Specialty Form State
   const [isSpecFormOpen, setIsSpecFormOpen] = useState(false);
@@ -189,6 +209,52 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
         await api.deleteSection(id);
         setSections(prev => prev.filter(s => s.id !== id));
       } catch (err) { alert(err.message); }
+    }
+  };
+
+  // --- Section & Course Student Management Handlers ---
+  const handleRemoveStudentFromSection = async (studentId, sectionId) => {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+    const updated = { ...student, sectionId: '' };
+    await api.upsertStudent(updated);
+    setStudents(prev => prev.map(s => s.id === studentId ? updated : s));
+    const secName = sections.find(sec => sec.id === sectionId)?.name || 'Τμήμα';
+    await api.logAction('UPDATE', 'student', student.fullName, loggedInUser?.name || 'Γραμματεία', `Αφαίρεση από το τμήμα: ${secName}`);
+  };
+
+  const handleAddStudentToSection = async (studentId, sectionId) => {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+    const targetSec = sections.find(sec => sec.id === sectionId);
+    const updated = { 
+      ...student, 
+      sectionId: sectionId,
+      specialtyId: student.specialtyId || targetSec?.specialtyId || ''
+    };
+    await api.upsertStudent(updated);
+    setStudents(prev => prev.map(s => s.id === studentId ? updated : s));
+    await api.logAction('UPDATE', 'student', student.fullName, loggedInUser?.name || 'Γραμματεία', `Ένταξη στο τμήμα: ${targetSec?.name || 'Τμήμα'}`);
+  };
+
+  const handleRemoveStudentFromCourse = async (studentId, courseTitle) => {
+    await api.deleteGradesForStudentCourse(studentId, courseTitle);
+    await api.deleteAbsencesForStudentCourse(studentId, courseTitle);
+    const normC = (str) => (str || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    setGrades(prev => prev.filter(g => !(g.studentId === studentId && normC(g.courseTitle) === normC(courseTitle))));
+    setAbsences(prev => prev.filter(a => !(a.studentId === studentId && normC(a.courseTitle) === normC(courseTitle))));
+    const student = students.find(s => s.id === studentId);
+    if (student) {
+      await api.logAction('UPDATE', 'student', student.fullName, loggedInUser?.name || 'Γραμματεία', `Αφαίρεση από το μάθημα: ${courseTitle}`);
+    }
+  };
+
+  const handleDeleteStudentPermanent = async (studentId) => {
+    const student = students.find(s => s.id === studentId);
+    await api.deleteStudent(studentId);
+    setStudents(prev => prev.filter(s => s.id !== studentId));
+    if (student) {
+      await api.logAction('DELETE', 'student', student.fullName, loggedInUser?.name || 'Γραμματεία', `Οριστική διαγραφή σπουδαστή`);
     }
   };
 
@@ -470,14 +536,39 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
                           padding: '10px 14px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0'
                         }}>
                           <span style={{ fontSize: '14px', fontWeight: '500', color: '#0f172a' }}>{c}</span>
-                          <div style={{ display: 'flex', gap: '4px' }}>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <button 
+                              className="btn-sys"
+                              style={{ 
+                                padding: '4px 10px', 
+                                fontSize: '12px',
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '5px',
+                                background: '#eff6ff', 
+                                color: '#2563eb', 
+                                borderColor: '#bfdbfe',
+                                fontWeight: '500'
+                              }}
+                              onClick={() => setSelectedCourseForStudents({
+                                courseTitle: c,
+                                specialtyId: selectedSpecIdForCourses,
+                                semester: sem
+                              })}
+                              title="Προβολή και διαχείριση σπουδαστών μαθήματος"
+                            >
+                              <Users size={13} />
+                              <span>Σπουδαστές</span>
+                            </button>
                             <button 
                               className="btn-sys" style={{ padding: '4px 8px', border: 'none', background: '#fff' }}
                               onClick={() => openCourseForm({ title: c, semester: sem })}
+                              title="Επεξεργασία μαθήματος"
                             ><Edit2 size={14} color="#64748b" /></button>
                             <button 
                               className="btn-sys" style={{ padding: '4px 8px', border: 'none', background: '#fff' }}
                               onClick={() => handleDeleteCourse(c, sem)}
+                              title="Διαγραφή μαθήματος"
                             ><Trash2 size={14} color="#ef4444" /></button>
                           </div>
                         </div>
@@ -516,6 +607,7 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
                                section.semester === 'semester2' ? 'Εξάμηνο Β' : 
                                section.semester === 'semester3' ? 'Εξάμηνο Γ' : 
                                section.semester === 'semester4' ? 'Εξάμηνο Δ' : section.semester;
+              const enrolledStudents = (students || []).filter(s => s.sectionId === section.id);
               
               return (
                 <div 
@@ -527,16 +619,31 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
                     backgroundColor: '#fff',
                     display: 'flex',
                     flexDirection: 'column',
+                    justifyContent: 'space-between',
                     gap: '12px'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ fontWeight: '600', color: '#0f172a', fontSize: '16px' }}>{section.name}</div>
+                    <div>
+                      <div style={{ fontWeight: '600', color: '#0f172a', fontSize: '16px' }}>{section.name}</div>
+                      <span style={{ 
+                        display: 'inline-block', 
+                        marginTop: '4px',
+                        fontSize: '11px', 
+                        padding: '2px 8px', 
+                        borderRadius: '999px', 
+                        background: enrolledStudents.length > 0 ? '#eff6ff' : '#f1f5f9',
+                        color: enrolledStudents.length > 0 ? '#1d4ed8' : '#64748b',
+                        fontWeight: '600'
+                      }}>
+                        👥 {enrolledStudents.length} {enrolledStudents.length === 1 ? 'σπουδαστής' : 'σπουδαστές'}
+                      </span>
+                    </div>
                     <div style={{ display: 'flex', gap: '4px' }}>
-                      <button className="btn-sys" style={{ padding: '4px' }} onClick={() => openSectionForm(section)}>
+                      <button className="btn-sys" style={{ padding: '4px' }} onClick={() => openSectionForm(section)} title="Επεξεργασία τμήματος">
                         <Edit2 size={14} color="#64748b" />
                       </button>
-                      <button className="btn-sys" style={{ padding: '4px' }} onClick={() => handleDeleteSection(section.id)}>
+                      <button className="btn-sys" style={{ padding: '4px' }} onClick={() => handleDeleteSection(section.id)} title="Διαγραφή τμήματος">
                         <Trash2 size={14} color="#ef4444" />
                       </button>
                     </div>
@@ -551,6 +658,26 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Users size={14} color="#94a3b8" /> {semLabel}
                     </div>
+                  </div>
+
+                  <div style={{ paddingTop: '8px', borderTop: '1px solid #f1f5f9', marginTop: '4px' }}>
+                    <button 
+                      className="btn-sys primary"
+                      style={{ 
+                        width: '100%', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '6px',
+                        padding: '8px 12px',
+                        fontSize: '13px',
+                        fontWeight: '500'
+                      }}
+                      onClick={() => setSelectedSectionForStudents(section)}
+                    >
+                      <Users size={15} />
+                      <span>Προβολή Σπουδαστών ({enrolledStudents.length})</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -817,6 +944,37 @@ export default function SpecialtyManager({ specialties, setSpecialties, courses,
             </form>
           </div>
         </div>
+      )}
+
+      {/* Modal: Section Students */}
+      {selectedSectionForStudents && (
+        <SectionStudentsModal
+          isOpen={!!selectedSectionForStudents}
+          onClose={() => setSelectedSectionForStudents(null)}
+          section={selectedSectionForStudents}
+          specialties={specialties}
+          students={students}
+          onRemoveStudentFromSection={handleRemoveStudentFromSection}
+          onAddStudentToSection={handleAddStudentToSection}
+          onDeleteStudent={handleDeleteStudentPermanent}
+        />
+      )}
+
+      {/* Modal: Course Students */}
+      {selectedCourseForStudents && (
+        <CourseStudentsModal
+          isOpen={!!selectedCourseForStudents}
+          onClose={() => setSelectedCourseForStudents(null)}
+          courseTitle={selectedCourseForStudents.courseTitle}
+          specialtyId={selectedCourseForStudents.specialtyId}
+          semester={selectedCourseForStudents.semester}
+          specialties={specialties}
+          sections={sections}
+          students={students}
+          grades={grades}
+          absences={absences}
+          onRemoveStudentFromCourse={handleRemoveStudentFromCourse}
+        />
       )}
 
     </div>

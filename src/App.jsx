@@ -54,6 +54,7 @@ export default function App() {
   const [showStartScreen, setShowStartScreen] = useState(true);
   const [selectedSector, setSelectedSector] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
+  const [selectedSection, setSelectedSection] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [lastSeenNotifications, setLastSeenNotifications] = useState('[]');
@@ -424,6 +425,7 @@ export default function App() {
     setCurrentView('students');
     setSelectedSector(sector);
     setSelectedSpecialty('');
+    setSelectedSection('');
     setShowStartScreen(false); // Move to grid view
   };
 
@@ -440,6 +442,7 @@ export default function App() {
       
       if (selectedSector && spec?.sector !== selectedSector) return false;
       if (selectedSpecialty && student.specialtyId !== selectedSpecialty) return false;
+      if (selectedSection && student.sectionId !== selectedSection) return false;
 
       if (searchQuery.trim() !== '') {
         const normalizeGreek = (str) => {
@@ -463,7 +466,7 @@ export default function App() {
 
       return true;
     });
-  }, [students, specialties, selectedSector, selectedSpecialty, searchQuery, currentView]);
+  }, [students, specialties, selectedSector, selectedSpecialty, selectedSection, searchQuery, currentView]);
 
   // Calculated totals for statusbar
   const totals = useMemo(() => {
@@ -978,6 +981,7 @@ export default function App() {
   const handleResetFilters = () => {
     setSelectedSector('');
     setSelectedSpecialty('');
+    setSelectedSection('');
     setSearchQuery('');
     setShowStartScreen(true);
   };
@@ -1137,7 +1141,10 @@ export default function App() {
             <select
               className="sys-input"
               value={selectedSpecialty}
-              onChange={(e) => setSelectedSpecialty(e.target.value)}
+              onChange={(e) => {
+                setSelectedSpecialty(e.target.value);
+                setSelectedSection('');
+              }}
               style={{ width: '280px', cursor: 'pointer' }}
             >
               <option value="">Όλες οι Ειδικότητες {selectedSector ? `(${selectedSector})` : ''}</option>
@@ -1146,6 +1153,23 @@ export default function App() {
                   {spec.title}
                 </option>
               ))}
+            </select>
+
+            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#4b5563', marginLeft: '8px' }}>Τμήμα:</span>
+            <select
+              className="sys-input"
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+              style={{ width: '180px', cursor: 'pointer' }}
+            >
+              <option value="">Όλα τα Τμήματα</option>
+              {sections
+                .filter(sec => !selectedSpecialty || sec.specialtyId === selectedSpecialty)
+                .map((sec) => (
+                  <option key={sec.id} value={sec.id}>
+                    {sec.name}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -1827,6 +1851,13 @@ export default function App() {
                 setCourses={setCourses}
                 sections={sections}
                 setSections={setSections}
+                students={students}
+                setStudents={setStudents}
+                grades={grades}
+                setGrades={setGrades}
+                absences={absences}
+                setAbsences={setAbsences}
+                loggedInUser={loggedInUser}
               />
             </div>
           )}

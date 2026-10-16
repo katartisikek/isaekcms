@@ -179,3 +179,26 @@ export function exportGrades(displayData, specialtyTitle, courseTitle) {
   downloadWorkbook([{ name: 'Βαθμολογίες', data }], `Βαθμολογιες_${safeCourse}`);
 }
 
+/**
+ * Export section students list to Excel.
+ * @param {Object} section
+ * @param {Array} students
+ * @param {string} specialtyTitle
+ */
+export function exportSectionStudents(section, students, specialtyTitle) {
+  const data = students.map((s, idx) => ({
+    'Α/Α': idx + 1,
+    'Ονοματεπώνυμο': s.fullName || '',
+    'Τμήμα': section?.name || '',
+    'Αρ. Μητρώου': s.mathitisAr || '',
+    'Τηλέφωνο': s.phone || '',
+    'Email': s.email || '',
+    'Ειδικότητα': specialtyTitle || '',
+    'Έτος': s.year || '',
+    'Κατάσταση': s.status === 'bek_graduate' ? 'Απόφοιτος ΒΕΚ' : s.status === 'graduate' ? 'Απόφοιτος' : s.status === 'dropped_out' ? 'Διέκοψε' : 'Ενεργός',
+    'Σημειώσεις': s.notes || ''
+  }));
+  const safeSection = (section?.name || 'Τμημα').replace(/[^a-zA-Zα-ωΑ-Ω0-9\s]/g, '').trim().replace(/\s+/g, '_');
+  downloadWorkbook([{ name: 'Σπουδαστές Τμήματος', data }], `Τμημα_${safeSection}`);
+}
+
