@@ -163,6 +163,7 @@ export default function App() {
   const [editingStudent, setEditingStudent] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [viewingStudent, setViewingStudent] = useState(null);
+  const [profileInitialTab, setProfileInitialTab] = useState('payments');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -478,7 +479,8 @@ export default function App() {
   }, [filteredStudents]);
 
   // CRUD Operation Handlers
-  const handleViewProfile = async (student) => {
+  const handleViewProfile = async (student, tab = 'payments') => {
+    setProfileInitialTab(tab);
     setViewingStudent(student);
     setIsProfileModalOpen(true);
     try {
@@ -1821,6 +1823,8 @@ export default function App() {
                 reports={teacherReports}
                 students={students}
                 specialties={specialties}
+                absences={absences}
+                onViewStudentProfile={(student, tab) => handleViewProfile(student, tab || 'grades')}
                 onDeleteReport={handleDeleteTeacherReport}
                 onRefresh={handleRefreshTeacherReports}
                 isRefreshing={isRefreshingReports}
@@ -1901,6 +1905,7 @@ export default function App() {
         onEditPayment={handleEditPayment}
         onDeletePayment={handleDeletePayment}
         currentUser={loggedInUser}
+        initialTab={profileInitialTab}
       />
 
       {/* Task Form Dialog Box Modal */}

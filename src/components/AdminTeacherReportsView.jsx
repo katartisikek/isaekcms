@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { FileText, Eye, X, Calendar as CalendarIcon, Clock, Users, Trash2, RefreshCw } from 'lucide-react';
+import { FileText, Eye, X, Calendar as CalendarIcon, Clock, Users, Trash2, RefreshCw, ExternalLink } from 'lucide-react';
 
 export default function AdminTeacherReportsView({ 
   reports = [], 
   students = [], 
   specialties = [], 
+  absences = [],
+  onViewStudentProfile,
   onDeleteReport,
   onRefresh,
   isRefreshing = false
@@ -29,6 +31,12 @@ export default function AdminTeacherReportsView({
     }
   };
 
+  const findStudent = (idOrName) => {
+    if (!idOrName) return null;
+    return students.find(s => s.id === idOrName) || 
+           students.find(s => s.fullName === idOrName || (s.fullName && s.fullName.toLowerCase() === String(idOrName).toLowerCase()));
+  };
+
   const getStudentName = (id) => {
     const student = students.find(s => s.id === id);
     return student ? student.fullName : 'Άγνωστος Μαθητής';
@@ -36,7 +44,11 @@ export default function AdminTeacherReportsView({
 
   const getSpecialtyTitle = (report) => {
     const spec = specialties.find(s => s.id === (report.specialtyId || report.sectionId));
-    return spec ? spec.title : (report.specialtyTitle || report.sectionName || 'Γενική Ειδικότητα');
+    const baseSpec = spec ? spec.title : (report.specialtyTitle || '');
+    if (report.sectionName && report.sectionName !== baseSpec) {
+      return baseSpec ? `${report.sectionName} — ${baseSpec}` : report.sectionName;
+    }
+    return baseSpec || report.sectionName || 'Γενική Ειδικότητα';
   };
 
   return (
@@ -180,7 +192,7 @@ export default function AdminTeacherReportsView({
       {/* Report Details Modal */}
       {selectedReport && (
         <div className="sys-modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' }}>
-          <div className="sys-modal" style={{ background: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '560px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
+          <div className="sys-modal" style={{ background: '#ffffff', borderRadius: '12px', width: '100%', maxWidth: '720px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', overflow: 'hidden' }}>
             
             <div className="sys-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc' }}>
               <h2 className="sys-modal-title" style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -276,33 +288,184 @@ export default function AdminTeacherReportsView({
                   <table className="sys-table" style={{ margin: 0, width: '100%', borderCollapse: 'collapse' }}>
                     <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                       <tr>
-                        <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Σπουδαστής</th>
-                        <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ώρες Απουσίας</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Σπουδαστής</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Σήμερα</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Στο Μάθημα</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'center', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Γενικό Σύνολο</th>
+                        <th style={{ padding: '12px 14px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Καρτέλα</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedReport.absences && selectedReport.absences.length > 0 ? (
-                        selectedReport.absences.map((abs, idx) => (
-                          <tr key={`new-${idx}`} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
-                            <td style={{ padding: '14px 16px', fontWeight: '500', color: '#334155', fontSize: '14px' }}>
-                              {getStudentName(abs.studentId)}
-                            </td>
-                            <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '600', color: '#ef4444', fontSize: '14px' }}>
-                              {abs.hours}
-                            </td>
-                          </tr>
-                        ))
+                        selectedReport.absences.map((abs, idx) => {
+                          const student = findStudent(abs.studentId);
+                          const studentId = student?.id || abs.studentId;
+                          const studentDisplayName = student ? student.fullName : getStudentName(abs.studentId);
+                          const courseAbsences = absences
+                            .filter(a => a.studentId === studentId && a.courseTitle === selectedReport.courseTitle)
+                            .reduce((sum, a) => sum + (a.hours || 0), 0);
+                          const totalStudentAbsences = absences
+                            .filter(a => a.studentId === studentId)
+                            .reduce((sum, a) => sum + (a.hours || 0), 0);
+
+                          return (
+                            <tr key={`new-${idx}`} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
+                              <td style={{ padding: '12px 14px', fontWeight: '600', color: '#1e293b', fontSize: '13.5px' }}>
+                                {student && onViewStudentProfile ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => onViewStudentProfile(student, 'grades')}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      padding: 0,
+                                      color: '#2563eb',
+                                      fontWeight: '600',
+                                      fontSize: '13.5px',
+                                      cursor: 'pointer',
+                                      textAlign: 'left',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                                    onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                                    title="Προβολή απουσιών & καρτέλας σπουδαστή"
+                                  >
+                                    <span>{studentDisplayName}</span>
+                                    <ExternalLink size={12} color="#3b82f6" />
+                                  </button>
+                                ) : (
+                                  <span>{studentDisplayName}</span>
+                                )}
+                              </td>
+                              <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: '700', color: '#ef4444', fontSize: '13.5px' }}>
+                                {abs.hours} {abs.hours === 1 ? 'ώρα' : 'ώρες'}
+                              </td>
+                              <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                <span style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>
+                                  {courseAbsences > 0 ? `${courseAbsences} ώρες` : `${abs.hours} ώρες`}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                <span style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>
+                                  {totalStudentAbsences > 0 ? `${totalStudentAbsences} ώρες` : `${abs.hours} ώρες`}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 14px', textAlign: 'right' }}>
+                                {student && onViewStudentProfile && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onViewStudentProfile(student, 'grades')}
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      background: '#eff6ff',
+                                      color: '#2563eb',
+                                      border: '1px solid #bfdbfe',
+                                      borderRadius: '6px',
+                                      padding: '4px 10px',
+                                      fontSize: '12px',
+                                      fontWeight: '600',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s ease'
+                                    }}
+                                    title="Άνοιγμα καρτέλας & όλων των απουσιών"
+                                  >
+                                    <Eye size={13} />
+                                    <span>Προβολή</span>
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
                       ) : (
-                        selectedReport.absentStudents && selectedReport.absentStudents.map((studentName, idx) => (
-                          <tr key={`old-${idx}`} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
-                            <td style={{ padding: '14px 16px', fontWeight: '500', color: '#334155', fontSize: '14px' }}>
-                              {studentName}
-                            </td>
-                            <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '600', color: '#ef4444', fontSize: '14px' }}>
-                              {selectedReport.hours || '-'}
-                            </td>
-                          </tr>
-                        ))
+                        selectedReport.absentStudents && selectedReport.absentStudents.map((studentName, idx) => {
+                          const student = findStudent(studentName);
+                          const studentId = student?.id;
+                          const courseAbsences = studentId ? absences
+                            .filter(a => a.studentId === studentId && a.courseTitle === selectedReport.courseTitle)
+                            .reduce((sum, a) => sum + (a.hours || 0), 0) : 0;
+                          const totalStudentAbsences = studentId ? absences
+                            .filter(a => a.studentId === studentId)
+                            .reduce((sum, a) => sum + (a.hours || 0), 0) : 0;
+                          const reportHours = selectedReport.hours || 1;
+
+                          return (
+                            <tr key={`old-${idx}`} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
+                              <td style={{ padding: '12px 14px', fontWeight: '600', color: '#1e293b', fontSize: '13.5px' }}>
+                                {student && onViewStudentProfile ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => onViewStudentProfile(student, 'grades')}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      padding: 0,
+                                      color: '#2563eb',
+                                      fontWeight: '600',
+                                      fontSize: '13.5px',
+                                      cursor: 'pointer',
+                                      textAlign: 'left',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '5px'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                                    onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                                    title="Προβολή απουσιών & καρτέλας σπουδαστή"
+                                  >
+                                    <span>{studentName}</span>
+                                    <ExternalLink size={12} color="#3b82f6" />
+                                  </button>
+                                ) : (
+                                  <span>{studentName}</span>
+                                )}
+                              </td>
+                              <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: '700', color: '#ef4444', fontSize: '13.5px' }}>
+                                {reportHours} {reportHours === 1 ? 'ώρα' : 'ώρες'}
+                              </td>
+                              <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                <span style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>
+                                  {courseAbsences > 0 ? `${courseAbsences} ώρες` : `${reportHours} ώρες`}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                <span style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: '600' }}>
+                                  {totalStudentAbsences > 0 ? `${totalStudentAbsences} ώρες` : `${reportHours} ώρες`}
+                                </span>
+                              </td>
+                              <td style={{ padding: '12px 14px', textAlign: 'right' }}>
+                                {student && onViewStudentProfile && (
+                                  <button
+                                    type="button"
+                                    onClick={() => onViewStudentProfile(student, 'grades')}
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      background: '#eff6ff',
+                                      color: '#2563eb',
+                                      border: '1px solid #bfdbfe',
+                                      borderRadius: '6px',
+                                      padding: '4px 10px',
+                                      fontSize: '12px',
+                                      fontWeight: '600',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.15s ease'
+                                    }}
+                                    title="Άνοιγμα καρτέλας & όλων των απουσιών"
+                                  >
+                                    <Eye size={13} />
+                                    <span>Προβολή</span>
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
                       )}
                     </tbody>
                   </table>

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { 
   BookOpen, CheckCircle, FileText, Calendar as CalendarIcon, Clock, Users, 
   Save, LogOut, BarChart3, ClipboardList, GraduationCap, ChevronDown,
-  AlertCircle, TrendingUp, History, X, Check, ArrowRight
+  AlertCircle, TrendingUp, History, X, Check, ArrowRight, Layers
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -26,6 +26,7 @@ export default function TeacherPortal({
   // Report state
   const [reportSpecialtyId, setReportSpecialtyId] = useState(() => localStorage.getItem('tp_specialtyId') || '');
   const [reportCourse, setReportCourse] = useState(() => localStorage.getItem('tp_course') || '');
+  const [reportSectionId, setReportSectionId] = useState(() => localStorage.getItem('tp_sectionId') || '');
   const [reportDate, setReportDate] = useState(() => localStorage.getItem('tp_date') || new Date().toISOString().split('T')[0]);
   const [reportArrivalTime, setReportArrivalTime] = useState(() => localStorage.getItem('tp_arrivalTime') || '');
   const [reportDepartureTime, setReportDepartureTime] = useState(() => localStorage.getItem('tp_departureTime') || '');
@@ -33,10 +34,11 @@ export default function TeacherPortal({
   useEffect(() => {
     localStorage.setItem('tp_specialtyId', reportSpecialtyId);
     localStorage.setItem('tp_course', reportCourse);
+    localStorage.setItem('tp_sectionId', reportSectionId);
     localStorage.setItem('tp_date', reportDate);
     localStorage.setItem('tp_arrivalTime', reportArrivalTime);
     localStorage.setItem('tp_departureTime', reportDepartureTime);
-  }, [reportSpecialtyId, reportCourse, reportDate, reportArrivalTime, reportDepartureTime]);
+  }, [reportSpecialtyId, reportCourse, reportSectionId, reportDate, reportArrivalTime, reportDepartureTime]);
   const [currentReportAbsences, setCurrentReportAbsences] = useState({});
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [reportSaving, setReportSaving] = useState(false);
@@ -44,9 +46,59 @@ export default function TeacherPortal({
   // Grades state
   const [gradesSpecialtyId, setGradesSpecialtyId] = useState('');
   const [gradesCourse, setGradesCourse] = useState('');
+  const [gradesSectionId, setGradesSectionId] = useState('');
   const [currentGrades, setCurrentGrades] = useState({});
   const [gradesSubmitted, setGradesSubmitted] = useState(false);
   const [gradesSaving, setGradesSaving] = useState(false);
+
+  // ──────────────────────────────────────────────
+  // Helpers for Active Students & Semester Mapping
+  // ──────────────────────────────────────────────
+
+  // Exclude students who graduated or dropped out (ensures attendance only for current class)
+  const isStudentActiveInCurrentProgram = (s) => {
+    if (!s) return false;
+    if (s.status === 'graduate' || s.status === 'bek_graduate' || s.status === 'dropped_out') {
+      return false;
+    }
+    const yearNorm = (s.year || '').trim().toLowerCase();
+    if (yearNorm.includes('αποφοιτ')) {
+      return false;
+    }
+    return true;
+  };
+
+  const normStr = (str) => (str || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+
+  const getSemesterLabel = (sem) => {
+    switch (sem) {
+      case 'semester1': return 'Α΄ Εξάμηνο';
+      case 'semester2': return 'Β΄ Εξάμηνο';
+      case 'semester3': return 'Γ΄ Εξάμηνο';
+      case 'semester4': return 'Δ΄ Εξάμηνο';
+      default: return sem || '';
+    }
+  };
+
+  // Helper to detect which semester a course belongs to from curriculum courses
+  const getCourseSemester = (specId, courseTitle) => {
+    if (!specId || !courseTitle || !courses || !courses[specId]) return null;
+    const specData = courses[specId];
+    const target = normStr(courseTitle);
+    if (!target) return null;
+
+    for (const sem of ['semester1', 'semester2', 'semester3', 'semester4']) {
+      const list = specData[sem];
+      if (Array.isArray(list)) {
+        if (list.some(c => normStr(c) === target)) return sem;
+        if (list.some(c => {
+          const nc = normStr(c);
+          return nc.includes(target) || target.includes(nc);
+        })) return sem;
+      }
+    }
+    return null;
+  };
 
   // ──────────────────────────────────────────────
   // Derive teacher's assignments
@@ -72,9 +124,72 @@ export default function TeacherPortal({
       .map(a => a.courseId);
   };
 
-  // Get students for a specialty
-  const getStudentsForSpecialty = (specId) => {
-    return students.filter(s => s.specialtyId === specId);
+  // Available sections for report
+  const availableReportSections = useMemo(() => {
+    if (!reportSpecialtyId) return [];
+    return sections.filter(sec => sec.specialtyId === reportSpecialtyId);
+  }, [reportSpecialtyId, sections]);
+
+  const handleReportSpecialtyChange = (specId) => {
+    setReportSpecialtyId(specId);
+    setReportCourse('');
+    const specSecs = sections.filter(sec => sec.specialtyId === specId);
+    if (specSecs.length === 1) {
+      setReportSectionId(specSecs[0].id);
+    } else {
+      setReportSectionId('');
+    }
+  };
+
+  const handleReportCourseChange = (course) => {
+    setReportCourse(course);
+    if (!course) return;
+
+    const detectedSem = getCourseSemester(reportSpecialtyId, course);
+    if (detectedSem) {
+      const matchingSec = availableReportSections.find(sec => sec.semester === detectedSem);
+      if (matchingSec) {
+        setReportSectionId(matchingSec.id);
+        return;
+      }
+    }
+    if (availableReportSections.length === 1) {
+      setReportSectionId(availableReportSections[0].id);
+    }
+  };
+
+  // Available sections for grades
+  const availableGradesSections = useMemo(() => {
+    if (!gradesSpecialtyId) return [];
+    return sections.filter(sec => sec.specialtyId === gradesSpecialtyId);
+  }, [gradesSpecialtyId, sections]);
+
+  const handleGradesSpecialtyChange = (specId) => {
+    setGradesSpecialtyId(specId);
+    setGradesCourse('');
+    const specSecs = sections.filter(sec => sec.specialtyId === specId);
+    if (specSecs.length === 1) {
+      setGradesSectionId(specSecs[0].id);
+    } else {
+      setGradesSectionId('');
+    }
+  };
+
+  const handleGradesCourseChange = (course) => {
+    setGradesCourse(course);
+    if (!course) return;
+
+    const detectedSem = getCourseSemester(gradesSpecialtyId, course);
+    if (detectedSem) {
+      const matchingSec = availableGradesSections.find(sec => sec.semester === detectedSem);
+      if (matchingSec) {
+        setGradesSectionId(matchingSec.id);
+        return;
+      }
+    }
+    if (availableGradesSections.length === 1) {
+      setGradesSectionId(availableGradesSections[0].id);
+    }
   };
 
   // Calculate hours from arrival/departure
@@ -94,8 +209,30 @@ export default function TeacherPortal({
   // ──────────────────────────────────────────────
   const reportStudents = useMemo(() => {
     if (!reportSpecialtyId) return [];
-    return getStudentsForSpecialty(reportSpecialtyId);
-  }, [reportSpecialtyId, students]);
+    
+    // 1. Filter students by specialty
+    let list = students.filter(s => s.specialtyId === reportSpecialtyId);
+    
+    // 2. Filter out past students (graduates, bek_graduates, dropped_out)
+    list = list.filter(isStudentActiveInCurrentProgram);
+
+    // 3. Filter by current section (τωρινό τμήμα)
+    if (reportSectionId) {
+      list = list.filter(s => s.sectionId === reportSectionId);
+    } else if (reportCourse) {
+      const detectedSem = getCourseSemester(reportSpecialtyId, reportCourse);
+      if (detectedSem) {
+        const semSecIds = sections
+          .filter(sec => sec.specialtyId === reportSpecialtyId && sec.semester === detectedSem)
+          .map(sec => sec.id);
+        if (semSecIds.length > 0) {
+          list = list.filter(s => semSecIds.includes(s.sectionId));
+        }
+      }
+    }
+
+    return list.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'el'));
+  }, [reportSpecialtyId, reportSectionId, reportCourse, students, sections, courses]);
 
   const reportCourseOptions = useMemo(() => {
     if (!reportSpecialtyId) return [];
@@ -154,12 +291,15 @@ export default function TeacherPortal({
           return st ? st.fullName : 'Άγνωστος';
         });
 
+      const selectedSection = sections.find(s => s.id === reportSectionId);
+      const sectionName = selectedSection ? selectedSection.name : specialtyTitle;
+
       const newReport = {
         id: `rep_${Date.now()}`,
         teacherId: teacher.id,
         teacherName: teacher.name,
-        sectionId: reportSpecialtyId,
-        sectionName: specialtyTitle,
+        sectionId: reportSectionId || reportSpecialtyId,
+        sectionName: sectionName,
         specialtyTitle,
         courseTitle: reportCourse,
         date: reportDate,
@@ -176,6 +316,7 @@ export default function TeacherPortal({
       
       localStorage.removeItem('tp_specialtyId');
       localStorage.removeItem('tp_course');
+      localStorage.removeItem('tp_sectionId');
       localStorage.removeItem('tp_date');
       localStorage.removeItem('tp_arrivalTime');
       localStorage.removeItem('tp_departureTime');
@@ -184,6 +325,7 @@ export default function TeacherPortal({
       setTimeout(() => {
         setReportSubmitted(false);
         setReportCourse('');
+        setReportSectionId('');
         setReportArrivalTime('');
         setReportDepartureTime('');
         setCurrentReportAbsences({});
@@ -205,8 +347,26 @@ export default function TeacherPortal({
 
   const gradesStudents = useMemo(() => {
     if (!gradesSpecialtyId) return [];
-    return getStudentsForSpecialty(gradesSpecialtyId);
-  }, [gradesSpecialtyId, students]);
+    
+    let list = students.filter(s => s.specialtyId === gradesSpecialtyId);
+    list = list.filter(isStudentActiveInCurrentProgram);
+
+    if (gradesSectionId) {
+      list = list.filter(s => s.sectionId === gradesSectionId);
+    } else if (gradesCourse) {
+      const detectedSem = getCourseSemester(gradesSpecialtyId, gradesCourse);
+      if (detectedSem) {
+        const semSecIds = sections
+          .filter(sec => sec.specialtyId === gradesSpecialtyId && sec.semester === detectedSem)
+          .map(sec => sec.id);
+        if (semSecIds.length > 0) {
+          list = list.filter(s => semSecIds.includes(s.sectionId));
+        }
+      }
+    }
+
+    return list.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'el'));
+  }, [gradesSpecialtyId, gradesSectionId, gradesCourse, students, sections, courses]);
 
   const normCourse = (str) => (str || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
 
@@ -292,7 +452,10 @@ export default function TeacherPortal({
   const totalStudents = useMemo(() => {
     const ids = new Set();
     teacherSpecialtyIds.forEach(specId => {
-      students.filter(s => s.specialtyId === specId).forEach(s => ids.add(s.id));
+      students
+        .filter(s => s.specialtyId === specId)
+        .filter(isStudentActiveInCurrentProgram)
+        .forEach(s => ids.add(s.id));
     });
     return ids.size;
   }, [students, teacherSpecialtyIds]);
@@ -362,7 +525,7 @@ export default function TeacherPortal({
                 <Users size={24} />
                 <div>
                   <span className="tp-stat-number">{totalStudents}</span>
-                  <span className="tp-stat-label">Μαθητές</span>
+                  <span className="tp-stat-label">Ενεργοί Μαθητές</span>
                 </div>
               </div>
               <div className="tp-stat-card tp-stat-purple">
@@ -386,7 +549,9 @@ export default function TeacherPortal({
             <div className="tp-courses-grid">
               {teacherSpecialties.map(spec => {
                 const myCourses = getTeacherCourses(spec.id);
-                const myStudents = getStudentsForSpecialty(spec.id);
+                const myStudents = students
+                  .filter(s => s.specialtyId === spec.id)
+                  .filter(isStudentActiveInCurrentProgram);
                 return (
                   <div key={spec.id} className="tp-course-card">
                     <div className="tp-course-card-header">
@@ -395,20 +560,32 @@ export default function TeacherPortal({
                     </div>
                     <div className="tp-course-card-body">
                       <div className="tp-course-meta">
-                        <span><Users size={14} /> {myStudents.length} μαθητές</span>
+                        <span><Users size={14} /> {myStudents.length} ενεργοί μαθητές</span>
                         <span><BookOpen size={14} /> {myCourses.length} μαθήματα</span>
                       </div>
                       <div className="tp-course-list">
-                        {myCourses.map((c, i) => (
-                          <div key={i} className="tp-course-item">
-                            <ArrowRight size={12} /> {c}
-                          </div>
-                        ))}
+                        {myCourses.map((c, i) => {
+                          const sem = getCourseSemester(spec.id, c);
+                          const matchingSec = sections.find(s => s.specialtyId === spec.id && s.semester === sem);
+                          return (
+                            <div key={i} className="tp-course-item">
+                              <ArrowRight size={12} /> {c}
+                              {matchingSec && (
+                                <span style={{ marginLeft: 'auto', fontSize: '11px', background: '#e0e7ff', color: '#4338ca', padding: '1px 6px', borderRadius: '4px', fontWeight: '600' }}>
+                                  {matchingSec.name}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                     <button 
                       className="tp-course-card-action"
-                      onClick={() => { setReportSpecialtyId(spec.id); setActiveTab('report'); }}
+                      onClick={() => { 
+                        handleReportSpecialtyChange(spec.id); 
+                        setActiveTab('report'); 
+                      }}
                     >
                       <ClipboardList size={14} /> Νέα Αναφορά
                     </button>
@@ -464,7 +641,7 @@ export default function TeacherPortal({
                   <select
                     className="tp-select"
                     value={reportSpecialtyId}
-                    onChange={e => { setReportSpecialtyId(e.target.value); setReportCourse(''); }}
+                    onChange={e => handleReportSpecialtyChange(e.target.value)}
                   >
                     <option value="">Επιλέξτε ειδικότητα...</option>
                     {teacherSpecialties.map(s => (
@@ -479,12 +656,32 @@ export default function TeacherPortal({
                   <select
                     className="tp-select"
                     value={reportCourse}
-                    onChange={e => setReportCourse(e.target.value)}
+                    onChange={e => handleReportCourseChange(e.target.value)}
                     disabled={!reportSpecialtyId}
                   >
                     <option value="">Επιλέξτε μάθημα...</option>
                     {reportCourseOptions.map((c, i) => (
                       <option key={i} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Section / Τμήμα */}
+                <div className="tp-form-group">
+                  <label className="tp-label"><Layers size={14} /> Τμήμα (Τωρινό)</label>
+                  <select
+                    className="tp-select"
+                    value={reportSectionId}
+                    onChange={e => setReportSectionId(e.target.value)}
+                    disabled={!reportSpecialtyId}
+                  >
+                    <option value="">
+                      {availableReportSections.length === 0 ? '-- Κανένα καταχωρημένο τμήμα --' : '-- Όλα τα ενεργά τμήματα --'}
+                    </option>
+                    {availableReportSections.map(sec => (
+                      <option key={sec.id} value={sec.id}>
+                        {sec.name} {sec.semester ? `(${getSemesterLabel(sec.semester)})` : ''}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -567,19 +764,32 @@ export default function TeacherPortal({
               {/* Attendance List */}
               {reportSpecialtyId && reportCourse && (
                 <div className="tp-attendance-section">
-                  <h3 className="tp-subsection-title">
-                    <Users size={18} /> Απουσιολόγιο 
-                    <span className="tp-badge">{reportStudents.length} σπουδαστές</span>
-                    {Object.values(currentReportAbsences).filter(Boolean).length > 0 && (
-                      <span className="tp-badge tp-badge-red">
-                        {Object.values(currentReportAbsences).filter(Boolean).length} απόντες
-                      </span>
-                    )}
-                  </h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+                    <h3 className="tp-subsection-title" style={{ margin: 0, padding: 0, border: 'none' }}>
+                      <Users size={18} /> Απουσιολόγιο Τμήματος
+                      <span className="tp-badge">{reportStudents.length} ενεργοί σπουδαστές</span>
+                      {sections.find(s => s.id === reportSectionId) && (
+                        <span className="tp-badge" style={{ background: '#e0e7ff', color: '#4338ca' }}>
+                          Τμήμα: {sections.find(s => s.id === reportSectionId)?.name}
+                        </span>
+                      )}
+                      {Object.values(currentReportAbsences).filter(Boolean).length > 0 && (
+                        <span className="tp-badge tp-badge-red">
+                          {Object.values(currentReportAbsences).filter(Boolean).length} απόντες
+                        </span>
+                      )}
+                    </h3>
+                    <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CheckCircle size={14} color="#16a34a" />
+                      <span>Εμφανίζονται αποκλειστικά οι ενεργοί σπουδαστές του τρέχοντος τμήματος.</span>
+                    </div>
+                  </div>
                   
                   {reportStudents.length === 0 ? (
                     <div className="tp-empty-state-sm">
-                      <p>Δεν βρέθηκαν εγγεγραμμένοι μαθητές σε αυτή την ειδικότητα.</p>
+                      <AlertCircle size={28} color="#94a3b8" />
+                      <p>Δεν βρέθηκαν ενεργοί εγγεγραμμένοι σπουδαστές στο επιλεγμένο τμήμα.</p>
+                      <small style={{ color: '#94a3b8' }}>Ελέγξτε τις αναθέσεις τμημάτων στη γραμματεία.</small>
                     </div>
                   ) : (
                     <div className="tp-attendance-list">
@@ -642,9 +852,11 @@ export default function TeacherPortal({
                           if (window.confirm('Είστε σίγουροι ότι θέλετε να καθαρίσετε τη φόρμα (συμπεριλαμβανομένης της ώρας);')) {
                             setReportArrivalTime('');
                             setReportDepartureTime('');
+                            setReportSectionId('');
                             setCurrentReportAbsences({});
                             localStorage.removeItem('tp_specialtyId');
                             localStorage.removeItem('tp_course');
+                            localStorage.removeItem('tp_sectionId');
                             localStorage.removeItem('tp_date');
                             localStorage.removeItem('tp_arrivalTime');
                             localStorage.removeItem('tp_departureTime');
@@ -682,13 +894,13 @@ export default function TeacherPortal({
             <h2 className="tp-section-title"><GraduationCap size={22} /> Καταχώρηση Βαθμολογιών</h2>
 
             <div className="tp-form-card">
-              <div className="tp-form-grid tp-form-grid-2">
+              <div className="tp-form-grid">
                 <div className="tp-form-group">
                   <label className="tp-label">Ειδικότητα</label>
                   <select
                     className="tp-select"
                     value={gradesSpecialtyId}
-                    onChange={e => { setGradesSpecialtyId(e.target.value); setGradesCourse(''); }}
+                    onChange={e => handleGradesSpecialtyChange(e.target.value)}
                   >
                     <option value="">Επιλέξτε ειδικότητα...</option>
                     {teacherSpecialties.map(s => (
@@ -701,7 +913,7 @@ export default function TeacherPortal({
                   <select
                     className="tp-select"
                     value={gradesCourse}
-                    onChange={e => setGradesCourse(e.target.value)}
+                    onChange={e => handleGradesCourseChange(e.target.value)}
                     disabled={!gradesSpecialtyId}
                   >
                     <option value="">Επιλέξτε μάθημα...</option>
@@ -710,18 +922,48 @@ export default function TeacherPortal({
                     ))}
                   </select>
                 </div>
+                <div className="tp-form-group">
+                  <label className="tp-label"><Layers size={14} /> Τμήμα (Τωρινό)</label>
+                  <select
+                    className="tp-select"
+                    value={gradesSectionId}
+                    onChange={e => setGradesSectionId(e.target.value)}
+                    disabled={!gradesSpecialtyId}
+                  >
+                    <option value="">
+                      {availableGradesSections.length === 0 ? '-- Κανένα καταχωρημένο τμήμα --' : '-- Όλα τα ενεργά τμήματα --'}
+                    </option>
+                    {availableGradesSections.map(sec => (
+                      <option key={sec.id} value={sec.id}>
+                        {sec.name} {sec.semester ? `(${getSemesterLabel(sec.semester)})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {gradesSpecialtyId && gradesCourse ? (
                 <div className="tp-grades-section">
-                  <h3 className="tp-subsection-title">
-                    <Users size={18} /> Σπουδαστές
-                    <span className="tp-badge">{gradesStudents.length}</span>
-                  </h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+                    <h3 className="tp-subsection-title" style={{ margin: 0, padding: 0, border: 'none' }}>
+                      <Users size={18} /> Σπουδαστές Τμήματος
+                      <span className="tp-badge">{gradesStudents.length} ενεργοί</span>
+                      {sections.find(s => s.id === gradesSectionId) && (
+                        <span className="tp-badge" style={{ background: '#e0e7ff', color: '#4338ca' }}>
+                          Τμήμα: {sections.find(s => s.id === gradesSectionId)?.name}
+                        </span>
+                      )}
+                    </h3>
+                    <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CheckCircle size={14} color="#16a34a" />
+                      <span>Εμφανίζονται αποκλειστικά οι ενεργοί σπουδαστές του τρέχοντος τμήματος.</span>
+                    </div>
+                  </div>
 
                   {gradesStudents.length === 0 ? (
                     <div className="tp-empty-state-sm">
-                      <p>Δεν βρέθηκαν εγγεγραμμένοι μαθητές.</p>
+                      <AlertCircle size={28} color="#94a3b8" />
+                      <p>Δεν βρέθηκαν ενεργοί εγγεγραμμένοι σπουδαστές στο επιλεγμένο τμήμα.</p>
                     </div>
                   ) : (
                     <div className="tp-grades-table-wrap">

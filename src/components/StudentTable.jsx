@@ -148,8 +148,8 @@ export default function StudentTable({ students = [], specialties = [], onViewPr
                     <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
                       <button 
                         className="btn-icon edit" 
-                        onClick={() => onViewProfile(student)}
-                        title="Βαθμολογίες"
+                        onClick={() => onViewProfile(student, 'grades')}
+                        title="Βαθμολογίες & Απουσίες"
                         style={{ width: '26px', height: '26px', borderRadius: '4px', background: 'rgba(37, 99, 235, 0.1)', color: '#2563eb', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <Award size={13} />

@@ -31,6 +31,7 @@ export default function StudentProfileModal({
   onClose,
   student,
   specialties = [],
+  courses = [],
   grades = [],
   absences = [],
   onUpdateDebt,
@@ -38,7 +39,8 @@ export default function StudentProfileModal({
   onAddPayment,
   onEditPayment,
   onDeletePayment,
-  currentUser
+  currentUser,
+  initialTab = 'payments'
 }) {
   const specialty = useMemo(
     () => specialties.find((s) => s.id === student?.specialtyId),
@@ -46,7 +48,7 @@ export default function StudentProfileModal({
   );
   
   const [previewDoc, setPreviewDoc] = useState(null);
-  const [activeTab, setActiveTab] = useState('payments'); // 'payments' | 'grades'
+  const [activeTab, setActiveTab] = useState(initialTab || 'payments'); // 'payments' | 'grades'
 
   // Payment form state
   const [showAddPayment, setShowAddPayment] = useState(false);
@@ -68,6 +70,7 @@ export default function StudentProfileModal({
 
   useEffect(() => {
     if (isOpen) {
+      setActiveTab(initialTab || 'payments');
       setShowAddPayment(false);
       setNewPaymentAmount('');
       setNewPaymentDate(toInputDate(new Date().toISOString()));
@@ -77,19 +80,22 @@ export default function StudentProfileModal({
       setFullPaymentDate(toInputDate(new Date().toISOString()));
       setFullPaymentNotes('');
     }
-  }, [isOpen, student?.id]);
+  }, [isOpen, initialTab, student?.id]);
 
   if (!isOpen || !student) return null;
 
   const studentGrades = grades.filter(g => g.studentId === student.id);
-  const studentAbsences = absences.filter(a => a.studentId === student.id);
+  const studentAbsences = absences
+    .filter(a => a.studentId === student.id)
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  const totalAbsenceHours = studentAbsences.reduce((sum, a) => sum + (a.hours || 0), 0);
   const studentPayments = paymentRecords.filter(p => p.studentId === student.id)
     .sort((a, b) => new Date(b.paymentDate) - new Date(a.paymentDate));
 
   const absencesByCourse = {};
   studentAbsences.forEach(abs => {
     if (!absencesByCourse[abs.courseTitle]) absencesByCourse[abs.courseTitle] = 0;
-    absencesByCourse[abs.courseTitle] += abs.hours;
+    absencesByCourse[abs.courseTitle] += (abs.hours || 0);
   });
 
   const allCoursesSet = new Set([
@@ -591,9 +597,21 @@ export default function StudentProfileModal({
               {/* ===== GRADES TAB ===== */}
               {activeTab === 'grades' && (
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                    <BarChart2 size={16} color="#2563eb" />
-                    <span style={{ fontWeight: '700', fontSize: '0.9rem', color: '#0f172a' }}>Βαθμολογίες & Απουσίες</span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <BarChart2 size={16} color="#2563eb" />
+                      <span style={{ fontWeight: '700', fontSize: '0.9rem', color: '#0f172a' }}>Βαθμολογίες & Απουσίες ανά Μάθημα</span>
+                    </div>
+                    {totalAbsenceHours > 0 ? (
+                      <span style={{ fontSize: '12px', fontWeight: '700', color: '#dc2626', background: '#fee2e2', border: '1px solid #fecaca', padding: '3px 10px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                        <Clock size={12} />
+                        Σύνολο Απουσιών: {totalAbsenceHours} {totalAbsenceHours === 1 ? 'ώρα' : 'ώρες'}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '12px', fontWeight: '600', color: '#16a34a', background: '#dcfce7', border: '1px solid #bbf7d0', padding: '3px 10px', borderRadius: '12px' }}>
+                        Καμία Απουσία (0 ώρες)
+                      </span>
+                    )}
                   </div>
                   {coursesList.length === 0 ? (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', gap: '8px', padding: '40px 0' }}>
@@ -644,6 +662,61 @@ export default function StudentProfileModal({
                       </tbody>
                     </table>
                   )}
+
+                  {/* Detailed Absences Timeline / History */}
+                  <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Clock size={16} color="#ef4444" />
+                        <span style={{ fontWeight: '700', fontSize: '0.88rem', color: '#0f172a' }}>
+                          Αναλυτικό Ημερολόγιο Απουσιών
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>
+                          ({studentAbsences.length} {studentAbsences.length === 1 ? 'καταχώριση' : 'καταχωρίσεις'})
+                        </span>
+                      </div>
+                    </div>
+
+                    {studentAbsences.length === 0 ? (
+                      <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #dcfce7', color: '#15803d', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CheckCircle size={16} color="#16a34a" />
+                        <span>Δεν υπάρχουν καταγεγραμμένες απουσίες για αυτόν τον σπουδαστή.</span>
+                      </div>
+                    ) : (
+                      <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', background: '#fff' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                          <thead>
+                            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: '600', color: '#64748b', width: '20%' }}>Ημερομηνία</th>
+                              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: '600', color: '#64748b', width: '38%' }}>Μάθημα</th>
+                              <th style={{ padding: '10px 14px', textAlign: 'center', fontWeight: '600', color: '#64748b', width: '16%' }}>Ώρες Απουσίας</th>
+                              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: '600', color: '#64748b', width: '26%' }}>Σημειώσεις / Ώρα</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {studentAbsences.map((abs, idx) => (
+                              <tr key={abs.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '10px 14px', color: '#334155', fontWeight: '500' }}>
+                                  {abs.date ? new Date(abs.date).toLocaleDateString('el-GR') : '—'}
+                                </td>
+                                <td style={{ padding: '10px 14px', color: '#0f172a', fontWeight: '600' }}>
+                                  {abs.courseTitle || '—'}
+                                </td>
+                                <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                  <span style={{ background: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: '700' }}>
+                                    {abs.hours} {abs.hours === 1 ? 'ώρα' : 'ώρες'}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '10px 14px', color: '#64748b', fontSize: '12px' }}>
+                                  {abs.notes || '—'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
