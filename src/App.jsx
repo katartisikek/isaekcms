@@ -258,12 +258,16 @@ export default function App() {
     loadData();
   }, []);
 
-  // Handler to refresh teacher reports from Supabase
+  // Handler to refresh teacher reports and absences from Supabase
   const handleRefreshTeacherReports = async () => {
     setIsRefreshingReports(true);
     try {
-      const tr = await api.fetchTeacherReports();
+      const [tr, freshAbsences] = await Promise.all([
+        api.fetchTeacherReports(),
+        api.fetchAbsences()
+      ]);
       setTeacherReports(tr);
+      if (freshAbsences) setAbsences(freshAbsences);
     } catch (e) {
       console.error("Error refreshing teacher reports:", e);
     } finally {
@@ -908,23 +912,136 @@ export default function App() {
     setShowStartScreen(false);
   };
 
+  // Helper to find absences matching a teacher report (both for new reports with [rep:id] and existing reports)
+  const findAbsencesForTeacherReport = (report, allAbsences = [], allStudents = []) => {
+    if (!report) return [];
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
+    // 1. Direct match by report id if embedded in notes or property
+    const directMatches = allAbsences.filter(a =>
+      (a.reportId && a.reportId === report.id) ||
+      (a.notes && a.notes.includes(report.id))
+    );
+    if (directMatches.length > 0) {
+      return directMatches;
+    }
+
+    // 2. Match by absentStudents, date, courseTitle, and time
+    if (!report.absentStudents || report.absentStudents.length === 0) {
+      return [];
+    }
+
+    const studentIds = new Set();
+    report.absentStudents.forEach(item => {
+      const itStr = typeof item === 'string' ? item : (item.id || item.studentId || item.fullName || '');
+      const st = allStudents.find(s => s.id === itStr || norm(s.fullName) === norm(itStr));
+      if (st) studentIds.add(st.id);
+      else if (itStr) studentIds.add(itStr);
+    });
+
+    return allAbsences.filter(a => {
+      if (a.date !== report.date) return false;
+      if (norm(a.courseTitle) !== norm(report.courseTitle)) return false;
+
+      const matchesStudent = studentIds.has(a.studentId) ||
+        allStudents.some(s => s.id === a.studentId && Array.from(studentIds).includes(s.id));
+      if (!matchesStudent) return false;
+
+      // If report has arrival time, check notes
+      if (report.arrivalTime && a.notes && a.notes.includes('Ώρα:')) {
+        if (!a.notes.includes(report.arrivalTime)) return false;
+      }
+
+      return true;
+    });
+  };
+
   // Teacher Report Delete Handler
-  const handleDeleteTeacherReport = async (reportId) => {
-    const reportToDelete = teacherReports.find(r => r.id === reportId);
+  const handleDeleteTeacherReport = async (reportOrId) => {
+    const reportId = typeof reportOrId === 'object' && reportOrId ? reportOrId.id : reportOrId;
+    const reportToDelete = (typeof reportOrId === 'object' && reportOrId)
+      ? reportOrId
+      : teacherReports.find(r => r.id === reportId);
+
     try {
+      // 1. Identify related absences
+      const matchedAbsences = findAbsencesForTeacherReport(reportToDelete, absences, students);
+      const absenceIdsToDelete = matchedAbsences.map(a => a.id);
+
+      // 2. Delete matched absences from database and state
+      if (absenceIdsToDelete.length > 0) {
+        await api.deleteAbsences(absenceIdsToDelete);
+        setAbsences((prev) => prev.filter((a) => !absenceIdsToDelete.includes(a.id)));
+      }
+
+      // 3. Delete report from database and state
       await api.deleteTeacherReport(reportId);
       setTeacherReports((prev) => prev.filter((r) => r.id !== reportId));
+
+      // 4. Audit log
       if (reportToDelete) {
+        const absNote = absenceIdsToDelete.length > 0
+          ? ` (διαγράφηκαν και ${absenceIdsToDelete.length} ${absenceIdsToDelete.length === 1 ? 'απουσία' : 'απουσίες'})`
+          : '';
         await api.logAction(
           'DELETE',
           'teacher_report',
           `${reportToDelete.teacherName} — ${reportToDelete.courseTitle}`,
           loggedInUser?.name || 'Γραμματεία',
-          `Διαγραφή δήλωσης μαθήματος (${reportToDelete.date})`
+          `Διαγραφή δήλωσης μαθήματος (${reportToDelete.date})${absNote}`
         );
       }
     } catch (e) {
+      console.error('Σφάλμα κατά τη διαγραφή αναφοράς / απουσιών:', e);
       window.alert('Σφάλμα κατά τη διαγραφή αναφοράς: ' + e.message);
+    }
+  };
+
+  // Teacher Report Date Update Handler
+  const handleUpdateTeacherReportDate = async (reportOrId, newDate) => {
+    const reportId = typeof reportOrId === 'object' && reportOrId ? reportOrId.id : reportOrId;
+    const reportToUpdate = (typeof reportOrId === 'object' && reportOrId)
+      ? reportOrId
+      : teacherReports.find(r => r.id === reportId);
+
+    if (!reportToUpdate || !newDate) return;
+    const oldDate = reportToUpdate.date;
+    if (oldDate === newDate) return;
+
+    try {
+      // 1. Identify related absences using old date & report metadata
+      const matchedAbsences = findAbsencesForTeacherReport(reportToUpdate, absences, students);
+      const matchedAbsenceIds = matchedAbsences.map(a => a.id);
+
+      // 2. Update report date in database
+      await api.updateTeacherReportDate(reportId, newDate);
+
+      // 3. Update related absences date in database & state
+      if (matchedAbsenceIds.length > 0) {
+        await api.updateAbsencesDate(matchedAbsenceIds, newDate);
+        setAbsences((prev) => prev.map((a) => matchedAbsenceIds.includes(a.id) ? { ...a, date: newDate } : a));
+      }
+
+      // 4. Update teacherReports in local state
+      setTeacherReports((prev) => prev.map((r) => r.id === reportId ? { ...r, date: newDate } : r));
+
+      // 5. Audit log
+      const absNote = matchedAbsenceIds.length > 0
+        ? ` (ενημερώθηκαν και ${matchedAbsenceIds.length} ${matchedAbsenceIds.length === 1 ? 'απουσία' : 'απουσίες'} μαθητών)`
+        : '';
+      await api.logAction(
+        'UPDATE',
+        'teacher_report',
+        `${reportToUpdate.teacherName} — ${reportToUpdate.courseTitle}`,
+        loggedInUser?.name || 'Γραμματεία',
+        `Αλλαγή ημερομηνίας δήλωσης μαθήματος από ${oldDate} σε ${newDate}${absNote}`
+      );
+
+      return { ...reportToUpdate, date: newDate };
+    } catch (e) {
+      console.error('Σφάλμα κατά την αλλαγή ημερομηνίας αναφοράς / απουσιών:', e);
+      window.alert('Σφάλμα κατά την αλλαγή ημερομηνίας δήλωσης: ' + e.message);
+      throw e;
     }
   };
 
@@ -1826,6 +1943,7 @@ export default function App() {
                 absences={absences}
                 onViewStudentProfile={(student, tab) => handleViewProfile(student, tab || 'grades')}
                 onDeleteReport={handleDeleteTeacherReport}
+                onUpdateReportDate={handleUpdateTeacherReportDate}
                 onRefresh={handleRefreshTeacherReports}
                 isRefreshing={isRefreshingReports}
               />

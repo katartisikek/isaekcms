@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Eye, X, Calendar as CalendarIcon, Clock, Users, Trash2, RefreshCw, ExternalLink } from 'lucide-react';
+import { FileText, Eye, X, Calendar as CalendarIcon, Clock, Users, Trash2, RefreshCw, ExternalLink, Edit2, CheckCircle2 } from 'lucide-react';
 
 export default function AdminTeacherReportsView({ 
   reports = [], 
@@ -8,23 +8,91 @@ export default function AdminTeacherReportsView({
   absences = [],
   onViewStudentProfile,
   onDeleteReport,
+  onUpdateReportDate,
   onRefresh,
   isRefreshing = false
 }) {
   const [selectedReport, setSelectedReport] = useState(null);
+  const [editingReport, setEditingReport] = useState(null);
+  const [newReportDate, setNewReportDate] = useState('');
+  const [isUpdatingDate, setIsUpdatingDate] = useState(false);
+  const [dateUpdateSuccess, setDateUpdateSuccess] = useState(false);
 
   // Sort reports by date descending
   const sortedReports = [...reports].sort((a, b) => new Date(b.submittedAt || b.timestamp || b.date) - new Date(a.submittedAt || a.timestamp || a.date));
 
-  const handleDeleteReport = (report) => {
-    const reportInfo = `${report.teacherName || 'Εκπαιδευτικός'} — ${report.courseTitle || 'Μάθημα'} (${new Date(report.date).toLocaleDateString('el-GR')})`;
+  const formatDateDisplay = (dateStr) => {
+    if (!dateStr) return '—';
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [y, m, d] = dateStr.split('-');
+      return `${d}/${m}/${y}`;
+    }
+    try {
+      return new Date(dateStr).toLocaleDateString('el-GR');
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const handleOpenDateModal = (report, e) => {
+    if (e) e.stopPropagation();
+    setEditingReport(report);
+    const curDate = report.date ? (report.date.includes('T') ? report.date.split('T')[0] : report.date) : '';
+    setNewReportDate(curDate);
+    setDateUpdateSuccess(false);
+  };
+
+  const handleCloseDateModal = () => {
+    if (isUpdatingDate) return;
+    setEditingReport(null);
+    setNewReportDate('');
+    setDateUpdateSuccess(false);
+  };
+
+  const handleSaveReportDate = async (e) => {
+    e.preventDefault();
+    if (!editingReport || !newReportDate) return;
+    const curDate = editingReport.date ? (editingReport.date.includes('T') ? editingReport.date.split('T')[0] : editingReport.date) : '';
+    if (newReportDate === curDate) {
+      handleCloseDateModal();
+      return;
+    }
+
+    setIsUpdatingDate(true);
+    try {
+      if (onUpdateReportDate) {
+        await onUpdateReportDate(editingReport, newReportDate);
+        if (selectedReport && selectedReport.id === editingReport.id) {
+          setSelectedReport(prev => ({
+            ...prev,
+            date: newReportDate
+          }));
+        }
+      }
+      setDateUpdateSuccess(true);
+      setTimeout(() => {
+        handleCloseDateModal();
+      }, 700);
+    } catch (err) {
+      console.error('Error updating report date:', err);
+    } finally {
+      setIsUpdatingDate(false);
+    }
+  };
+
+  const handleDeleteReport = async (report) => {
+    const reportInfo = `${report.teacherName || 'Εκπαιδευτικός'} — ${report.courseTitle || 'Μάθημα'} (${formatDateDisplay(report.date)})`;
+    const absCount = report.absences ? report.absences.length : (report.absentStudents ? report.absentStudents.length : 0);
+    const absencesWarning = absCount > 0
+      ? `\n\n⚠️ ΠΡΟΣΟΧΗ: Θα διαγραφούν αυτόματα και οι ${absCount} ${absCount === 1 ? 'απουσία' : 'απουσίες'} μαθητών που είχαν καταχωρηθεί με αυτή τη δήλωση!`
+      : '';
     const confirmed = window.confirm(
-      `Επιβεβαίωση Διαγραφής:\n\nΕίστε βέβαιοι ότι θέλετε να διαγράψετε τη δήλωση μαθήματος:\n"${reportInfo}";\n\nΗ ενέργεια αυτή θα διαγράψει οριστικά τη δήλωση από το σύστημα.`
+      `Επιβεβαίωση Διαγραφής:\n\nΕίστε βέβαιοι ότι θέλετε να διαγράψετε τη δήλωση μαθήματος:\n"${reportInfo}";${absencesWarning}\n\nΗ ενέργεια αυτή θα διαγράψει οριστικά τη δήλωση και τις σχετικές απουσίες από το σύστημα.`
     );
     if (!confirmed) return;
 
     if (onDeleteReport) {
-      onDeleteReport(report.id);
+      await onDeleteReport(report);
     }
     if (selectedReport && selectedReport.id === report.id) {
       setSelectedReport(null);
@@ -114,13 +182,13 @@ export default function AdminTeacherReportsView({
           <table className="desktop-table">
             <thead>
               <tr>
-                <th style={{ width: '13%' }}>Ημερομηνία</th>
-                <th style={{ width: '22%' }}>Εκπαιδευτής</th>
-                <th style={{ width: '30%' }}>Μάθημα / Ειδικότητα</th>
+                <th style={{ width: '14%' }}>Ημερομηνία</th>
+                <th style={{ width: '21%' }}>Εκπαιδευτής</th>
+                <th style={{ width: '29%' }}>Μάθημα / Ειδικότητα</th>
                 <th style={{ width: '13%', textAlign: 'center' }}>Χτύπημα Κάρτας</th>
                 <th style={{ width: '7%', textAlign: 'center' }}>Ώρες</th>
                 <th style={{ width: '8%', textAlign: 'center' }}>Απουσίες</th>
-                <th style={{ width: '7%', textAlign: 'center' }}>Ενέργειες</th>
+                <th style={{ width: '8%', textAlign: 'center' }}>Ενέργειες</th>
               </tr>
             </thead>
             <tbody>
@@ -131,7 +199,37 @@ export default function AdminTeacherReportsView({
                 return (
                   <tr key={report.id}>
                     <td style={{ fontWeight: '500', color: '#0f172a' }}>
-                      {new Date(report.date).toLocaleDateString('el-GR')}
+                      <div 
+                        onClick={() => onUpdateReportDate && handleOpenDateModal(report)}
+                        style={{ 
+                          display: 'inline-flex', 
+                          alignItems: 'center', 
+                          gap: '6px',
+                          cursor: onUpdateReportDate ? 'pointer' : 'default',
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          transition: 'all 0.15s ease',
+                          border: onUpdateReportDate ? '1px solid transparent' : 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (onUpdateReportDate) {
+                            e.currentTarget.style.backgroundColor = '#eff6ff';
+                            e.currentTarget.style.borderColor = '#bfdbfe';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (onUpdateReportDate) {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.borderColor = 'transparent';
+                          }
+                        }}
+                        title={onUpdateReportDate ? "Κάντε κλικ για αλλαγή ημερομηνίας δήλωσης" : undefined}
+                      >
+                        <span>{formatDateDisplay(report.date)}</span>
+                        {onUpdateReportDate && (
+                          <Edit2 size={12} style={{ color: '#2563eb', opacity: 0.8 }} />
+                        )}
+                      </div>
                     </td>
                     <td style={{ fontWeight: '600', color: '#334155' }}>
                       {report.teacherName}
@@ -165,16 +263,31 @@ export default function AdminTeacherReportsView({
                       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '6px' }}>
                         <button 
                           onClick={() => setSelectedReport(report)}
-                          style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}
+                          style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '4px', borderRadius: '4px', transition: 'transform 0.15s ease' }}
                           title="Προβολή Αναφοράς"
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >
                           <Eye size={18} />
                         </button>
+                        {onUpdateReportDate && (
+                          <button 
+                            onClick={(e) => handleOpenDateModal(report, e)}
+                            style={{ background: 'transparent', border: 'none', color: '#d97706', cursor: 'pointer', padding: '4px', borderRadius: '4px', transition: 'transform 0.15s ease' }}
+                            title="Αλλαγή Ημερομηνίας Δήλωσης"
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                          >
+                            <CalendarIcon size={18} />
+                          </button>
+                        )}
                         {onDeleteReport && (
                           <button 
                             onClick={() => handleDeleteReport(report)}
-                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', borderRadius: '4px' }}
+                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', borderRadius: '4px', transition: 'transform 0.15s ease' }}
                             title="Διαγραφή Αναφοράς"
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                           >
                             <Trash2 size={18} />
                           </button>
@@ -233,14 +346,42 @@ export default function AdminTeacherReportsView({
                 <div style={{ height: '1px', background: '#f1f5f9', width: '100%' }}></div>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: selectedReport.arrivalTime && selectedReport.departureTime ? '1fr 1fr 1fr' : '1fr 1fr', gap: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px' }}>
-                      <CalendarIcon size={16} color="#64748b" />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ background: '#f8fafc', padding: '6px', borderRadius: '6px' }}>
+                        <CalendarIcon size={16} color="#64748b" />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>Ημερομηνία</div>
+                        <span style={{ fontWeight: '600', color: '#334155', fontSize: '13px' }}>{formatDateDisplay(selectedReport.date)}</span>
+                      </div>
                     </div>
-                    <div>
-                      <div style={{ fontSize: '11px', color: '#94a3b8' }}>Ημερομηνία</div>
-                      <span style={{ fontWeight: '600', color: '#334155', fontSize: '13px' }}>{new Date(selectedReport.date).toLocaleDateString('el-GR')}</span>
-                    </div>
+                    {onUpdateReportDate && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDateModal(selectedReport)}
+                        style={{
+                          background: '#eff6ff',
+                          color: '#2563eb',
+                          border: '1px solid #bfdbfe',
+                          borderRadius: '6px',
+                          padding: '3px 8px',
+                          fontSize: '11.5px',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title="Αλλαγή Ημερομηνίας Δήλωσης"
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#dbeafe'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = '#eff6ff'}
+                      >
+                        <Edit2 size={12} />
+                        <span>Αλλαγή</span>
+                      </button>
+                    )}
                   </div>
 
                   {selectedReport.arrivalTime && selectedReport.departureTime && (
@@ -502,6 +643,164 @@ export default function AdminTeacherReportsView({
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Date Edit Modal */}
+      {editingReport && (
+        <div 
+          className="sys-modal-overlay" 
+          style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            backgroundColor: 'rgba(15, 23, 42, 0.55)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 1200, 
+            backdropFilter: 'blur(4px)' 
+          }}
+          onClick={handleCloseDateModal}
+        >
+          <div 
+            className="sys-modal" 
+            style={{ 
+              background: '#ffffff', 
+              borderRadius: '14px', 
+              width: '100%', 
+              maxWidth: '460px', 
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', 
+              overflow: 'hidden' 
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ background: '#eff6ff', padding: '6px', borderRadius: '6px', display: 'flex' }}>
+                  <CalendarIcon size={18} color="#2563eb" />
+                </div>
+                Αλλαγή Ημερομηνίας Δήλωσης
+              </h3>
+              <button
+                onClick={handleCloseDateModal}
+                disabled={isUpdatingDate}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '6px', borderRadius: '6px', color: '#64748b' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveReportDate} style={{ padding: '20px' }}>
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+                <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#0f172a', marginBottom: '4px' }}>
+                  {editingReport.courseTitle}
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                  <span>Εκπαιδευτής: <strong style={{ color: '#334155' }}>{editingReport.teacherName}</strong></span>
+                  <span>Τρέχουσα: <strong style={{ color: '#334155' }}>{formatDateDisplay(editingReport.date)}</strong></span>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#334155', marginBottom: '6px' }}>
+                  Νέα Ημερομηνία Δήλωσης <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="date"
+                  value={newReportDate}
+                  onChange={(e) => setNewReportDate(e.target.value)}
+                  required
+                  disabled={isUpdatingDate}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: '#0f172a',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    background: '#ffffff'
+                  }}
+                />
+              </div>
+
+              {/* Notice about absences */}
+              {(() => {
+                const absCount = editingReport.absences ? editingReport.absences.length : (editingReport.absentStudents ? editingReport.absentStudents.length : 0);
+                return absCount > 0 ? (
+                  <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', padding: '10px 12px', borderRadius: '8px', fontSize: '12px', color: '#92400e', marginBottom: '20px', display: 'flex', gap: '8px', lineHeight: '1.45' }}>
+                    <span style={{ fontSize: '15px' }}>ℹ️</span>
+                    <div>
+                      <strong>Συγχρονισμός Απουσιών:</strong> Η δήλωση περιλαμβάνει <strong>{absCount} {absCount === 1 ? 'απουσία' : 'απουσίες'}</strong> μαθητών. Η ημερομηνία τους στο απουσιολόγιο και στις καρτέλες των σπουδαστών θα μεταφερθεί αυτόματα στη νέα ημερομηνία.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ background: '#f0fdf4', border: '1px solid #dcfce7', padding: '10px 12px', borderRadius: '8px', fontSize: '12px', color: '#166534', marginBottom: '20px' }}>
+                    ✓ Δεν υπάρχουν καταχωρημένες απουσίες σπουδαστών σε αυτή τη δήλωση.
+                  </div>
+                );
+              })()}
+
+              {dateUpdateSuccess && (
+                <div style={{ background: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: '600', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CheckCircle2 size={16} />
+                  <span>Η ημερομηνία ενημερώθηκε επιτυχώς!</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={handleCloseDateModal}
+                  disabled={isUpdatingDate}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    color: '#475569',
+                    fontWeight: '600',
+                    fontSize: '13px',
+                    cursor: isUpdatingDate ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  Ακύρωση
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingDate || !newReportDate || newReportDate === (editingReport.date ? editingReport.date.split('T')[0] : '')}
+                  style={{
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: (isUpdatingDate || !newReportDate || newReportDate === (editingReport.date ? editingReport.date.split('T')[0] : '')) ? '#94a3b8' : '#2563eb',
+                    color: '#ffffff',
+                    fontWeight: '600',
+                    fontSize: '13px',
+                    cursor: (isUpdatingDate || !newReportDate || newReportDate === (editingReport.date ? editingReport.date.split('T')[0] : '')) ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {isUpdatingDate ? (
+                    <>
+                      <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                      <span>Αποθήκευση...</span>
+                    </>
+                  ) : (
+                    <span>Αποθήκευση Αλλαγής</span>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

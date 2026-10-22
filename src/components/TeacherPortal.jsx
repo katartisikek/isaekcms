@@ -23,22 +23,58 @@ export default function TeacherPortal({
 }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   
+  // Helper for today's local date (YYYY-MM-DD)
+  const getTodayDateString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Report state
   const [reportSpecialtyId, setReportSpecialtyId] = useState(() => localStorage.getItem('tp_specialtyId') || '');
   const [reportCourse, setReportCourse] = useState(() => localStorage.getItem('tp_course') || '');
   const [reportSectionId, setReportSectionId] = useState(() => localStorage.getItem('tp_sectionId') || '');
-  const [reportDate, setReportDate] = useState(() => localStorage.getItem('tp_date') || new Date().toISOString().split('T')[0]);
+  // Always initialize report date to current day
+  const [reportDate, setReportDate] = useState(getTodayDateString);
   const [reportArrivalTime, setReportArrivalTime] = useState(() => localStorage.getItem('tp_arrivalTime') || '');
   const [reportDepartureTime, setReportDepartureTime] = useState(() => localStorage.getItem('tp_departureTime') || '');
+
+  // Clear legacy tp_date from localStorage if present
+  useEffect(() => {
+    localStorage.removeItem('tp_date');
+  }, []);
+
+  // Automatically update report date to current day when entering report tab
+  useEffect(() => {
+    if (activeTab === 'report') {
+      setReportDate(getTodayDateString());
+    }
+  }, [activeTab]);
+
+  // Keep date current when window/tab is focused or visible again
+  useEffect(() => {
+    const updateDateToToday = () => {
+      if (document.visibilityState === 'visible') {
+        setReportDate(getTodayDateString());
+      }
+    };
+    window.addEventListener('focus', updateDateToToday);
+    document.addEventListener('visibilitychange', updateDateToToday);
+    return () => {
+      window.removeEventListener('focus', updateDateToToday);
+      document.removeEventListener('visibilitychange', updateDateToToday);
+    };
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('tp_specialtyId', reportSpecialtyId);
     localStorage.setItem('tp_course', reportCourse);
     localStorage.setItem('tp_sectionId', reportSectionId);
-    localStorage.setItem('tp_date', reportDate);
     localStorage.setItem('tp_arrivalTime', reportArrivalTime);
     localStorage.setItem('tp_departureTime', reportDepartureTime);
-  }, [reportSpecialtyId, reportCourse, reportSectionId, reportDate, reportArrivalTime, reportDepartureTime]);
+  }, [reportSpecialtyId, reportCourse, reportSectionId, reportArrivalTime, reportDepartureTime]);
   const [currentReportAbsences, setCurrentReportAbsences] = useState({});
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [reportSaving, setReportSaving] = useState(false);
@@ -259,6 +295,7 @@ export default function TeacherPortal({
     setReportSaving(true);
     try {
       const specialtyTitle = specialties.find(s => s.id === reportSpecialtyId)?.title || '';
+      const reportId = `rep_${Date.now()}`;
 
       // Save absences
       const newAbsences = [];
@@ -273,7 +310,7 @@ export default function TeacherPortal({
             date: reportDate,
             hours: finalHours,
             type: 'absence',
-            notes: `Ώρα: ${reportArrivalTime} - ${reportDepartureTime}`
+            notes: `Ώρα: ${reportArrivalTime} - ${reportDepartureTime} [rep:${reportId}]`
           });
         }
       });
@@ -295,7 +332,7 @@ export default function TeacherPortal({
       const sectionName = selectedSection ? selectedSection.name : specialtyTitle;
 
       const newReport = {
-        id: `rep_${Date.now()}`,
+        id: reportId,
         teacherId: teacher.id,
         teacherName: teacher.name,
         sectionId: reportSectionId || reportSpecialtyId,
@@ -329,6 +366,7 @@ export default function TeacherPortal({
         setReportArrivalTime('');
         setReportDepartureTime('');
         setCurrentReportAbsences({});
+        setReportDate(getTodayDateString());
       }, 3000);
     } catch (e) {
       alert('Σφάλμα: ' + e.message);
@@ -688,7 +726,35 @@ export default function TeacherPortal({
 
                 {/* Date */}
                 <div className="tp-form-group">
-                  <label className="tp-label"><CalendarIcon size={14} /> Ημερομηνία</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label className="tp-label" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CalendarIcon size={14} /> Ημερομηνία
+                      {reportDate === getTodayDateString() && (
+                        <span style={{ fontSize: '11px', background: '#dcfce7', color: '#15803d', padding: '1px 7px', borderRadius: '10px', fontWeight: '600' }}>
+                          Σήμερα
+                        </span>
+                      )}
+                    </label>
+                    {reportDate !== getTodayDateString() && (
+                      <button
+                        type="button"
+                        onClick={() => setReportDate(getTodayDateString())}
+                        style={{
+                          background: '#eff6ff',
+                          color: '#2563eb',
+                          border: '1px solid #bfdbfe',
+                          borderRadius: '6px',
+                          padding: '2px 8px',
+                          fontSize: '11px',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                        title="Επαναφορά στη σημερινή ημέρα"
+                      >
+                        Επαναφορά σε Σήμερα
+                      </button>
+                    )}
+                  </div>
                   <input
                     type="date"
                     className="tp-input"

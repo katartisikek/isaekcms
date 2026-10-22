@@ -214,6 +214,11 @@ export const api = {
     if (error) throw error;
     return data;
   },
+  async deleteAbsences(ids) {
+    if (!ids || ids.length === 0) return;
+    const { error } = await supabase.from('absences').delete().in('id', ids);
+    if (error) throw error;
+  },
   async deleteAbsencesForStudentCourse(studentId, courseTitle) {
     const { error } = await supabase.from('absences').delete().eq('studentId', studentId).eq('courseTitle', courseTitle);
     if (error) throw error;
@@ -235,6 +240,25 @@ export const api = {
   async deleteTeacherReport(id) {
     const { error } = await supabase.from('teacher_reports').delete().eq('id', id);
     if (error) throw error;
+  },
+  async updateTeacherReportDate(id, newDate) {
+    const { data, error } = await supabase
+      .from('teacher_reports')
+      .update({ date: newDate })
+      .eq('id', id)
+      .select();
+    if (error) throw error;
+    return data ? data[0] : null;
+  },
+  async updateAbsencesDate(ids, newDate) {
+    if (!ids || ids.length === 0) return [];
+    const { data, error } = await supabase
+      .from('absences')
+      .update({ date: newDate })
+      .in('id', ids)
+      .select();
+    if (error) throw error;
+    return data || [];
   },
 
   // Events
